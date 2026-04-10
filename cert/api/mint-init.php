@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_metadata-cdn.php';
+require_once __DIR__ . '/_artifact-cdn.php';
 
 /**
  * /var/www/html/public/rwa/cert/api/mint-init.php
@@ -46,7 +47,6 @@ if (!defined('RWA_CORE_BOOTSTRAPPED')) {
         http_response_code(500);
         echo json_encode([
 
-    '_debug_metadata_url' => $metadataUrl ?? null,
 
             'ok' => false,
             'error' => 'BOOTSTRAP_NOT_FOUND',
@@ -471,11 +471,11 @@ function mi_canonical_paths(array $cert): array
         'qr_png_path' => $baseAbs . '/verify/qr.png',
         'debug_path' => $baseAbs . '/verify/debug-composited.png',
         'verify_page_url' => mi_site_url() . '/rwa/cert/verify.php?uid=' . rawurlencode($uid),
-        'verify_json_url' => mi_url_from_abs($baseAbs . '/verify/verify.json'),
-        'image_url' => mi_url_from_abs($baseAbs . '/nft/image.png'),
+        'verify_json_url' => cert_artifact_cdn_url_from_local($baseAbs . '/verify/verify.json'),
+        'image_url' => cert_artifact_cdn_url_from_local($baseAbs . '/nft/image.png'),
         'metadata_url' => $metadataUrl,
-        'qr_png_url' => mi_url_from_abs($baseAbs . '/verify/qr.png'),
-        'debug_url' => mi_url_from_abs($baseAbs . '/verify/debug-composited.png'),
+        'qr_png_url' => cert_artifact_cdn_url_from_local($baseAbs . '/verify/qr.png'),
+        'debug_url' => cert_artifact_cdn_url_from_local($baseAbs . '/verify/debug-composited.png'),
     ];
 }
 
