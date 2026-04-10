@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/_metadata-cdn.php';
+
 /**
  * /var/www/html/public/rwa/cert/api/mint-init.php
  * Version: v19.0.0-20260409-final-no-duplicate-metadata-write
@@ -909,7 +911,9 @@ function mi_build_real_payload_v10(string $certUid, string $metadataRelPath, str
         throw new RuntimeException('BUILD_MINT_PAYLOAD_V10_INVALID_JSON');
     }
 
-    foreach (['recipient','amount_ton','amount_nano','payload_b64','valid_until','item_index','query_id','collection_address','metadata_path'] as $k) {
+    foreach (['recipient','amount_ton','amount_nano','
+$metadataUrl = cert_metadata_try_public_url($row, is_array($meta ?? null) ? $meta : []);
+payload_b64','valid_until','item_index','query_id','collection_address','metadata_path'] as $k) {
         if (!array_key_exists($k, $json) || trim((string)$json[$k]) === '') {
             throw new RuntimeException('BUILD_MINT_PAYLOAD_V10_MISSING_' . strtoupper($k));
         }
