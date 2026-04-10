@@ -33,33 +33,6 @@
 
   const $ = (id) => document.getElementById(id);
 
-  function hydrateMintPanel(res) {
-    const mint = res || {};
-    const set = (id, v) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = (v === undefined || v === null || String(v).trim() === '') ? '—' : String(v);
-    };
-
-    set('mintRecipient', mint.recipient || mint.to || '');
-    set('mintTo', mint.recipient || mint.to || '');
-    set('mintAmountTon', mint.amount_ton || '');
-    set('amountTon', mint.amount_ton || '');
-    set('mintPayload', mint.payload_b64 ? '[READY]' : '—');
-    set('payloadB64', mint.payload_b64 ? '[READY]' : '—');
-
-    window.__MINT_CTX = {
-      recipient: mint.recipient || mint.to || '',
-      amount_ton: mint.amount_ton || '',
-      amount_nano: mint.amount_nano || '',
-      payload_b64: mint.payload_b64 || '',
-      deeplink: mint.deeplink || mint.wallet_link || ''
-    };
-  }
-
-  function mintCtxReady() {
-    return !!(window.__MINT_CTX && window.__MINT_CTX.payload_b64 && window.__MINT_CTX.amount_nano);
-  }
-
   function isoNow() {
     return new Date().toISOString();
   }
