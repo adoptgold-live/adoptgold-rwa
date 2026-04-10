@@ -3,769 +3,605 @@ declare(strict_types=1);
 
 /**
  * /var/www/html/public/rwa/cert/api/confirm-payment.php
- * Version: v6.0.0-20260410-final-payment-authority
+ * Version: v3.0.0-20260410-payment-authority-lock
  *
- * FINAL LOCK
- * - Business payment authority for cert flow
- * - Match rule = token master + exact amount_units + payment_ref/comment
- * - Destination is NOT required
- * - DB truth first, UI never authoritative
- * - Success writes:
- *     poado_rwa_cert_payments.status   = confirmed
- *     poado_rwa_cert_payments.verified = 1
- *     poado_rwa_certs.status           = paid
- * - Replay protection on tx_hash
- * - Safe unified JSON response
+ * PAYMENT AUTHORITY LOCK
+ * - confirm-payment.php is the only payment verification authority
+ * - accept only when:
+ *     1) token_master exact match
+ *     2) amount_units exact match
+ *     3) payment_ref exact match in decoded memo/comment/payload text
+ * - persist tx_hash into poado_rwa_cert_payments.tx_hash
+ * - set poado_rwa_cert_payments.status='confirmed'
+ * - set poado_rwa_cert_payments.verified=1
+ * - set poado_rwa_cert_payments.paid_at=NOW()
+ * - set poado_rwa_certs.paid_at=NOW()
+ * - DO NOT use poado_rwa_certs.status for payment lifecycle
+ * - DO NOT auto-confirm no-memo payments
  */
 
 header('Content-Type: application/json; charset=utf-8');
 
-require_once dirname(__DIR__, 2) . '/inc/bootstrap.php';
-require_once __DIR__ . '/_helpers.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/dashboard/inc/bootstrap.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/dashboard/inc/session-user.php';
 
-if (!function_exists('db_connect')) {
-    http_response_code(500);
-    echo json_encode([
-        'ok'    => false,
-        'error' => 'BOOTSTRAP_DB_CONNECT_MISSING',
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-$pdo = db_connect();
-
-function cp_json(array $data, int $status = 200): void
+function cp_json(array $data, int $status = 200): never
 {
     http_response_code($status);
     echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function cp_now_utc(): string
+function cp_fail(string $error, int $status = 400, array $extra = []): never
 {
-    return gmdate('Y-m-d H:i:s');
+    cp_json(array_merge([
+        'ok' => false,
+        'error' => $error,
+        'ts' => time(),
+    ], $extra), $status);
 }
 
-function cp_read_input(): array
+function cp_ok(array $extra = []): never
+{
+    cp_json(array_merge([
+        'ok' => true,
+        'ts' => time(),
+    ], $extra));
+}
+
+function cp_str(mixed $v): string
+{
+    return trim((string)($v ?? ''));
+}
+
+function cp_env(string $key, string $default = ''): string
+{
+    $v = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+    $v = is_string($v) ? trim($v) : '';
+    return $v !== '' ? $v : $default;
+}
+
+function cp_parse_json_body(): array
 {
     $raw = file_get_contents('php://input');
-    if ($raw === false || $raw === '') {
+    if (!is_string($raw) || trim($raw) === '') {
         return [];
     }
-    $json = json_decode($raw, true);
-    return is_array($json) ? $json : [];
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
 }
 
-function cp_get_cert_uid(): string
+function cp_meta_decode(?string $json): array
 {
-    $in = cp_read_input();
-
-    $candidates = [
-        $in['cert_uid'] ?? null,
-        $in['uid'] ?? null,
-        $in['cert'] ?? null,
-        $_POST['cert_uid'] ?? null,
-        $_POST['uid'] ?? null,
-        $_POST['cert'] ?? null,
-        $_GET['cert_uid'] ?? null,
-        $_GET['uid'] ?? null,
-        $_GET['cert'] ?? null,
-    ];
-
-    foreach ($candidates as $v) {
-        $s = trim((string)$v);
-        if ($s !== '') {
-            return $s;
-        }
-    }
-    return '';
-}
-
-function cp_norm_addr_raw(string $addr): string
-{
-    $addr = trim($addr);
-    if ($addr === '') {
-        return '';
-    }
-
-    if (strpos($addr, ':') !== false) {
-        [$wc, $hex] = array_pad(explode(':', $addr, 2), 2, '');
-        $hex = strtolower(preg_replace('/[^0-9a-f]/i', '', $hex));
-        if ($hex !== '') {
-            return ((string)(int)$wc) . ':' . $hex;
-        }
-    }
-
-    return $addr;
-}
-
-function cp_eq_to_raw(string $friendly): string
-{
-    $friendly = trim($friendly);
-    if ($friendly === '') {
-        return '';
-    }
-
-    if (strpos($friendly, ':') !== false) {
-        return cp_norm_addr_raw($friendly);
-    }
-
-    if (!class_exists('\\Tonkeeper\\Tongo\\Address')) {
-        return $friendly;
-    }
-
+    if (!$json) return [];
     try {
-        /** @var \Tonkeeper\Tongo\Address $parsed */
-        $parsed = \Tonkeeper\Tongo\Address::fromString($friendly);
-        return cp_norm_addr_raw($parsed->toRaw());
-    } catch (\Throwable $e) {
-        return $friendly;
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        return is_array($data) ? $data : [];
+    } catch (Throwable) {
+        return [];
     }
 }
 
-function cp_norm_any_addr(string $addr): string
+function cp_meta_get(array $arr, array $path, mixed $default = null): mixed
 {
-    $addr = trim($addr);
-    if ($addr === '') {
-        return '';
+    $cur = $arr;
+    foreach ($path as $seg) {
+        if (!is_array($cur) || !array_key_exists($seg, $cur)) {
+            return $default;
+        }
+        $cur = $cur[$seg];
     }
-
-    if (strpos($addr, ':') !== false) {
-        return cp_norm_addr_raw($addr);
-    }
-
-    $raw = cp_eq_to_raw($addr);
-    return cp_norm_addr_raw($raw);
+    return $cur;
 }
 
-function cp_norm_master_compare(string $addr): string
-{
-    return cp_norm_any_addr($addr);
-}
-
-function cp_norm_ref(string $s): string
+function cp_normalize_master(string $s): string
 {
     $s = trim($s);
-    if ($s === '') {
-        return '';
-    }
-    return preg_replace('/\s+/', ' ', $s);
+    return $s === '' ? '' : strtolower($s);
 }
 
-function cp_extract_comment_from_transfer(array $row): string
+function cp_extract_text_candidates(array $row): array
 {
-    $candidates = [
-        $row['comment'] ?? null,
-        $row['payload'] ?? null,
-        $row['text'] ?? null,
-        $row['memo'] ?? null,
-        $row['ref'] ?? null,
-        $row['decoded_forward_payload']['comment'] ?? null,
-        $row['forward_payload_comment'] ?? null,
-        $row['decoded_payload']['comment'] ?? null,
-    ];
+    $candidates = [];
 
-    foreach ($candidates as $v) {
-        $s = trim((string)$v);
-        if ($s !== '') {
-            return cp_norm_ref($s);
+    foreach ([
+        'comment',
+        'decoded_forward_payload',
+        'decoded_payload',
+        'payload_comment',
+        'text',
+        'message',
+        'body',
+        'forward_payload_comment',
+    ] as $key) {
+        $val = cp_str($row[$key] ?? '');
+        if ($val !== '') $candidates[] = $val;
+    }
+
+    foreach ([
+        'forward_payload',
+        'payload',
+        'body_b64',
+        'message_b64',
+    ] as $key) {
+        $raw = cp_str($row[$key] ?? '');
+        if ($raw === '') continue;
+
+        $candidates[] = $raw;
+
+        $decoded = base64_decode(strtr($raw, '-_', '+/'), true);
+        if ($decoded !== false) {
+            $decoded = trim($decoded);
+            if ($decoded !== '') $candidates[] = $decoded;
         }
     }
 
-    $fp = trim((string)($row['forward_payload'] ?? ''));
-    if ($fp !== '') {
-        $decoded = base64_decode(strtr($fp, '-_', '+/'), true);
-        if ($decoded !== false && preg_match('/PAY-[A-Z0-9]+/i', $decoded, $m)) {
-            return cp_norm_ref($m[0]);
+    $out = [];
+    foreach ($candidates as $c) {
+        $c = trim($c);
+        if ($c !== '') $out[] = $c;
+    }
+
+    return array_values(array_unique($out));
+}
+
+function cp_find_ref_hit(array $row, string $paymentRef): array
+{
+    $paymentRef = cp_str($paymentRef);
+    if ($paymentRef === '') {
+        return ['matched' => false, 'matched_text' => '', 'candidates' => []];
+    }
+
+    $candidates = cp_extract_text_candidates($row);
+    foreach ($candidates as $text) {
+        if (stripos($text, $paymentRef) !== false) {
+            return ['matched' => true, 'matched_text' => $text, 'candidates' => $candidates];
         }
     }
 
-    return '';
+    return ['matched' => false, 'matched_text' => '', 'candidates' => $candidates];
 }
 
-function cp_build_payment_from_rows(array $certRow, ?array $paymentRow): array
+function cp_http_get_json(string $url, array $headers = []): array
 {
-    $meta = [];
-    if (!empty($certRow['meta_json'])) {
-        $decoded = json_decode((string)$certRow['meta_json'], true);
-        if (is_array($decoded)) {
-            $meta = $decoded;
-        }
-    }
-
-    $metaPayment = is_array($meta['payment'] ?? null) ? $meta['payment'] : [];
-
-    $paymentRef = trim((string)(
-        $paymentRow['payment_ref'] ??
-        $certRow['payment_ref'] ??
-        $metaPayment['payment_ref'] ??
-        ''
-    ));
-
-    $tokenSymbol = trim((string)(
-        $paymentRow['token_symbol'] ??
-        $paymentRow['payment_token'] ??
-        $certRow['payment_token'] ??
-        $metaPayment['token_symbol'] ??
-        $metaPayment['payment_token'] ??
-        'EMA$'
-    ));
-
-    $tokenMaster = trim((string)(
-        $paymentRow['token_master'] ??
-        $metaPayment['token_master'] ??
-        ''
-    ));
-
-    $amountUnits = trim((string)(
-        $paymentRow['amount_units'] ??
-        $paymentRow['payment_amount_units'] ??
-        $certRow['payment_amount_units'] ??
-        $metaPayment['amount_units'] ??
-        ''
-    ));
-
-    $amount = trim((string)(
-        $paymentRow['amount'] ??
-        $paymentRow['payment_amount'] ??
-        $certRow['payment_amount'] ??
-        $metaPayment['amount'] ??
-        ''
-    ));
-
-    $destination = trim((string)(
-        $paymentRow['destination'] ??
-        $metaPayment['destination'] ??
-        ''
-    ));
-
-    $decimals = (int)($paymentRow['decimals'] ?? $metaPayment['decimals'] ?? 9);
-    $status = trim((string)($paymentRow['status'] ?? 'pending'));
-    $verified = (int)($paymentRow['verified'] ?? 0);
-    $txHash = trim((string)($paymentRow['tx_hash'] ?? ''));
-    $paidAt = trim((string)($paymentRow['paid_at'] ?? ''));
-
-    $deeplink = trim((string)(
-        $paymentRow['deeplink'] ??
-        $paymentRow['wallet_link'] ??
-        $metaPayment['deeplink'] ??
-        $metaPayment['wallet_link'] ??
-        $metaPayment['wallet_url'] ??
-        ''
-    ));
-
-    $walletLink = trim((string)(
-        $paymentRow['wallet_link'] ??
-        $paymentRow['wallet_url'] ??
-        $metaPayment['wallet_link'] ??
-        $metaPayment['wallet_url'] ??
-        $deeplink
-    ));
-
-    $qrPayload = trim((string)(
-        $paymentRow['qr_payload'] ??
-        $metaPayment['qr_payload'] ??
-        $deeplink
-    ));
-
-    $qrText = trim((string)(
-        $paymentRow['qr_text'] ??
-        $metaPayment['qr_text'] ??
-        $qrPayload
-    ));
-
-    $qrImage = trim((string)(
-        $paymentRow['qr_image'] ??
-        $paymentRow['qr_url'] ??
-        $metaPayment['qr_image'] ??
-        $metaPayment['qr_url'] ??
-        ''
-    ));
-
-    return [
-        'status'       => $status !== '' ? $status : 'pending',
-        'verified'     => $verified,
-        'token_symbol' => $tokenSymbol,
-        'token_master' => $tokenMaster,
-        'amount'       => $amount,
-        'amount_units' => $amountUnits,
-        'payment_ref'  => $paymentRef,
-        'destination'  => $destination,
-        'deeplink'     => $deeplink,
-        'wallet_link'  => $walletLink !== '' ? $walletLink : $deeplink,
-        'qr_payload'   => $qrPayload !== '' ? $qrPayload : $deeplink,
-        'qr_image'     => $qrImage,
-        'qr_text'      => $qrText !== '' ? $qrText : $deeplink,
-        'tx_hash'      => $txHash,
-        'paid_at'      => $paidAt,
-        'decimals'     => $decimals,
-        'ton_wallet'   => trim((string)($certRow['ton_wallet'] ?? '')),
-    ];
-}
-
-function cp_find_cert(PDO $pdo, string $certUid): ?array
-{
-    $sql = "SELECT *
-            FROM poado_rwa_certs
-            WHERE cert_uid = :uid
-            LIMIT 1";
-    $st = $pdo->prepare($sql);
-    $st->execute([':uid' => $certUid]);
-    $row = $st->fetch(PDO::FETCH_ASSOC);
-    return is_array($row) ? $row : null;
-}
-
-function cp_find_payment_row(PDO $pdo, string $certUid): ?array
-{
-    $tables = ['poado_rwa_cert_payments'];
-
-    foreach ($tables as $table) {
-        try {
-            $sql = "SELECT *
-                    FROM {$table}
-                    WHERE cert_uid = :uid
-                    ORDER BY id DESC
-                    LIMIT 1";
-            $st = $pdo->prepare($sql);
-            $st->execute([':uid' => $certUid]);
-            $row = $st->fetch(PDO::FETCH_ASSOC);
-            if (is_array($row)) {
-                return $row;
-            }
-        } catch (\Throwable $e) {
-            continue;
-        }
-    }
-
-    return null;
-}
-
-function cp_get_toncenter_base(): string
-{
-    $candidates = [
-        getenv('TONCENTER_V3_BASE') ?: '',
-        getenv('TONCENTER_BASE') ?: '',
-        'https://toncenter.com/api/v3',
-    ];
-
-    foreach ($candidates as $base) {
-        $base = rtrim(trim($base), '/');
-        if ($base !== '') {
-            return $base;
-        }
-    }
-
-    return 'https://toncenter.com/api/v3';
-}
-
-function cp_get_toncenter_key(): string
-{
-    $keys = [
-        getenv('TONCENTER_API_KEY') ?: '',
-        getenv('TON_API_KEY') ?: '',
-    ];
-
-    foreach ($keys as $k) {
-        $k = trim($k);
-        if ($k !== '') {
-            return $k;
-        }
-    }
-
-    return '';
-}
-
-function cp_http_get_json(string $url): array
-{
-    $headers = ['Accept: application/json'];
-    $apiKey = cp_get_toncenter_key();
-    if ($apiKey !== '') {
-        $headers[] = 'X-API-Key: ' . $apiKey;
-    }
-
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 15,
-        CURLOPT_TIMEOUT => 30,
+        CURLOPT_TIMEOUT => 25,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTPHEADER => $headers,
     ]);
-
     $body = curl_exec($ch);
     $errno = curl_errno($ch);
     $error = curl_error($ch);
-    $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($errno !== 0) {
-        throw new RuntimeException('CURL_ERROR: ' . $error);
-    }
-    if ($http < 200 || $http >= 300) {
-        throw new RuntimeException('HTTP_' . $http);
+    if ($errno) {
+        throw new RuntimeException('CURL_' . $errno . ':' . $error);
     }
 
     $json = json_decode((string)$body, true);
     if (!is_array($json)) {
-        throw new RuntimeException('INVALID_JSON');
+        throw new RuntimeException('INVALID_JSON_RESPONSE');
+    }
+
+    if ($code >= 400) {
+        $msg = cp_str($json['error'] ?? $json['message'] ?? ('HTTP_' . $code));
+        throw new RuntimeException($msg !== '' ? $msg : ('HTTP_' . $code));
     }
 
     return $json;
 }
 
-function cp_query_recent_transfers(string $destination, int $limit = 200): array
+function cp_toncenter_headers(): array
 {
-    $base = cp_get_toncenter_base();
-    $destinationRaw = cp_norm_any_addr($destination);
+    $headers = ['Accept: application/json'];
+    $key = cp_env('TONCENTER_API_KEY', '');
+    if ($key !== '') {
+        $headers[] = 'X-API-Key: ' . $key;
+    }
+    return $headers;
+}
 
+function cp_url_encode(string $s): string
+{
+    return rawurlencode($s);
+}
+
+function cp_toncenter_fetch_candidates(string $wallet, string $recipient, int $limit = 100): array
+{
+    $base = rtrim(cp_env('TONCENTER_V3_BASE', 'https://toncenter.com/api/v3'), '/');
+    if ($base === '') {
+        throw new RuntimeException('TONCENTER_V3_BASE_MISSING');
+    }
+
+    $headers = cp_toncenter_headers();
     $queries = [];
 
-    if ($destinationRaw !== '') {
-        $queries[] = $base . '/jetton/transfers?limit=' . $limit . '&destination=' . rawurlencode($destinationRaw);
+    if ($recipient !== '') {
+        $queries[] = $base . '/jetton/transfers?limit=' . $limit . '&destination=' . cp_url_encode($recipient);
     }
-    $queries[] = $base . '/jetton/transfers?limit=' . $limit . '&destination=' . rawurlencode(trim($destination));
 
-    $seen = [];
+    if ($wallet !== '') {
+        $queries[] = $base . '/jetton/transfers?limit=' . $limit . '&destination=' . cp_url_encode($wallet);
+    }
+
+    $all = [];
     foreach ($queries as $url) {
-        if (isset($seen[$url])) {
-            continue;
-        }
-        $seen[$url] = true;
-
         try {
-            $json = cp_http_get_json($url);
-            $rows = $json['jetton_transfers'] ?? [];
+            $json = cp_http_get_json($url, $headers);
+            $rows = $json['jetton_transfers'] ?? $json['transfers'] ?? [];
             if (is_array($rows)) {
-                return $rows;
+                foreach ($rows as $row) {
+                    if (is_array($row)) $all[] = $row;
+                }
             }
-        } catch (\Throwable $e) {
-            continue;
+        } catch (Throwable) {
+            // Continue to next strategy.
         }
     }
 
-    return [];
+    $dedup = [];
+    foreach ($all as $row) {
+        $tx = cp_str($row['transaction_hash'] ?? $row['tx_hash'] ?? '');
+        $key = $tx !== '' ? $tx : md5(json_encode($row, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $dedup[$key] = $row;
+    }
+
+    return array_values($dedup);
 }
 
-function cp_match_transfer(array $payment, array $rows): array
+function cp_compute_read_model(array $certRow, array $paymentRow): array
 {
-    $expectedMaster = cp_norm_master_compare((string)$payment['token_master']);
-    $expectedAmount = trim((string)$payment['amount_units']);
-    $expectedRef = cp_norm_ref((string)$payment['payment_ref']);
+    $meta = cp_meta_decode($certRow['meta_json'] ?? null);
 
-    $searchedRows = count($rows);
-    $recentRows = 0;
+    $artifactReady = cp_str($certRow['metadata_path'] ?? '') !== '' && cp_str($certRow['nft_image_path'] ?? '') !== '';
+    $nftHealthy = $artifactReady;
+    $nftMinted = (int)($certRow['nft_minted'] ?? 0) === 1;
+    $paymentStatus = strtolower(cp_str($paymentRow['status'] ?? ''));
+    $paymentVerified = (int)($paymentRow['verified'] ?? 0) === 1;
 
-    foreach ($rows as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-
-        $recentRows++;
-
-        $rowMaster = cp_norm_master_compare((string)($row['jetton_master'] ?? ''));
-        $rowAmount = trim((string)($row['amount'] ?? ''));
-        $rowRef = cp_extract_comment_from_transfer($row);
-
-        $masterOk = ($expectedMaster !== '' && $rowMaster !== '' && $rowMaster === $expectedMaster);
-        $amountOk = ($expectedAmount !== '' && $rowAmount === $expectedAmount);
-        $refOk = ($expectedRef !== '' && $rowRef !== '' && $rowRef === $expectedRef);
-
-        if ($masterOk && $amountOk && $refOk) {
-            return [
-                'ok'            => true,
-                'status'        => 'MATCHED',
-                'verified'      => true,
-                'code'          => 'MATCHED',
-                'tx_hash'       => trim((string)($row['transaction_hash'] ?? '')),
-                'confirmations' => 0,
-                'verify_source' => 'cert_local_toncenter_v3',
-                'message'       => 'Matched treasury transaction by token master + amount + ref',
-                'matched_row'   => $row,
-                'debug'         => [
-                    'searched_rows'    => $searchedRows,
-                    'recent_rows'      => $recentRows,
-                    'lookback_seconds' => 86400,
-                    'token_master'     => $expectedMaster,
-                    'amount_units'     => $expectedAmount,
-                    'ref'              => $expectedRef,
-                ],
-            ];
-        }
+    if ($nftMinted || strtolower(cp_str($certRow['status'] ?? '')) === 'minted') {
+        $bucket = 'issued';
+    } elseif ($paymentStatus !== 'confirmed' || !$paymentVerified) {
+        $bucket = 'payment_confirmation';
+    } elseif (!$artifactReady) {
+        $bucket = 'payment_confirmed_pending_artifact';
+    } else {
+        $bucket = 'mint_ready_queue';
     }
 
     return [
-        'ok'            => true,
-        'status'        => 'NOT_FOUND',
-        'verified'      => false,
-        'code'          => 'NOT_FOUND',
-        'tx_hash'       => '',
-        'confirmations' => 0,
-        'verify_source' => 'cert_local_toncenter_v3',
-        'message'       => 'No matching treasury transaction found',
-        'matched_row'   => null,
-        'debug'         => [
-            'searched_rows'    => $searchedRows,
-            'recent_rows'      => $recentRows,
-            'lookback_seconds' => 86400,
-            'token_master'     => $expectedMaster,
-            'amount_units'     => $expectedAmount,
-            'ref'              => $expectedRef,
+        'cert_uid' => cp_str($certRow['cert_uid'] ?? ''),
+        'rwa_type' => cp_str($certRow['rwa_type'] ?? ''),
+        'family' => cp_str($certRow['family'] ?? ''),
+        'rwa_code' => cp_str($certRow['rwa_code'] ?? ''),
+        'payment_ref' => cp_str($paymentRow['payment_ref'] ?? $certRow['payment_ref'] ?? ''),
+        'payment_token' => cp_str($paymentRow['token_symbol'] ?? $certRow['payment_token'] ?? ''),
+        'payment_amount' => cp_str($paymentRow['amount'] ?? $certRow['payment_amount'] ?? ''),
+        'payment_status' => $paymentStatus,
+        'payment_verified' => $paymentVerified ? 1 : 0,
+        'payment_ready' => $paymentStatus === 'confirmed' && $paymentVerified,
+        'queue_bucket' => $bucket,
+        'artifact_ready' => $artifactReady,
+        'nft_healthy' => $nftHealthy,
+        'nft_minted' => $nftMinted ? 1 : 0,
+        'nft_item_address' => cp_str($certRow['nft_item_address'] ?? ''),
+        'metadata_path' => cp_str($certRow['metadata_path'] ?? ''),
+        'nft_image_path' => cp_str($certRow['nft_image_path'] ?? ''),
+        'verify_url' => cp_str($certRow['verify_url'] ?? ''),
+        'mint' => [
+            'recipient' => cp_str(cp_meta_get($meta, ['mint', 'recipient'], '')),
+            'amount_ton' => cp_str(cp_meta_get($meta, ['mint', 'amount_ton'], '')),
+            'amount_nano' => cp_str(cp_meta_get($meta, ['mint', 'amount_nano'], '')),
+            'item_index' => cp_str(cp_meta_get($meta, ['mint', 'item_index'], '')),
+            'payload_b64' => cp_str(cp_meta_get($meta, ['mint', 'payload_b64'], '')),
+            'deeplink' => cp_str(cp_meta_get($meta, ['mint', 'deeplink'], cp_meta_get($meta, ['mint', 'wallet_link'], ''))),
         ],
     ];
 }
 
-function cp_replay_exists(PDO $pdo, string $txHash, string $certUid): bool
-{
-    if ($txHash === '') {
-        return false;
+try {
+    db_connect();
+    $pdo = $GLOBALS['pdo'] ?? null;
+    if (!$pdo instanceof PDO) {
+        cp_fail('DB_NOT_READY', 500);
     }
 
-    try {
-        $sql = "SELECT cert_uid
-                FROM poado_rwa_cert_payments
-                WHERE tx_hash = :tx
-                  AND cert_uid <> :uid
-                LIMIT 1";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':tx'  => $txHash,
-            ':uid' => $certUid,
+    $walletSession = function_exists('get_wallet_session') ? get_wallet_session() : null;
+    $sessionWallet = cp_str($walletSession['wallet'] ?? '');
+    $sessionUserId = (int)($walletSession['user_id'] ?? 0);
+
+    $body = cp_parse_json_body();
+    $certUid = cp_str($body['cert_uid'] ?? $_POST['cert_uid'] ?? $_GET['cert_uid'] ?? '');
+    $wallet = cp_str($body['wallet'] ?? $_POST['wallet'] ?? $_GET['wallet'] ?? $sessionWallet);
+    $ownerUserId = (int)($body['owner_user_id'] ?? $_POST['owner_user_id'] ?? $_GET['owner_user_id'] ?? $sessionUserId);
+
+    if ($certUid === '') {
+        cp_fail('CERT_UID_REQUIRED', 422);
+    }
+
+    $sql = "
+        SELECT
+            c.id AS cert_id,
+            c.cert_uid,
+            c.rwa_type,
+            c.family,
+            c.rwa_code,
+            c.payment_ref AS cert_payment_ref,
+            c.payment_token,
+            c.payment_amount,
+            c.owner_user_id,
+            c.ton_wallet,
+            c.nft_image_path,
+            c.metadata_path,
+            c.verify_url,
+            c.meta_json,
+            c.nft_item_address,
+            c.nft_minted,
+            c.status,
+            c.paid_at AS cert_paid_at,
+
+            p.id AS payment_id,
+            p.payment_ref,
+            p.ton_wallet AS payment_wallet,
+            p.owner_user_id AS payment_owner_user_id,
+            p.token_symbol,
+            p.token_master,
+            p.decimals,
+            p.amount,
+            p.amount_units,
+            p.status AS payment_status,
+            p.tx_hash,
+            p.verified,
+            p.paid_at AS payment_paid_at,
+            p.meta_json AS payment_meta_json
+        FROM poado_rwa_certs c
+        LEFT JOIN poado_rwa_cert_payments p
+          ON p.id = (
+              SELECT p2.id
+              FROM poado_rwa_cert_payments p2
+              WHERE p2.cert_uid = c.cert_uid
+              ORDER BY p2.id DESC
+              LIMIT 1
+          )
+        WHERE c.cert_uid = :cert_uid
+        LIMIT 1
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':cert_uid' => $certUid]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) {
+        cp_fail('CERT_NOT_FOUND', 404);
+    }
+
+    $certOwnerUserId = (int)($row['owner_user_id'] ?? 0);
+    $paymentOwnerUserId = (int)($row['payment_owner_user_id'] ?? 0);
+    if ($ownerUserId > 0 && $certOwnerUserId > 0 && $ownerUserId !== $certOwnerUserId && $ownerUserId !== $paymentOwnerUserId) {
+        cp_fail('CERT_OWNER_MISMATCH', 403);
+    }
+
+    $paymentRef = cp_str($row['payment_ref'] ?? $row['cert_payment_ref'] ?? '');
+    $tokenMaster = cp_normalize_master(cp_str($row['token_master'] ?? ''));
+    $amountUnits = cp_str($row['amount_units'] ?? '');
+    $tokenSymbol = cp_str($row['token_symbol'] ?? $row['payment_token'] ?? '');
+    $existingTxHash = cp_str($row['tx_hash'] ?? '');
+    $paymentStatus = strtolower(cp_str($row['payment_status'] ?? ''));
+    $paymentVerified = (int)($row['verified'] ?? 0) === 1;
+
+    if ($paymentRef === '') {
+        cp_fail('MEMO_REQUIRED_FOR_CONFIRMATION', 422, [
+            'detail' => 'MISSING_PAYMENT_REF',
+            'cert_uid' => $certUid,
         ]);
-        return (bool)$st->fetch(PDO::FETCH_ASSOC);
-    } catch (\Throwable $e) {
-        return false;
     }
-}
 
-function cp_update_payment_row(PDO $pdo, string $certUid, array $payment, array $verify): bool
-{
-    try {
-        $sql = "UPDATE poado_rwa_cert_payments
-                SET status = :status,
-                    verified = :verified,
-                    tx_hash = :tx_hash,
-                    verify_source = :verify_source,
-                    confirmations = :confirmations,
-                    paid_at = :paid_at,
-                    updated_at = NOW()
-                WHERE cert_uid = :uid";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':status'        => 'confirmed',
-            ':verified'      => 1,
-            ':tx_hash'       => (string)($verify['tx_hash'] ?? ''),
-            ':verify_source' => (string)($verify['verify_source'] ?? 'cert_local_toncenter_v3'),
-            ':confirmations' => (int)($verify['confirmations'] ?? 0),
-            ':paid_at'       => cp_now_utc(),
-            ':uid'           => $certUid,
+    if ($tokenMaster === '') {
+        cp_fail('TOKEN_MASTER_REQUIRED', 422, [
+            'cert_uid' => $certUid,
         ]);
-        return true;
-    } catch (\Throwable $e) {
-        return false;
-    }
-}
-
-function cp_update_cert_row(PDO $pdo, array $certRow, array $payment, array $verify): array
-{
-    $meta = [];
-    if (!empty($certRow['meta_json'])) {
-        $decoded = json_decode((string)$certRow['meta_json'], true);
-        if (is_array($decoded)) {
-            $meta = $decoded;
-        }
     }
 
-    if (!is_array($meta['payment'] ?? null)) {
-        $meta['payment'] = [];
-    }
-
-    $meta['payment']['status'] = 'confirmed';
-    $meta['payment']['verified'] = true;
-    $meta['payment']['tx_hash'] = (string)($verify['tx_hash'] ?? '');
-    $meta['payment']['paid_at'] = cp_now_utc();
-    $meta['payment']['verify_source'] = (string)($verify['verify_source'] ?? 'cert_local_toncenter_v3');
-    $meta['queue_bucket'] = 'mint_ready_queue';
-    $meta['flow_state'] = 'payment_confirmed';
-
-    $ok = false;
-    try {
-        $sql = "UPDATE poado_rwa_certs
-                SET status = :status,
-                    paid_at = :paid_at,
-                    updated_at = NOW(),
-                    meta_json = :meta_json
-                WHERE cert_uid = :uid";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':status'   => 'paid',
-            ':paid_at'  => cp_now_utc(),
-            ':meta_json'=> json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            ':uid'      => (string)$certRow['cert_uid'],
+    if ($amountUnits === '') {
+        cp_fail('AMOUNT_UNITS_REQUIRED', 422, [
+            'cert_uid' => $certUid,
         ]);
-        $ok = true;
-    } catch (\Throwable $e) {
-        $ok = false;
     }
 
-    return [
-        'ok' => $ok,
-        'meta_json' => $meta,
-    ];
-}
+    if ($paymentStatus === 'confirmed' && $paymentVerified && $existingTxHash !== '') {
+        $readModel = cp_compute_read_model($row, [
+            'payment_ref' => $paymentRef,
+            'token_symbol' => $tokenSymbol,
+            'amount' => cp_str($row['amount'] ?? ''),
+            'status' => 'confirmed',
+            'verified' => 1,
+        ]);
 
-function cp_try_repair(string $certUid): array
-{
-    $script = dirname(__DIR__) . '/cron/repair-nft.php';
-    if (!is_file($script)) {
-        return [
-            'ok'     => false,
-            'status' => 'SKIPPED_REPAIR_SCRIPT_MISSING',
-            'output' => [],
-        ];
-    }
-
-    $cmd = 'php ' . escapeshellarg($script) . ' --uid=' . escapeshellarg($certUid) . ' 2>&1';
-    $out = [];
-    $code = 0;
-    @exec($cmd, $out, $code);
-
-    return [
-        'ok'     => ($code === 0),
-        'status' => ($code === 0 ? 'DONE' : 'FAILED'),
-        'output' => $out,
-    ];
-}
-
-function cp_verify_status_payload(string $certUid): ?array
-{
-    $url = 'https://adoptgold.app/rwa/cert/api/verify-status.php?cert_uid=' . rawurlencode($certUid);
-    try {
-        return cp_http_get_json($url);
-    } catch (\Throwable $e) {
-        return null;
-    }
-}
-
-$certUid = cp_get_cert_uid();
-if ($certUid === '') {
-    cp_json([
-        'ok'    => false,
-        'error' => 'CERT_UID_REQUIRED',
-    ], 422);
-}
-
-$certRow = cp_find_cert($pdo, $certUid);
-if (!$certRow) {
-    cp_json([
-        'ok'       => false,
-        'error'    => 'CERT_NOT_FOUND',
-        'cert_uid' => $certUid,
-    ], 404);
-}
-
-$paymentRow = cp_find_payment_row($pdo, $certUid);
-$payment = cp_build_payment_from_rows($certRow, $paymentRow);
-
-if (
-    trim((string)$payment['status']) === 'confirmed'
-    && (int)$payment['verified'] === 1
-) {
-    cp_json([
-        'ok'                => true,
-        'verified'          => true,
-        'already_confirmed' => true,
-        'confirmed_now'     => false,
-        'replay_detected'   => false,
-        'cert_uid'          => $certUid,
-        'payment'           => $payment,
-        'debug'             => [
-            'ok'            => true,
-            'status'        => 'ALREADY_CONFIRMED',
-            'verified'      => true,
-            'code'          => 'ALREADY_CONFIRMED',
-            'tx_hash'       => trim((string)($payment['tx_hash'] ?? '')),
-            'confirmations' => 0,
-            'verify_source' => 'db_truth',
-            'message'       => 'Payment already confirmed in DB',
-            '_version'      => 'v6.0.0-20260410-final-payment-authority',
-            '_file'         => __FILE__,
-            'healed'        => [
-                'payment_row'  => false,
-                'meta_payment' => false,
+        cp_ok([
+            'verified' => true,
+            'already_confirmed' => true,
+            'cert_uid' => $certUid,
+            'payment' => [
+                'payment_ref' => $paymentRef,
+                'token_symbol' => $tokenSymbol,
+                'amount' => cp_str($row['amount'] ?? ''),
+                'amount_units' => $amountUnits,
+                'status' => 'confirmed',
+                'verified' => 1,
+                'tx_hash' => $existingTxHash,
             ],
+            'read_model' => $readModel,
+        ]);
+    }
+
+    $certMeta = cp_meta_decode($row['meta_json'] ?? null);
+    $paymentMeta = cp_meta_decode($row['payment_meta_json'] ?? null);
+
+    $recipientCandidates = array_values(array_unique(array_filter([
+        cp_str(cp_meta_get($paymentMeta, ['recipient'], '')),
+        cp_str(cp_meta_get($paymentMeta, ['destination'], '')),
+        cp_str(cp_meta_get($paymentMeta, ['to'], '')),
+        cp_str(cp_meta_get($certMeta, ['payment', 'recipient'], '')),
+        cp_str(cp_meta_get($certMeta, ['payment', 'destination'], '')),
+        cp_str(cp_meta_get($certMeta, ['payment', 'to'], '')),
+    ], fn ($v) => $v !== '')));
+
+    $recipient = $recipientCandidates[0] ?? '';
+    $searchWallet = $wallet !== '' ? $wallet : cp_str($row['payment_wallet'] ?? $row['ton_wallet'] ?? '');
+
+    $candidates = cp_toncenter_fetch_candidates($searchWallet, $recipient, 120);
+
+    $matched = null;
+    $auditCandidates = [];
+
+    foreach ($candidates as $cand) {
+        $candMaster = cp_normalize_master(cp_str($cand['jetton_master'] ?? $cand['token_master'] ?? ''));
+        $candAmount = cp_str($cand['amount'] ?? '');
+        $txHash = cp_str($cand['transaction_hash'] ?? $cand['tx_hash'] ?? '');
+
+        $refHit = cp_find_ref_hit($cand, $paymentRef);
+
+        $auditCandidates[] = [
+            'tx_hash' => $txHash,
+            'jetton_master' => $candMaster,
+            'amount' => $candAmount,
+            'ref_matched' => $refHit['matched'],
+        ];
+
+        if ($candMaster === '') continue;
+        if ($candAmount === '') continue;
+        if ($txHash === '') continue;
+
+        if ($candMaster !== $tokenMaster) continue;
+        if ($candAmount !== $amountUnits) continue;
+        if (!$refHit['matched']) continue;
+
+        $matched = [
+            'tx_hash' => $txHash,
+            'row' => $cand,
+            'matched_text' => $refHit['matched_text'],
+            'candidates' => $refHit['candidates'],
+        ];
+        break;
+    }
+
+    if (!$matched) {
+        $readModel = cp_compute_read_model($row, [
+            'payment_ref' => $paymentRef,
+            'token_symbol' => $tokenSymbol,
+            'amount' => cp_str($row['amount'] ?? ''),
+            'status' => cp_str($row['payment_status'] ?? 'pending'),
+            'verified' => (int)($row['verified'] ?? 0),
+        ]);
+
+        cp_fail('PAYMENT_NOT_CONFIRMED', 200, [
+            'cert_uid' => $certUid,
+            'verified' => false,
+            'payment' => [
+                'payment_ref' => $paymentRef,
+                'token_symbol' => $tokenSymbol,
+                'amount' => cp_str($row['amount'] ?? ''),
+                'amount_units' => $amountUnits,
+                'status' => cp_str($row['payment_status'] ?? 'pending'),
+                'verified' => (int)($row['verified'] ?? 0),
+                'tx_hash' => $existingTxHash,
+            ],
+            'read_model' => $readModel,
+            'debug' => [
+                'wallet' => $searchWallet,
+                'recipient' => $recipient,
+                'candidate_count' => count($candidates),
+                'audit_candidates' => $auditCandidates,
+                'memo_required' => true,
+            ],
+        ]);
+    }
+
+    $now = date('Y-m-d H:i:s');
+
+    $currentPaymentMeta = cp_meta_decode($row['payment_meta_json'] ?? null);
+    $currentPaymentMeta['verification'] = [
+        'source' => 'confirm-payment.php',
+        'mode' => 'strict_memo_match',
+        'verified_at' => $now,
+        'tx_hash' => $matched['tx_hash'],
+        'matched_text' => $matched['matched_text'],
+        'wallet' => $searchWallet,
+        'recipient' => $recipient,
+        'token_master' => $tokenMaster,
+        'amount_units' => $amountUnits,
+    ];
+
+    $pdo->beginTransaction();
+
+    $up1 = $pdo->prepare("
+        UPDATE poado_rwa_cert_payments
+        SET
+            status = 'confirmed',
+            verified = 1,
+            tx_hash = :tx_hash,
+            paid_at = NOW(),
+            meta_json = :meta_json,
+            updated_at = NOW()
+        WHERE id = :id
+        LIMIT 1
+    ");
+    $up1->execute([
+        ':tx_hash' => $matched['tx_hash'],
+        ':meta_json' => json_encode($currentPaymentMeta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        ':id' => (int)$row['payment_id'],
+    ]);
+
+    $up2 = $pdo->prepare("
+        UPDATE poado_rwa_certs
+        SET
+            paid_at = NOW(),
+            updated_at = NOW()
+        WHERE id = :id
+        LIMIT 1
+    ");
+    $up2->execute([
+        ':id' => (int)$row['cert_id'],
+    ]);
+
+    $pdo->commit();
+
+    $row['payment_status'] = 'confirmed';
+    $row['verified'] = 1;
+    $row['tx_hash'] = $matched['tx_hash'];
+    $row['cert_paid_at'] = $now;
+
+    $readModel = cp_compute_read_model($row, [
+        'payment_ref' => $paymentRef,
+        'token_symbol' => $tokenSymbol,
+        'amount' => cp_str($row['amount'] ?? ''),
+        'status' => 'confirmed',
+        'verified' => 1,
+    ]);
+
+    cp_ok([
+        'verified' => true,
+        'cert_uid' => $certUid,
+        'payment' => [
+            'payment_ref' => $paymentRef,
+            'token_symbol' => $tokenSymbol,
+            'amount' => cp_str($row['amount'] ?? ''),
+            'amount_units' => $amountUnits,
+            'status' => 'confirmed',
+            'verified' => 1,
+            'tx_hash' => $matched['tx_hash'],
+            'matched_text' => $matched['matched_text'],
         ],
-        'repair'        => [
-            'ok'     => false,
-            'status' => 'SKIPPED_ALREADY_CONFIRMED',
-            'output' => [],
-        ],
-        'verify_status' => cp_verify_status_payload($certUid),
-        'read_model'    => null,
-        'healed'        => [
-            'payment_row'  => false,
-            'meta_payment' => false,
-        ],
-        'ts'            => gmdate('c'),
+        'read_model' => $readModel,
+    ]);
+} catch (Throwable $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    cp_fail('CONFIRM_PAYMENT_FAILED', 500, [
+        'detail' => $e->getMessage(),
     ]);
 }
-
-$rows = cp_query_recent_transfers((string)$payment['destination'], 200);
-$verify = cp_match_transfer($payment, $rows);
-
-$replayDetected = false;
-if (!empty($verify['tx_hash'])) {
-    $replayDetected = cp_replay_exists($pdo, (string)$verify['tx_hash'], $certUid);
-}
-
-$confirmedNow = false;
-$repair = [
-    'ok'     => false,
-    'status' => 'SKIPPED_NOT_VERIFIED',
-    'output' => [],
-];
-$healed = [
-    'payment_row'  => false,
-    'meta_payment' => false,
-];
-
-if (($verify['verified'] ?? false) === true && !$replayDetected) {
-    $healed['payment_row'] = cp_update_payment_row($pdo, $certUid, $payment, $verify);
-    $certUpdate = cp_update_cert_row($pdo, $certRow, $payment, $verify);
-    $healed['meta_payment'] = (bool)$certUpdate['ok'];
-    $confirmedNow = ($healed['payment_row'] || $healed['meta_payment']);
-
-    $payment['status'] = 'confirmed';
-    $payment['verified'] = 1;
-    $payment['tx_hash'] = (string)($verify['tx_hash'] ?? '');
-    $payment['paid_at'] = cp_now_utc();
-
-    $repair = cp_try_repair($certUid);
-}
-
-cp_json([
-    'ok'                => true,
-    'verified'          => (bool)($verify['verified'] ?? false),
-    'already_confirmed' => false,
-    'confirmed_now'     => $confirmedNow,
-    'replay_detected'   => $replayDetected,
-    'cert_uid'          => $certUid,
-    'payment'           => $payment,
-    'debug'             => [
-        'ok'            => true,
-        'status'        => (string)($verify['status'] ?? 'UNKNOWN'),
-        'verified'      => (bool)($verify['verified'] ?? false),
-        'code'          => (string)($verify['code'] ?? ''),
-        'tx_hash'       => (string)($verify['tx_hash'] ?? ''),
-        'confirmations' => (int)($verify['confirmations'] ?? 0),
-        'verify_source' => (string)($verify['verify_source'] ?? 'cert_local_toncenter_v3'),
-        'message'       => (string)($verify['message'] ?? ''),
-        'debug'         => $verify['debug'] ?? [],
-        '_version'      => 'v6.0.0-20260410-final-payment-authority',
-        '_file'         => __FILE__,
-        'healed'        => $healed,
-    ],
-    'repair'        => $repair,
-    'verify_status' => cp_verify_status_payload($certUid),
-    'read_model'    => null,
-    'healed'        => $healed,
-    'ts'            => gmdate('c'),
-]);
