@@ -3514,3 +3514,88 @@ body[data-cert-flow-state="issued"] #activeStatusText{ color:#d9ffeb; }
 #mintLiveTxStatus{
   transition: color .18s ease, opacity .18s ease;
 }
+
+
+/* CERT MODAL HARD RESET */
+html, body {
+  transform: none !important;
+  rotate: 0deg !important;
+  filter: none !important;
+  perspective: none !important;
+  backface-visibility: visible !important;
+}
+
+body.cert-modal-open,
+body.cert-modal-open * {
+  backface-visibility: visible;
+}
+
+#issuePayModal,
+.issue-pay-modal,
+.cert-modal,
+.cert-overlay,
+.modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  transform: none !important;
+  rotate: 0deg !important;
+  filter: none !important;
+  perspective: none !important;
+  z-index: 9999 !important;
+}
+
+#issuePayModal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 20px;
+}
+
+#issuePayModal .modal-panel,
+#issuePayModal .issue-pay-panel,
+#issuePayModal .cert-modal-panel,
+#issuePayModal .modal-content {
+  position: relative !important;
+  transform: none !important;
+  rotate: 0deg !important;
+  margin: 0 auto !important;
+  max-width: 1400px;
+  width: min(1400px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+}
+
+#issuePayModal img,
+#issuePayModal canvas,
+#issuePayModal svg {
+  transform: none !important;
+  rotate: 0deg !important;
+  max-width: 100%;
+  height: auto;
+}
+
+#issuePayModal .qr-wrap,
+#issuePayModal .qr-box,
+#issuePayModal .payment-qr-box {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  #issuePayModal {
+    padding: 10px;
+  }
+
+  #issuePayModal .modal-panel,
+  #issuePayModal .issue-pay-panel,
+  #issuePayModal .cert-modal-panel,
+  #issuePayModal .modal-content {
+    width: min(100vw - 12px, 100%);
+    max-height: calc(100vh - 12px);
+    border-radius: 16px;
+  }
+}
+

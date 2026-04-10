@@ -33,6 +33,111 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const TXT_DASH = '—';
+
+  function pickFirst(...vals) {
+    for (const v of vals) {
+      if (v === null || v === undefined) continue;
+      const s = String(v).trim();
+      if (s !== '' && s !== 'null' && s !== 'undefined') return s;
+    }
+    return '';
+  }
+
+  function setText(id, value, fallback = TXT_DASH) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = pickFirst(value) || fallback;
+  }
+
+  function setHtml(id, value, fallback = '&mdash;') {
+    const el = $(id);
+    if (!el) return;
+    const v = pickFirst(value);
+    el.innerHTML = v || fallback;
+  }
+
+  function setImg(id, src) {
+    const el = $(id);
+    if (!el) return;
+    const v = pickFirst(src);
+    if (!v) return;
+    if ('src' in el) el.src = v;
+  }
+
+  function setLink(id, href, textFallback) {
+    const el = $(id);
+    if (!el) return;
+    const v = pickFirst(href);
+    if (!v) {
+      el.removeAttribute('href');
+      el.textContent = textFallback || TXT_DASH;
+      return;
+    }
+    el.setAttribute('href', v);
+    el.textContent = textFallback || v;
+  }
+
+  function normalizePaymentPayload(payload, row) {
+    const p = payload || {};
+    const r = row || {};
+    const payment = p.payment || p.issue_pay || p.data?.payment || {};
+    const meta = p.meta || p.data || {};
+
+    return {
+      cert_uid: pickFirst(p.cert_uid, r.cert_uid, r.uid),
+      token_symbol: pickFirst(payment.token_symbol, payment.token, r.payment_token, r.token_symbol),
+      amount: pickFirst(payment.amount, r.payment_amount, r.amount),
+      amount_units: pickFirst(payment.amount_units, r.payment_amount_units, r.amount_units),
+      payment_ref: pickFirst(payment.payment_ref, p.payment_ref, r.payment_ref),
+      payment_status: pickFirst(payment.status, r.payment_status, 'Waiting'),
+      wallet_link: pickFirst(payment.wallet_link, payment.deeplink, meta.wallet_link, meta.deeplink, r.wallet_link, r.deeplink),
+      qr_image: pickFirst(payment.qr_image, payment.qr, meta.qr_image, meta.qr, r.qr_image),
+    };
+  }
+
+  function hydrateIssuePayModalFromPayload(payload, row) {
+    const x = normalizePaymentPayload(payload, row);
+
+    setText('issuePayCertUid', x.cert_uid);
+    setText('paymentCertUid', x.cert_uid);
+    setText('issuePayToken', x.token_symbol);
+    setText('paymentToken', x.token_symbol);
+    setText('issuePayAmount', x.amount);
+    setText('paymentAmount', x.amount);
+    setText('issuePayRef', x.payment_ref);
+    setText('paymentRef', x.payment_ref);
+    setText('issuePayStatus', x.payment_status || 'Waiting');
+    setText('paymentStatus', x.payment_status || 'Waiting');
+
+    setImg('issuePayQrImage', x.qr_image);
+    setImg('paymentQrImage', x.qr_image);
+
+    setLink('issuePayWalletLink', x.wallet_link, x.wallet_link ? 'Open Wallet Deeplink' : TXT_DASH);
+    setLink('paymentWalletLink', x.wallet_link, x.wallet_link ? 'Open Wallet Deeplink' : TXT_DASH);
+
+    const hasCore = !!(x.payment_ref && x.token_symbol && x.amount);
+    return { ok: hasCore, data: x };
+  }
+
+  function guardIssuePayHydration(payload, row) {
+    const res = hydrateIssuePayModalFromPayload(payload, row);
+    if (!res.ok) {
+      const msg = 'Payment payload not loaded';
+      if (typeof window.showErrorToast === 'function') {
+        window.showErrorToast(msg);
+      } else {
+        alert(msg);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function markCertModalOpen(open) {
+    document.body.classList.toggle('cert-modal-open', !!open);
+  }
+
   const TYPE_MAP = {
     green:      { rwa_type: 'green',      family: 'genesis',   rwa_code: 'RCO2C-EMA',  token: 'WEMS', amount: '1000',  title: 'Green',           familyLabel: 'GENESIS',   unit: '10 kg tCO2e' },
     blue:       { rwa_type: 'blue',       family: 'genesis',   rwa_code: 'RH2O-EMA',   token: 'WEMS', amount: '5000',  title: 'Blue',            familyLabel: 'GENESIS',   unit: '100 liters or m³' },
@@ -1055,7 +1160,8 @@
     $('issuePayCloseBtn')?.addEventListener('click', closeIssuePayModal);
 
     $('issuePayModal')?.addEventListener('click', (ev) => {
-      if (ev.target === $('issuePayModal')) closeIssuePayModal();
+      if (ev.target === $('issuePayModal')) markCertModalOpen(false);
+      closeIssuePayModal();
     });
 
     $('issuePayCopyRefBtn')?.addEventListener('click', async () => {
