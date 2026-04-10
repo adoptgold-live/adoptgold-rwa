@@ -35,15 +35,8 @@ stage_app_whitelist() {
   )
 
   for p in "${paths[@]}"; do
-    if [ -e "$repo_dir/$p" ]; then
-      git -C "$repo_dir" add -- "$p" >/dev/null 2>&1 || true
-    fi
+    [ -e "$repo_dir/$p" ] && git -C "$repo_dir" add -- "$p" >/dev/null 2>&1 || true
   done
-}
-
-stage_metadata_repo() {
-  local repo_dir="$1"
-  git -C "$repo_dir" add -u
 }
 
 has_staged_changes() {
@@ -55,51 +48,45 @@ sync_app_repo() {
   local repo_dir="$1"
   local branch="$2"
 
-  if ! ensure_repo "$repo_dir"; then
-    log "app-repo: skip (not a git repo: $repo_dir)"
-    return 0
-  fi
+  ensure_repo "$repo_dir" || { log "app-repo: skip"; return; }
 
   stage_app_whitelist "$repo_dir"
 
   if ! has_staged_changes "$repo_dir"; then
-    log "app-repo: no whitelisted staged changes"
-    return 0
+    log "app-repo: no whitelisted changes"
+    return
   fi
 
-  git -C "$repo_dir" commit -m "auto: sync app changes ($(timestamp))" >> "$LOG_FILE" 2>&1 || true
+  git -C "$repo_dir" commit -m "auto: sync app ($(timestamp))" >> "$LOG_FILE" 2>&1 || true
   git -C "$repo_dir" push origin "$branch" >> "$LOG_FILE" 2>&1
-  log "app-repo: pushed whitelisted changes to origin/$branch"
+  log "app-repo: pushed"
 }
 
 sync_metadata_repo() {
   local repo_dir="$1"
   local branch="$2"
 
-  if ! ensure_repo "$repo_dir"; then
-    log "metadata-repo: skip (not a git repo: $repo_dir)"
-    return 0
-  fi
+  ensure_repo "$repo_dir" || { log "metadata-repo: skip"; return; }
 
-  stage_metadata_repo "$repo_dir"
+  git -C "$repo_dir" add -u
 
-  if ! has_staged_changes "$repo_dir"; then
-    log "metadata-repo: no tracked changes"
-    return 0
+  if git -C "$repo_dir" diff --cached --quiet; then
+    log "metadata-repo: no changes"
+    return
   fi
 
   git -C "$repo_dir" commit -m "auto: sync metadata ($(timestamp))" >> "$LOG_FILE" 2>&1 || true
   git -C "$repo_dir" push origin "$branch" >> "$LOG_FILE" 2>&1
-  log "metadata-repo: pushed tracked changes to origin/$branch"
+  log "metadata-repo: pushed"
 }
 
 mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
 
-log "START git auto push"
+log "START"
 
 sync_app_repo "$APP_REPO" "$APP_BRANCH"
 sync_metadata_repo "$META_REPO" "$META_BRANCH"
 
-log "END git auto push"
+log "END"
 log ""
