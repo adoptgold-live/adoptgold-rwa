@@ -1,34 +1,58 @@
+* {
+  box-sizing: border-box;
+}
+
 body.crt {
+  margin: 0;
   background: #000;
   color: #00ff88;
   font-family: monospace;
+  overflow-x: hidden;
 }
 
 .comm-container {
-  padding: 15px;
+  max-width: 100%;
+  padding: 12px;
 }
 
+/* HEADER */
 .comm-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .comm-title {
-  font-size: 18px;
   color: gold;
+  font-size: 16px;
+}
+
+.comm-wallet {
+  font-size: 12px;
+}
+
+/* HERO */
+.comm-hero {
+  width: 100%;
 }
 
 .hero-card {
+  width: 100%;
   border: 1px solid gold;
-  padding: 15px;
-  margin-bottom: 15px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+/* BUTTONS */
+.hero-actions {
+  margin-top: 10px;
 }
 
 .hero-actions .btn {
   display: inline-block;
-  margin-right: 10px;
-  padding: 8px 12px;
+  padding: 6px 10px;
+  margin-right: 8px;
   border: 1px solid #00ff88;
   color: #00ff88;
   text-decoration: none;
@@ -39,7 +63,14 @@ body.crt {
   color: gold;
 }
 
+/* FEED */
 .comm-feed {
+  width: 100%;
   border: 1px solid #00ff88;
   padding: 10px;
+}
+
+.feed-item {
+  border-bottom: 1px dashed #00ff88;
+  padding: 6px 0;
 }
