@@ -473,7 +473,7 @@ function mi_canonical_paths(array $cert): array
         'verify_page_url' => mi_site_url() . '/rwa/cert/verify.php?uid=' . rawurlencode($uid),
         'verify_json_url' => mi_url_from_abs($baseAbs . '/verify/verify.json'),
         'image_url' => mi_url_from_abs($baseAbs . '/nft/image.png'),
-        'metadata_url' => mi_url_from_abs($baseAbs . '/meta/metadata.json'),
+        'metadata_url' => $metadataUrl,
         'qr_png_url' => mi_url_from_abs($baseAbs . '/verify/qr.png'),
         'debug_url' => mi_url_from_abs($baseAbs . '/verify/debug-composited.png'),
     ];
@@ -939,7 +939,7 @@ function mi_getgems_prepare_metadata(array $cert, array $artifact): array
 
     $paths = $artifact['paths'] ?? [];
     $metadataAbs = trim((string)($paths['meta_path'] ?? ''));
-    $metadataUrl = trim((string)($paths['metadata_url'] ?? ''));
+    $metadataUrl = trim($metadataUrl);
     $verifyUrl = trim((string)($paths['verify_page_url'] ?? ''));
     $imageUrl = trim((string)($paths['image_url'] ?? ''));
     $metadataPath = mi_build_metadata_relpath_from_paths($paths);
@@ -1056,7 +1056,7 @@ function mi_build_v9_handoff(array $cert, array $payment, array $artifact, array
     $verifyStatusUrl = mi_site_url() . '/rwa/cert/api/verify-status.php?cert_uid=' . rawurlencode($certUid);
     $mintVerifyUrl = mi_site_url() . '/rwa/cert/api/mint-verify.php?cert_uid=' . rawurlencode($certUid);
     $verifyPageUrl = (string)($artifact['paths']['verify_page_url'] ?? '');
-    $metadataUrl = !empty($getgemsMeta['metadata_url']) ? (string)$getgemsMeta['metadata_url'] : (string)($artifact['paths']['metadata_url'] ?? '');
+    $metadataUrl = !empty($getgemsMeta['metadata_url']) ? (string)$getgemsMeta['metadata_url'] : $metadataUrl;
     $imageUrl = (string)($artifact['paths']['image_url'] ?? '');
 
     return [
@@ -1138,7 +1138,7 @@ try {
     $artifact = mi_collect_artifact_truth($cert);
 
     $metadataPath = mi_build_metadata_relpath_from_paths($artifact['paths']);
-    $metadataUrl = (string)($artifact['paths']['metadata_url'] ?? '');
+    $metadataUrl = $metadataUrl;
     $verifyUrl = (string)($artifact['paths']['verify_page_url'] ?? '');
 
     if ($metadataPath === '' || $metadataUrl === '' || str_contains($metadataPath, '/devtest/') || str_contains($metadataUrl, '/devtest/')) {
@@ -1221,7 +1221,7 @@ try {
                 'image_path' => (string)$artifact['paths']['image_path'],
                 'verify_page_url' => (string)$artifact['paths']['verify_page_url'],
                 'verify_json_url' => (string)$artifact['paths']['verify_json_url'],
-                'metadata_url' => (string)$artifact['paths']['metadata_url'],
+                'metadata_url' => $metadataUrl,
                 'image_url' => (string)$artifact['paths']['image_url'],
             ],
             'unlock_rules' => $unlock,
