@@ -1,66 +1,50 @@
 /**
  * /var/www/html/public/rwa/cert/cert-router.js
- * Version: v10.1.0-20260410-reconfirm-fix-maintain-functions
+ * Version: v10.2.0-20260410-pure-router-global-lock
  *
- * LOCK
- * - Queue / continuity helper only
- * - Must NOT own Check & Preview
- * - Must NOT own Issue & Pay
- * - Must NOT amend verify.php
- * - Must NOT amend local QR flow
- * - Backend truth remains API-driven
- * - Must preserve exact existing DOM ids
- * - Must consume queue-summary.php only
+ * GLOBAL MASTER LOCK
+ * - cert-router.js = queue/render/routing only
+ * - MUST NOT own:
+ *   - Check & Preview
+ *   - Issue & Pay
+ *   - confirm-payment business logic
+ *   - storage balance loading
+ *   - token image loading
+ *   - mint-init direct execution
+ *   - mint-verify direct execution
+ *   - translator logic
  *
- * OWNERSHIP
+ * ALLOWED HERE ONLY
  * - queue-summary polling
  * - queue render
- * - continuity highlight
- * - finalize handoff ONLY → NFT Factory
- * - payment confirmation handoff only
+ * - row selection continuity
+ * - dispatch cert:payment-reconfirm
+ * - dispatch cert:nft-focus
+ * - queue refresh after downstream action events
  *
- * FINALIZE RULE (CRITICAL)
- * - MUST NOT call finalize.php
- * - MUST NOT call mint-init.php
- * - MUST ONLY:
- *   ✔ set selected cert uid
- *   ✔ dispatch cert:nft-focus
- *   ✔ scroll to NFT Factory
+ * DATA AUTHORITY
+ * - queue-summary.php only
  *
- * PAYMENT CONFIRM RULE
- * - MUST NOT verify payment by itself
- * - MUST ONLY:
- *   ✔ set selected cert uid
- *   ✔ dispatch cert:payment-reconfirm
- *   ✔ optionally trigger existing modal verify button if present
- *   ✔ refresh queues after handoff request
- *
- * CANONICAL QUEUE ORDER
- * - issuance_factory
- * - payment_confirmation
- * - payment_confirmed_pending_artifact
- * - mint_ready_queue
- * - minting_process
- * - issued
- * - blocked
+ * DOM LOCK
+ * - preserve exact existing DOM ids
  */
 
 (function () {
   'use strict';
 
-  if (window.CERT_ROUTER_V101_ACTIVE) return;
-  window.CERT_ROUTER_V101_ACTIVE = true;
+  if (window.CERT_ROUTER_V102_ACTIVE) return;
+  window.CERT_ROUTER_V102_ACTIVE = true;
 
   const $ = (id) => document.getElementById(id);
 
   const state = {
     booted: false,
-    currentBucket: 'issuance_factory',
     selectedCertUid: '',
     selectedRow: null,
+    currentBucket: 'issuance_factory',
+    queueJson: null,
     summaryTimer: null,
     summaryIntervalMs: 12000,
-    queueJson: null,
     pollingPausedUntil: 0
   };
 
@@ -75,10 +59,10 @@
       artifactPending: 'ARTIFACT PENDING',
       nftHealthy: 'NFT HEALTHY',
       nftPending: 'NFT PENDING',
-      noMintReady: 'No mint-ready cert yet.',
+      noIssuance: 'No issuance items.',
       noPaymentConfirmation: 'No payment confirmation items.',
       noPendingArtifact: 'No payment-confirmed pending-artifact items.',
-      noIssuance: 'No issuance items.',
+      noMintReady: 'No mint-ready cert yet.',
       noMinting: 'No minting items.',
       noIssued: 'No issued items.',
       noBlocked: 'No blocked items.',
@@ -99,10 +83,10 @@
       artifactPending: '工件待完成',
       nftHealthy: 'NFT 正常',
       nftPending: 'NFT 待完成',
-      noMintReady: '当前没有可铸造证书。',
+      noIssuance: '当前没有签发工厂项目。',
       noPaymentConfirmation: '当前没有待确认支付项目。',
       noPendingArtifact: '当前没有待补工件项目。',
-      noIssuance: '当前没有签发工厂项目。',
+      noMintReady: '当前没有可铸造证书。',
       noMinting: '当前没有铸造中项目。',
       noIssued: '当前没有已签发项目。',
       noBlocked: '当前没有阻塞项目。',
@@ -212,20 +196,13 @@
 
   function queueLabel(bucket) {
     switch (bucket) {
-      case 'payment_confirmation':
-        return t('paymentConfirmation');
-      case 'payment_confirmed_pending_artifact':
-        return t('pendingArtifact');
-      case 'mint_ready_queue':
-        return t('mintReady');
-      case 'minting_process':
-        return t('minting');
-      case 'issued':
-        return t('issued');
-      case 'blocked':
-        return t('blocked');
-      default:
-        return String(bucket || '').replaceAll('_', ' ');
+      case 'payment_confirmation': return t('paymentConfirmation');
+      case 'payment_confirmed_pending_artifact': return t('pendingArtifact');
+      case 'mint_ready_queue': return t('mintReady');
+      case 'minting_process': return t('minting');
+      case 'issued': return t('issued');
+      case 'blocked': return t('blocked');
+      default: return String(bucket || '').replaceAll('_', ' ');
     }
   }
 
@@ -448,7 +425,7 @@
   function preview(uid) {
     uid = String(uid || '').trim();
     if (!uid) return;
-    window.open('/rwa/cert/verify.php?uid=' + encodeURIComponent(uid), '_blank');
+    window.open('/rwa/cert/verify.php?uid=' + encodeURIComponent(uid), '_blank', 'noopener');
   }
 
   function setSelectedRow(row, bucket) {
@@ -618,6 +595,24 @@
     log('handoff → NFT Factory', uid);
   }
 
+  function handoffToPaymentReconfirm(uid) {
+    uid = String(uid || '').trim();
+    if (!uid) return;
+
+    const row = findRowByUid(uid);
+    selectRow(row, 'payment_confirmation');
+
+    document.dispatchEvent(new CustomEvent('cert:payment-reconfirm', {
+      detail: { cert_uid: uid, row: row, queue_bucket: 'payment_confirmation' }
+    }));
+
+    pausePolling(1200);
+    requestQueueRefreshSoon(1800);
+    requestQueueRefreshSoon(4200);
+
+    log('handoff → Payment Reconfirm', uid);
+  }
+
   function pausePolling(ms) {
     const waitMs = Number(ms || 0);
     if (waitMs > 0) {
@@ -625,47 +620,11 @@
     }
   }
 
-  function triggerExistingPaymentVerify() {
-    const verifyBtn = $('issuePayVerifyBtn');
-    if (verifyBtn) {
-      verifyBtn.click();
-      return true;
-    }
-    return false;
-  }
-
-  function dispatchPaymentReconfirm(uid, row) {
-    document.dispatchEvent(new CustomEvent('cert:payment-reconfirm', {
-      detail: { cert_uid: uid, row: row, queue_bucket: 'payment_confirmation' }
-    }));
-  }
-
   function requestQueueRefreshSoon(delayMs) {
     const wait = Number(delayMs || 0);
     window.setTimeout(() => {
       refresh().catch(warn);
     }, wait);
-  }
-
-  function reconfirmPayment(uid) {
-    uid = String(uid || '').trim();
-    if (!uid) return;
-
-    const row = findRowByUid(uid);
-    selectRow(row, 'payment_confirmation');
-
-    dispatchPaymentReconfirm(uid, row);
-
-    const clicked = triggerExistingPaymentVerify();
-    if (!clicked) {
-      warn('payment reconfirm requested but issuePayVerifyBtn not found');
-    }
-
-    pausePolling(1500);
-    requestQueueRefreshSoon(1800);
-    requestQueueRefreshSoon(4200);
-
-    log('handoff → Payment Reconfirm', uid);
   }
 
   function bindActions() {
@@ -689,7 +648,7 @@
       if (btn.dataset.boundReconfirm === '1') return;
       btn.dataset.boundReconfirm = '1';
       btn.addEventListener('click', () => {
-        reconfirmPayment(btn.getAttribute('data-cert-uid') || '');
+        handoffToPaymentReconfirm(btn.getAttribute('data-cert-uid') || '');
       });
     });
 
@@ -791,14 +750,16 @@
     });
 
     document.addEventListener('cert:payment-confirmed', () => {
-      refresh().catch(warn);
-    });
-
-    document.addEventListener('cert:artifacts-ready', () => {
-      refresh().catch(warn);
+      requestQueueRefreshSoon(300);
+      requestQueueRefreshSoon(1500);
     });
 
     document.addEventListener('cert:payment-reconfirm-done', () => {
+      requestQueueRefreshSoon(300);
+      requestQueueRefreshSoon(1500);
+    });
+
+    document.addEventListener('cert:artifacts-ready', () => {
       requestQueueRefreshSoon(300);
       requestQueueRefreshSoon(1500);
     });
@@ -817,7 +778,7 @@
       refresh().catch(warn);
     }, state.summaryIntervalMs);
 
-    log('router v10.1 locked queue ready');
+    log('router v10.2 pure queue ready');
   }
 
   if (document.readyState === 'loading') {

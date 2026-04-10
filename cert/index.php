@@ -767,8 +767,12 @@ $certBoot = [
     require $_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-bottom-nav.php';
 } ?>
 
-<script src="/rwa/cert/cert-router.js?v=v10.0.0-20260410-locked-queue-router"></script>
-<script src="/rwa/cert/cert-actions.js?v=v24.1.1-20260410-full-restore-dom-lock"></script>
-<script src="/rwa/cert/cert.js?v=v7.4.4-20260407-translator-only"></script>
+<!-- JS ROLE LOCK -->
+<!-- 1) cert.js        = translator only -->
+<!-- 2) cert-router.js = queue/render/routing only -->
+<!-- 3) cert-actions.js = business actions only -->
+<script src="/rwa/cert/cert.js?v=v7.5.0-20260410-translator-only-global-lock"></script>
+<script src="/rwa/cert/cert-router.js?v=v10.2.0-20260410-pure-router-global-lock"></script>
+<script src="/rwa/cert/cert-actions.js?v=v25.0.0-20260410-global-role-lock"></script>
 </body>
 </html>
