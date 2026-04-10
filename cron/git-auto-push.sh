@@ -39,22 +39,52 @@ stage_app_whitelist() {
   done
 }
 
+stage_metadata_repo() {
+  local repo_dir="$1"
+  git -C "$repo_dir" add -u
+}
+
 has_staged_changes() {
   local repo_dir="$1"
   ! git -C "$repo_dir" diff --cached --quiet
+}
+
+has_staged_deletions() {
+  local repo_dir="$1"
+  git -C "$repo_dir" diff --cached --name-status | grep -q '^D[[:space:]]'
+}
+
+log_staged_deletions() {
+  local repo_dir="$1"
+  local label="$2"
+  while IFS= read -r line; do
+    [ -n "$line" ] && log "$label: blocked deletion -> $line"
+  done < <(git -C "$repo_dir" diff --cached --name-status | grep '^D[[:space:]]' || true)
+}
+
+unstage_all() {
+  local repo_dir="$1"
+  git -C "$repo_dir" restore --staged . >/dev/null 2>&1 || true
 }
 
 sync_app_repo() {
   local repo_dir="$1"
   local branch="$2"
 
-  ensure_repo "$repo_dir" || { log "app-repo: skip"; return; }
+  ensure_repo "$repo_dir" || { log "app-repo: skip"; return 0; }
 
   stage_app_whitelist "$repo_dir"
 
   if ! has_staged_changes "$repo_dir"; then
     log "app-repo: no whitelisted changes"
-    return
+    return 0
+  fi
+
+  if has_staged_deletions "$repo_dir"; then
+    log_staged_deletions "$repo_dir" "app-repo"
+    unstage_all "$repo_dir"
+    log "app-repo: blocked because no-delete mode is enabled"
+    return 0
   fi
 
   git -C "$repo_dir" commit -m "auto: sync app ($(timestamp))" >> "$LOG_FILE" 2>&1 || true
@@ -66,13 +96,20 @@ sync_metadata_repo() {
   local repo_dir="$1"
   local branch="$2"
 
-  ensure_repo "$repo_dir" || { log "metadata-repo: skip"; return; }
+  ensure_repo "$repo_dir" || { log "metadata-repo: skip"; return 0; }
 
-  git -C "$repo_dir" add -u
+  stage_metadata_repo "$repo_dir"
 
-  if git -C "$repo_dir" diff --cached --quiet; then
+  if ! has_staged_changes "$repo_dir"; then
     log "metadata-repo: no changes"
-    return
+    return 0
+  fi
+
+  if has_staged_deletions "$repo_dir"; then
+    log_staged_deletions "$repo_dir" "metadata-repo"
+    unstage_all "$repo_dir"
+    log "metadata-repo: blocked because no-delete mode is enabled"
+    return 0
   fi
 
   git -C "$repo_dir" commit -m "auto: sync metadata ($(timestamp))" >> "$LOG_FILE" 2>&1 || true
