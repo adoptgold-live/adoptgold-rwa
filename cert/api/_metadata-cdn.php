@@ -3,21 +3,14 @@ declare(strict_types=1);
 
 /**
  * /var/www/html/public/rwa/cert/api/_metadata-cdn.php
- * Version: v1.0.20260410-cdn-metadata-helper
+ * Version: v2.0.20260410-commit-hash-authority
  *
- * Purpose:
- * - Convert local metadata file paths under /var/www/html/public/rwa/metadata
- *   into public GitHub CDN URLs.
- * - Default delivery uses jsDelivr over the metadata repo.
- *
- * Canonical repo:
- *   adoptgold-live/adoptgold-rwa-metadata
- *
- * Default mutable channel:
- *   @main
- *
- * Optional immutable mode:
- *   set env RWA_METADATA_CDN_REF=<commit-hash-or-tag>
+ * Canonical rule:
+ * - Public NFT metadata URLs must use commit-hash based jsDelivr URLs.
+ * - Fallback order:
+ *   1) RWA_METADATA_CDN_REF from env
+ *   2) current HEAD of /var/www/metadata-repo
+ *   3) "main" as last-resort fallback
  */
 
 if (function_exists('cert_metadata_cdn_url_from_local')) {
@@ -29,10 +22,44 @@ function cert_metadata_cdn_repo(): string
     return trim((string)($_ENV['RWA_METADATA_CDN_REPO'] ?? 'adoptgold-live/adoptgold-rwa-metadata'));
 }
 
+function cert_metadata_repo_git_dir(): string
+{
+    return '/var/www/metadata-repo/.git';
+}
+
+function cert_metadata_repo_head_hash(): string
+{
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
+    $gitDir = cert_metadata_repo_git_dir();
+    if (!is_dir($gitDir)) {
+        $cached = 'main';
+        return $cached;
+    }
+
+    $cmd = 'git --git-dir=' . escapeshellarg($gitDir) . ' rev-parse HEAD 2>/dev/null';
+    $out = trim((string)shell_exec($cmd));
+
+    if (preg_match('/^[0-9a-f]{40}$/i', $out)) {
+        $cached = $out;
+        return $cached;
+    }
+
+    $cached = 'main';
+    return $cached;
+}
+
 function cert_metadata_cdn_ref(): string
 {
-    $ref = trim((string)($_ENV['RWA_METADATA_CDN_REF'] ?? 'main'));
-    return $ref !== '' ? $ref : 'main';
+    $envRef = trim((string)($_ENV['RWA_METADATA_CDN_REF'] ?? ''));
+    if ($envRef !== '') {
+        return $envRef;
+    }
+
+    return cert_metadata_repo_head_hash();
 }
 
 function cert_metadata_cdn_base(): string
@@ -85,7 +112,9 @@ function cert_metadata_try_public_url(array $row = [], array $meta = []): string
     foreach ($candidates as $candidate) {
         $candidate = trim((string)$candidate);
         if ($candidate !== '' && preg_match('~^https?://~i', $candidate)) {
-            return $candidate;
+            if (str_contains($candidate, 'cdn.jsdelivr.net/gh/')) {
+                return $candidate;
+            }
         }
     }
 
@@ -112,4 +141,13 @@ function cert_metadata_try_public_url(array $row = [], array $meta = []): string
     }
 
     throw new RuntimeException('METADATA_PUBLIC_URL_NOT_RESOLVED');
+}
+
+function cert_metadata_cdn_debug_state(): array
+{
+    return [
+        'repo' => cert_metadata_cdn_repo(),
+        'ref'  => cert_metadata_cdn_ref(),
+        'base' => cert_metadata_cdn_base(),
+    ];
 }
