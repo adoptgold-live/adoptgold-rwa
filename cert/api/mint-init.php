@@ -45,6 +45,9 @@ if (!defined('RWA_CORE_BOOTSTRAPPED')) {
     if (!$loaded) {
         http_response_code(500);
         echo json_encode([
+
+    '_debug_metadata_url' => $metadataUrl ?? null,
+
             'ok' => false,
             'error' => 'BOOTSTRAP_NOT_FOUND',
             'version' => 'v19.0.0-20260409-final-no-duplicate-metadata-write',
