@@ -1,48 +1,47 @@
-function getSelectedCertUid() {
-  const row = document.querySelector('.cert-queue-row.active');
-  if (!row) return '';
-  return (row.dataset.certUid || '').trim();
-}
-
 /**
  * /var/www/html/public/rwa/cert/cert-actions.js
- * Version: v24.1.1-20260410-full-restore-dom-lock
+ * Version: v25.0.0-20260410-global-role-lock
  *
- * LOCK
+ * GLOBAL MASTER LOCK
  * - Check & Preview owner = cert-actions.js
  * - Issue & Pay owner = cert-actions.js
- * - Issue & Pay never posts blank cert_uid
- * - Card selection -> preview -> issue pay UX guard
- * - Balance/sufficiency truth = /rwa/cert/api/check-sufficient.php
- * - Issue & Pay truth = /rwa/cert/api/issue-pay.php
- * - Mint status truth = /rwa/cert/api/verify-status.php
- * - Finalize Mint truth = /rwa/cert/api/mint-init.php
- * - On-chain mint finality must never be guessed from stale UI labels
+ * - Reconfirm Payment receiver = cert-actions.js
+ * - Storage balance render owner = cert-actions.js
+ * - Token image render owner = cert-actions.js
+ * - Active cert / modal sync owner = cert-actions.js
+ * - Finalize Mint handoff owner = cert-actions.js
  *
- * RESTORE NOTES
- * - Restored full DOM-aware controller for locked index.php
- * - Uses issueBtn-* and rwaIssuePayBtn
- * - Uses issuePayWalletLink / issuePayQrImage / issuePayQrText / issuePayQrPlaceholder
- * - Keeps QR fallback: qr_image first (supports https + data:image), else render client QR from qr_text / deeplink
+ * NEVER owned here:
+ * - translator / language dictionary
+ * - queue summary polling
+ * - queue rendering
+ * - verify.php rendering
+ *
+ * OTHER LOCKS
+ * - cert.js = translator only
+ * - cert-router.js = queue/render/routing only
+ * - exact existing DOM ids preserved
+ * - exact DB/API truth only
+ * - EOF full-file regen only
  */
 
 (function () {
   'use strict';
 
-  if (window.CERT_ACTIONS_ACTIVE) return;
-  window.CERT_ACTIONS_ACTIVE = true;
+  if (window.CERT_ACTIONS_V250_ACTIVE) return;
+  window.CERT_ACTIONS_V250_ACTIVE = true;
 
   const $ = (id) => document.getElementById(id);
 
   const TYPE_MAP = {
-    green:      { rwa_type: 'green',      family: 'genesis',   rwa_code: 'RCO2C-EMA',  token: 'WEMS', amount: '1000',  title: 'Green',           familyLabel: 'GENESIS' },
-    blue:       { rwa_type: 'blue',       family: 'genesis',   rwa_code: 'RH2O-EMA',   token: 'WEMS', amount: '5000',  title: 'Blue',            familyLabel: 'GENESIS' },
-    black:      { rwa_type: 'black',      family: 'genesis',   rwa_code: 'RBLACK-EMA', token: 'WEMS', amount: '10000', title: 'Black',           familyLabel: 'GENESIS' },
-    gold:       { rwa_type: 'gold',       family: 'genesis',   rwa_code: 'RK92-EMA',   token: 'WEMS', amount: '50000', title: 'Gold',            familyLabel: 'GENESIS' },
-    pink:       { rwa_type: 'pink',       family: 'secondary', rwa_code: 'RLIFE-EMA',  token: 'EMA$', amount: '100',   title: 'Health',          familyLabel: 'SECONDARY' },
-    red:        { rwa_type: 'red',        family: 'secondary', rwa_code: 'RTRIP-EMA',  token: 'EMA$', amount: '100',   title: 'Travel',          familyLabel: 'SECONDARY' },
-    royal_blue: { rwa_type: 'royal_blue', family: 'secondary', rwa_code: 'RPROP-EMA',  token: 'EMA$', amount: '100',   title: 'Property',        familyLabel: 'SECONDARY' },
-    yellow:     { rwa_type: 'yellow',     family: 'tertiary',  rwa_code: 'RHRD-EMA',   token: 'EMA$', amount: '100',   title: 'Human Resources', familyLabel: 'TERTIARY' }
+    green:      { rwa_type: 'green',      family: 'genesis',   rwa_code: 'RCO2C-EMA',  token: 'WEMS', amount: '1000',  title: 'Green',           familyLabel: 'GENESIS',   unit: '10 kg tCO2e' },
+    blue:       { rwa_type: 'blue',       family: 'genesis',   rwa_code: 'RH2O-EMA',   token: 'WEMS', amount: '5000',  title: 'Blue',            familyLabel: 'GENESIS',   unit: '100 liters or m³' },
+    black:      { rwa_type: 'black',      family: 'genesis',   rwa_code: 'RBLACK-EMA', token: 'WEMS', amount: '10000', title: 'Black',           familyLabel: 'GENESIS',   unit: '1 MWh or energy-unit' },
+    gold:       { rwa_type: 'gold',       family: 'genesis',   rwa_code: 'RK92-EMA',   token: 'WEMS', amount: '50000', title: 'Gold',            familyLabel: 'GENESIS',   unit: '1 gram Gold Nugget' },
+    pink:       { rwa_type: 'pink',       family: 'secondary', rwa_code: 'RLIFE-EMA',  token: 'EMA$', amount: '100',   title: 'Health',          familyLabel: 'SECONDARY', unit: '1 day health-right unit by BMI' },
+    red:        { rwa_type: 'red',        family: 'secondary', rwa_code: 'RTRIP-EMA',  token: 'EMA$', amount: '100',   title: 'Travel',          familyLabel: 'SECONDARY', unit: '1 km travel-right unit' },
+    royal_blue: { rwa_type: 'royal_blue', family: 'secondary', rwa_code: 'RPROP-EMA',  token: 'EMA$', amount: '100',   title: 'Property',        familyLabel: 'SECONDARY', unit: '1 ft² property-right unit' },
+    yellow:     { rwa_type: 'yellow',     family: 'tertiary',  rwa_code: 'RHRD-EMA',   token: 'EMA$', amount: '100',   title: 'Human Resources', familyLabel: 'TERTIARY',  unit: '10 hours Labor Contribution' }
   };
 
   const FLOW = {
@@ -54,26 +53,35 @@ function getSelectedCertUid() {
     ISSUED: 'issued'
   };
 
+  const TOKEN_IMG = {
+    WEMS: '/rwa/metadata/wems.png',
+    'EMA$': '/rwa/metadata/ema.png',
+    EMA: '/rwa/metadata/ema.png',
+    TON: '/rwa/metadata/ton.png',
+    EMX: '/rwa/metadata/emx.png',
+    EMS: '/rwa/metadata/ems.png'
+  };
+
   const state = {
     selectedTypeKey: '',
     selectedCertUid: '',
+    activeQueueBucket: '',
     issueJson: null,
     issuePayJson: null,
     finalizeJson: null,
     flowState: FLOW.IDLE,
     lastPaymentStatus: '',
     lastPaymentVerified: 0,
-    activeQueueBucket: '',
+    sufficientCache: Object.create(null),
     autoPayTimer: null,
     autoPayUid: '',
-    sufficientCache: Object.create(null),
     mintPollTimer: null,
     mintPollUid: ''
   };
 
-  function log(...args) { console.log('[CERT]', ...args); }
-  function warn(...args) { console.warn('[CERT]', ...args); }
-  function err(...args) { console.error('[CERT]', ...args); }
+  function log(...args) { console.log('[CERT_ACTIONS]', ...args); }
+  function warn(...args) { console.warn('[CERT_ACTIONS]', ...args); }
+  function err(...args) { console.error('[CERT_ACTIONS]', ...args); }
 
   function endpoint(id, fallback) {
     return String($(id)?.value || fallback || '').trim();
@@ -95,78 +103,135 @@ function getSelectedCertUid() {
     return String($('csrfConfirmPayment')?.value || '').trim();
   }
 
+  function getLang() {
+    return String(document.documentElement.getAttribute('data-lang') || 'en').trim().toLowerCase() === 'zh' ? 'zh' : 'en';
+  }
+
+  function textByLang(en, zh) {
+    return getLang() === 'zh' ? zh : en;
+  }
+
   function setText(id, value) {
     const el = $(id);
     if (el) el.textContent = String(value ?? '');
   }
 
+  function setHtml(id, value) {
+    const el = $(id);
+    if (el) el.innerHTML = String(value ?? '');
+  }
+
+  function formatNum(v, fallback = '0') {
+    const n = Number(String(v ?? '').replace(/,/g, ''));
+    if (!Number.isFinite(n)) return String(fallback);
+    return n.toLocaleString(undefined, {
+      minimumFractionDigits: n % 1 === 0 ? 0 : 4,
+      maximumFractionDigits: 4
+    });
+  }
+
+  async function getJson(url) {
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+
+    if (!res.ok) throw new Error((json && (json.error || json.detail || json.message)) || `HTTP_${res.status}`);
+    if (!json) throw new Error('INVALID_JSON_RESPONSE');
+    if (json.ok === false) throw new Error(json.detail || json.error || json.message || 'REQUEST_FAILED');
+    return json;
+  }
+
+  async function postJson(url, payload) {
+    const res = await fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload || {})
+    });
+
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+
+    if (!res.ok) throw new Error((json && (json.error || json.detail || json.message)) || `HTTP_${res.status}`);
+    if (!json) throw new Error('INVALID_JSON_RESPONSE');
+    if (json.ok === false) throw new Error(json.detail || json.error || json.message || 'REQUEST_FAILED');
+    return json;
+  }
+
+  function tokenImageForSymbol(symbol) {
+    const key = String(symbol || '').trim().toUpperCase();
+    return TOKEN_IMG[key] || '';
+  }
+
+  function renderBalanceTokenImages() {
+    const wemsBox = document.querySelector('.balance-wems .balance-icon');
+    const emaBox = document.querySelector('.balance-ema .balance-icon');
+    const tonBox = document.querySelector('.balance-ton .balance-icon');
+
+    if (wemsBox) wemsBox.innerHTML = '<img src="/rwa/metadata/wems.png" alt="wEMS" class="token-balance-img">';
+    if (emaBox) emaBox.innerHTML = '<img src="/rwa/metadata/ema.png" alt="EMA$" class="token-balance-img">';
+    if (tonBox) tonBox.innerHTML = '<img src="/rwa/metadata/ton.png" alt="TON" class="token-balance-img">';
+  }
+
+  async function loadStorageSummary() {
+    try {
+      const data = await getJson(endpoint('endpointStorageOverview', '/rwa/api/storage/overview.php'));
+      const balances = data?.balances || data?.data?.balances || {};
+
+      if (!balances || typeof balances !== 'object') {
+        throw new Error('INVALID_STORAGE_SCHEMA');
+      }
+
+      const wems = balances.onchain_wems ?? balances.wems ?? '0';
+      const ema = balances.onchain_ema ?? balances.ema ?? '0';
+      const ton = balances.fuel_ton_gas ?? balances.ton ?? '0';
+
+      setText('balanceWemsText', formatNum(wems, '0'));
+      setText('balanceEmaText', formatNum(ema, '0'));
+      setText('balanceTonText', formatNum(ton, '0'));
+
+      const tonNum = Number(String(ton).replace(/,/g, ''));
+      setText(
+        'balanceTonGas',
+        Number.isFinite(tonNum)
+          ? (tonNum >= 0.5
+              ? textByLang('Ready', '已就绪')
+              : textByLang('Low', '偏低'))
+          : textByLang('Unknown', '未知')
+      );
+    } catch (e) {
+      warn('storage summary failed', e);
+      setText('balanceWemsText', '—');
+      setText('balanceEmaText', '—');
+      setText('balanceTonText', '—');
+      setText('balanceTonGas', textByLang('Unknown', '未知'));
+    }
+  }
+
   function ensureNoticeModal() {
-    let modal = document.getElementById('certNoticeModal');
+    let modal = $('certNoticeModal');
     if (modal) return modal;
 
     const style = document.createElement('style');
     style.id = 'certNoticeModalStyle';
     style.textContent = `
-      #certNoticeModal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(0,0,0,.72);
-        z-index: 99999;
-      }
-      #certNoticeModal.is-open { display: flex; }
-      #certNoticeModal .cert-notice-card {
-        width: min(92vw, 520px);
-        background: linear-gradient(180deg, #17120a 0%, #120f0a 100%);
-        border: 1px solid rgba(214,185,88,.42);
-        box-shadow: 0 0 0 1px rgba(214,185,88,.10) inset, 0 16px 50px rgba(0,0,0,.55);
-        border-radius: 22px;
-        color: #f4e6b0;
-        padding: 24px 22px 18px;
-        font-family: inherit;
-      }
-      #certNoticeModal .cert-notice-title {
-        font-size: 22px;
-        line-height: 1.2;
-        font-weight: 700;
-        margin: 0 0 14px;
-        color: #ffe7a3;
-        text-align: center;
-      }
-      #certNoticeModal .cert-notice-body {
-        white-space: pre-line;
-        font-size: 18px;
-        line-height: 1.65;
-        color: #fff3c8;
-        text-align: center;
-        margin: 0 0 20px;
-      }
-      #certNoticeModal .cert-notice-actions {
-        display: flex;
-        justify-content: center;
-      }
-      #certNoticeModal .cert-notice-ok {
-        min-width: 120px;
-        border: 2px solid #d6b958;
-        background: #d9bf62;
-        color: #2b2207;
-        font-weight: 700;
-        font-size: 18px;
-        border-radius: 999px;
-        padding: 12px 22px;
-        cursor: pointer;
-        box-shadow: 0 0 0 2px rgba(0,0,0,.18) inset;
-      }
-      @media (max-width: 640px) {
-        #certNoticeModal .cert-notice-card {
-          width: min(94vw, 94vw);
-          border-radius: 18px;
-          padding: 20px 16px 16px;
-        }
-      }
+      #certNoticeModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);z-index:99999}
+      #certNoticeModal.is-open{display:flex}
+      #certNoticeModal .cert-notice-card{width:min(92vw,520px);background:linear-gradient(180deg,#17120a 0%,#120f0a 100%);border:1px solid rgba(214,185,88,.42);box-shadow:0 0 0 1px rgba(214,185,88,.10) inset,0 16px 50px rgba(0,0,0,.55);border-radius:22px;color:#f4e6b0;padding:24px 22px 18px}
+      #certNoticeModal .cert-notice-title{font-size:22px;line-height:1.2;font-weight:700;margin:0 0 14px;color:#ffe7a3;text-align:center}
+      #certNoticeModal .cert-notice-body{white-space:pre-line;font-size:18px;line-height:1.65;color:#fff3c8;text-align:center;margin:0 0 20px}
+      #certNoticeModal .cert-notice-actions{display:flex;justify-content:center}
+      #certNoticeModal .cert-notice-ok{min-width:120px;border:2px solid #d6b958;background:#d9bf62;color:#2b2207;font-weight:700;font-size:18px;border-radius:999px;padding:12px 22px;cursor:pointer}
     `;
     document.head.appendChild(style);
 
@@ -192,339 +257,114 @@ function getSelectedCertUid() {
     return modal;
   }
 
-  function getLang() {
-    try {
-      if (window.POADO_I18N_LANG) return window.POADO_I18N_LANG;
-      if (localStorage.getItem('lang')) return localStorage.getItem('lang');
-    } catch (_) {}
-    return 'en';
-  }
-
-  function formatNum(n) {
-    const x = Number(n);
-    if (!Number.isFinite(x)) return String(n ?? '');
-    return x.toLocaleString(undefined, {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4
-    });
-  }
-
-  function i18nTitle(key) {
-    const lang = getLang();
-    const map = {
-      insufficient_balance: { en: 'Insufficient Balance', zh: '余额不足' },
-      request_failed:       { en: 'Request Failed',       zh: '请求失败' },
-      verify_failed:        { en: 'Verification Failed',  zh: '验证失败' },
-      notice:               { en: 'Notice',               zh: '提示' }
-    };
-    const item = map[key] || map.notice;
-    return lang.startsWith('zh') ? item.zh : item.en;
-  }
-
-  function mapUserFacingErrorMessage(raw) {
-    const msg = String(raw || '').trim();
-    const zh = getLang().startsWith('zh');
-
-    if (msg.includes('RH2O_REQUIRES_10_GREEN_MINTED')) {
-      return {
-        title: zh ? '暂时无法预览' : 'Preview Not Available',
-        body: zh
-          ? '蓝证需要先拥有 10 张已铸造的绿证。'
-          : 'Blue RWA requires 10 minted Green RWA certificates first.'
-      };
-    }
-
-    if (msg.includes('RBLACK_REQUIRES_1_GOLD_MINTED')) {
-      return {
-        title: zh ? '暂时无法预览' : 'Preview Not Available',
-        body: zh
-          ? '黑证需要先拥有 1 张已铸造的金证。'
-          : 'Black RWA requires 1 minted Gold RWA certificates first.'
-      };
-    }
-
-    if (msg.includes('CHECK_PREVIEW_LOCKED')) {
-      return {
-        title: zh ? '暂时无法预览' : 'Preview Not Available',
-        body: zh
-          ? '此证书目前还不能预览。\n请先完成所需的资格条件。'
-          : 'This certificate cannot be previewed yet.\nPlease complete the required eligibility conditions first.'
-      };
-    }
-
-    if (msg.includes('INSUFFICIENT_BALANCE')) {
-      return {
-        title: i18nTitle('insufficient_balance'),
-        body: shortfallMessage(state.selectedTypeKey || '')
-      };
-    }
-
-    if (msg.includes('CERT_UID_REQUIRED')) {
-      return {
-        title: zh ? '缺少证书编号' : 'Certificate ID Required',
-        body: zh
-          ? '请先完成 Check & Preview，再继续下一步。'
-          : 'Please complete Check & Preview first before continuing.'
-      };
-    }
-
-    if (msg.includes('NO_ACTIVE_PAYMENT_CERT')) {
-      return {
-        title: i18nTitle('notice'),
-        body: zh ? '没有可用的支付证书。' : 'No active payment certificate.'
-      };
-    }
-
-    if (msg.includes('MINT_DEEPLINK_MISSING')) {
-      return {
-        title: i18nTitle('request_failed'),
-        body: zh ? '缺少钱包唤起链接。' : 'Mint wallet link is missing.'
-      };
-    }
-
-    if (msg.includes('MINT_INIT_FAILED')) {
-      return {
-        title: i18nTitle('request_failed'),
-        body: zh ? 'Finalize Mint 失败。' : 'Finalize Mint failed.'
-      };
-    }
-
-    return {
-      title: i18nTitle('request_failed'),
-      body: msg || (zh ? '请求失败，请稍后再试。' : 'Request failed. Please try again.')
-    };
-  }
-
   function showCenterNotice(message, title) {
     const modal = ensureNoticeModal();
     const titleEl = modal.querySelector('#certNoticeTitle');
     const bodyEl = modal.querySelector('#certNoticeBody');
-    if (titleEl) titleEl.textContent = String(title || 'Notice');
+    if (titleEl) titleEl.textContent = String(title || textByLang('Notice', '提示'));
     if (bodyEl) bodyEl.textContent = String(message || '');
     modal.classList.add('is-open');
   }
 
   function appendLogLine(text, kind) {
-    const box = $('logBox') || $('factoryConsoleLog');
+    const box = $('factoryConsoleLog');
     if (!box) return;
-    const line = document.createElement('div');
-    line.className = `log-line ${kind || ''}`.trim();
-    line.textContent = text;
-    box.prepend(line);
+    const row = document.createElement('div');
+    row.className = `log-row tone-${kind || 'ok'}`;
+    row.innerHTML = `
+      <div class="log-time">${new Date().toLocaleTimeString()}</div>
+      <div class="log-msg">${String(text || '')}</div>
+    `;
+    box.prepend(row);
   }
 
-  function tokenImageForSymbol(symbol) {
-    const key = String(symbol || '').trim().toUpperCase();
-    const map = {
-      'WEMS': '/rwa/assets/tokens/wems.png',
-      'EMA$': '/rwa/assets/tokens/ema.png',
-      'EMA': '/rwa/assets/tokens/ema.png',
-      'EMX': '/rwa/assets/tokens/emx.png',
-      'EMS': '/rwa/assets/tokens/ems.png'
-    };
-    return map[key] || '';
-  }
-
-  function getSelectedTypeMeta() {
-    const typeKey = String(
-      state.selectedTypeKey ||
-      window.__CERT_SELECTED_TYPE ||
-      document.querySelector('.rwa-card.is-selected')?.getAttribute('data-rule-key') ||
-      document.querySelector('.rwa-card.is-selected')?.getAttribute('data-rwa-type') ||
-      ''
-    ).trim();
-    return TYPE_MAP[typeKey] || null;
-  }
-
-  async function fetchSufficientSnapshot(typeKey) {
-    const wallet = currentWallet();
-    const ownerUserId = currentOwnerId();
-
-    const qs = new URLSearchParams({
-      rwa_type: String(typeKey || '').trim(),
-      wallet,
-      owner_user_id: ownerUserId
-    });
-
-    const res = await fetch(`/rwa/cert/api/check-sufficient.php?${qs.toString()}`, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !json || json.ok === false) {
-      throw new Error((json && (json.error || json.detail)) || 'CHECK_SUFFICIENT_FAILED');
-    }
-    return json;
-  }
-
-  async function hasEnoughDisplayedBalance(typeKey) {
-    const snap = await fetchSufficientSnapshot(typeKey);
-    state.sufficientCache[typeKey] = snap;
-    return snap.sufficient === true;
-  }
-
-  function shortfallMessage(typeKey) {
-    const snap = state.sufficientCache[typeKey];
-    if (!snap) {
-      return getLang().startsWith('zh') ? '余额不足。' : 'Insufficient balance.';
-    }
-
-    const lang = getLang();
-    const token = String(snap.token || '').trim();
-    const need = formatNum(snap.required);
-    const have = formatNum(snap.available);
-    const short = formatNum(snap.shortfall);
-
-    if (lang.startsWith('zh')) {
-      return `余额不足
-
-${token} 余额不足。
-所需: ${need}
-当前: ${have}
-差额: ${short}`;
-    }
-
-    return `Insufficient Balance
-
-Insufficient ${token} balance.
-Required: ${need}
-Available: ${have}
-Shortfall: ${short}`;
-  }
-
-  async function syncBalanceGuard() {
-    const meta = getSelectedTypeMeta();
-    const issueBtns = document.querySelectorAll('.issue-btn');
-    const issuePayBtn = $('rwaIssuePayBtn');
-    const banner = $('nextStepBanner');
-
-    if (!meta) {
-      issueBtns.forEach((btn) => { btn.dataset.balanceGuard = 'no-meta'; });
-      if (issuePayBtn) issuePayBtn.dataset.balanceGuard = 'no-meta';
-      return;
-    }
-
-    let enough = true;
-    try {
-      enough = await hasEnoughDisplayedBalance(meta.rwa_type);
-    } catch (e) {
-      warn('balance guard fallback:', e);
-      enough = true;
-    }
-
-    issueBtns.forEach((btn) => {
-      const btnType = String(
-        btn.getAttribute('data-rule-key') ||
-        btn.getAttribute('data-rwa-type') ||
-        btn.id.replace(/^issueBtn-/, '')
-      ).trim();
-
-      if (btnType === state.selectedTypeKey || btnType === window.__CERT_SELECTED_TYPE) {
-        btn.dataset.balanceGuard = enough ? 'ok' : 'insufficient';
-      }
-    });
-
-    if (issuePayBtn) {
-      issuePayBtn.dataset.balanceGuard = enough ? 'ok' : 'insufficient';
-      issuePayBtn.disabled = !state.selectedCertUid || state.selectedCertUid === '—' ? true : !enough;
-    }
-
-    if (!enough && banner) {
-      const snap = state.sufficientCache[meta.rwa_type];
-      banner.textContent = `Insufficient ${snap?.token || meta.token} balance.`;
-    }
-  }
-
-  function setBtnLoading(btn, label) {
+  function setBtnLoading(btn, normalText) {
     if (!btn) return;
-    btn.dataset.normalLabel = label || btn.dataset.normalLabel || btn.textContent || '';
+    btn.dataset.normalLabel = normalText || btn.dataset.normalLabel || btn.textContent || '';
     btn.disabled = true;
     btn.setAttribute('data-loading', '1');
     btn.textContent = `${btn.dataset.normalLabel} …`;
   }
 
-  function setBtnNormal(btn, label) {
+  function setBtnNormal(btn, normalText) {
     if (!btn) return;
     btn.disabled = false;
     btn.removeAttribute('data-loading');
-    btn.textContent = label || btn.dataset.normalLabel || btn.textContent || '';
+    btn.textContent = normalText || btn.dataset.normalLabel || btn.textContent || '';
   }
 
-  function getSelectedCard() {
-    return document.querySelector('.rwa-card.is-selected');
+  function setProgress(step) {
+    const fill = $('activeProgressFill');
+    const label = $('activeProgressLabel');
+    const pct = Math.max(0, Math.min(100, (Number(step) / 5) * 100));
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `${step} / 5`;
+  }
+
+  function resetStepClasses(el) {
+    if (!el) return;
+    el.classList.remove('is-active', 'is-done', 'is-next', 'is-pulse');
+  }
+
+  function paintStepCards(flow) {
+    const steps = [$('factoryStep1'), $('factoryStep2'), $('factoryStep3'), $('factoryStep4'), $('factoryStep5')];
+    steps.forEach(resetStepClasses);
+
+    const currentMap = {
+      [FLOW.IDLE]: 0,
+      [FLOW.PREVIEW]: 1,
+      [FLOW.PAYMENT]: 2,
+      [FLOW.MINT_READY]: 3,
+      [FLOW.MINTING]: 4,
+      [FLOW.ISSUED]: 5
+    };
+
+    const current = Number(currentMap[flow] || 0);
+
+    steps.forEach((el, idx) => {
+      const n = idx + 1;
+      if (!el) return;
+
+      if (current === 0) {
+        if (n === 1) el.classList.add('is-next', 'is-pulse');
+        return;
+      }
+
+      if (n < current) {
+        el.classList.add('is-done');
+        return;
+      }
+
+      if (n === current) {
+        el.classList.add('is-active', 'is-pulse');
+      }
+    });
+
+    document.body.setAttribute('data-cert-flow-state', flow);
+  }
+
+  function setFlowState(flow, detail = {}) {
+    state.flowState = flow;
+    if (detail.cert_uid) {
+      state.selectedCertUid = String(detail.cert_uid).trim();
+      window.__CERT_SELECTED_UID = state.selectedCertUid;
+    }
+
+    const map = { idle: 0, preview: 1, payment: 2, mint_ready: 3, minting: 4, issued: 5 };
+    setProgress(map[flow] || 0);
+    paintStepCards(flow);
+
+    if (flow === FLOW.ISSUED) setText('activeStatusText', 'ISSUED');
+    else if (flow === FLOW.MINTING) setText('activeStatusText', 'MINTING');
+    else if (flow === FLOW.MINT_READY) setText('activeStatusText', 'MINT READY');
+    else if (flow === FLOW.PAYMENT) setText('activeStatusText', 'PAYMENT');
+    else if (flow === FLOW.PREVIEW) setText('activeStatusText', 'PREVIEW');
+    else setText('activeStatusText', 'READY');
   }
 
   function getCardByType(typeKey) {
-    return document.querySelector(`.rwa-card[data-rule-key="${CSS.escape(typeKey)}"]`)
-      || document.querySelector(`.rwa-card[data-rwa-type="${CSS.escape(typeKey)}"]`);
-  }
-
-  function syncUxGuard() {
-    const selectedCard = getSelectedCard();
-
-    const typeKey = String(
-      state.selectedTypeKey ||
-      selectedCard?.getAttribute('data-rule-key') ||
-      selectedCard?.getAttribute('data-rwa-type') ||
-      window.__CERT_SELECTED_TYPE ||
-      ''
-    ).trim();
-
-    const certUid = String(
-      state.selectedCertUid ||
-      $('activeCertUid')?.textContent ||
-      selectedCard?.getAttribute('data-cert-uid') ||
-      window.__CERT_SELECTED_UID ||
-      ''
-    ).trim();
-
-    const issuePayBtn = $('rwaIssuePayBtn');
-    if (issuePayBtn) issuePayBtn.disabled = !(typeKey && certUid && certUid !== '—');
-
-    const autoBtn = $('rwaAutoIssueBtn');
-    if (autoBtn) autoBtn.disabled = !(certUid && certUid !== '—');
-
-    const jumpBtn = $('rwaJumpMintBtn');
-    if (jumpBtn) jumpBtn.disabled = !(certUid && certUid !== '—');
-  }
-
-  function forceUnlockActionButtons() {
-    document.querySelectorAll('.issue-btn').forEach((btn) => {
-      btn.removeAttribute('data-loading');
-      btn.disabled = false;
-      btn.textContent = 'Check & Preview';
-    });
-
-    const issuePayBtn = $('rwaIssuePayBtn');
-    if (issuePayBtn) {
-      issuePayBtn.removeAttribute('data-loading');
-      issuePayBtn.textContent = 'Issue & Pay';
-    }
-
-    syncUxGuard();
-  }
-
-  async function post(url, payload) {
-    const res = await fetch(url, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload || {})
-    });
-
-    const text = await res.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch (_) {}
-
-    if (!res.ok) throw new Error((json && (json.error || json.detail || json.message)) || `HTTP_${res.status}`);
-    if (!json) throw new Error('INVALID_JSON_RESPONSE');
-    if (json.ok === false) throw new Error(json.detail || json.error || json.message || 'REQUEST_FAILED');
-    return json;
+    return document.querySelector(`.rwa-card[data-rule-key="${CSS.escape(typeKey)}"]`) ||
+           document.querySelector(`.rwa-card[data-rwa-type="${CSS.escape(typeKey)}"]`);
   }
 
   function clearSelectedState() {
@@ -560,364 +400,74 @@ Shortfall: ${short}`;
     syncUxGuard();
   }
 
-  function bindCardSelection() {
-    document.querySelectorAll('.rwa-card').forEach((card) => {
-      card.addEventListener('click', async () => {
-        const typeKey = String(
-          card.getAttribute('data-rule-key') ||
-          card.getAttribute('data-rwa-type') ||
-          ''
-        ).trim();
+  function syncUxGuard() {
+    const certUid = String(state.selectedCertUid || $('activeCertUid')?.textContent || '').trim();
+    const issuePayBtn = $('rwaIssuePayBtn');
+    const autoBtn = $('rwaAutoIssueBtn');
+    const jumpBtn = $('rwaJumpMintBtn');
 
-        if (!typeKey) return;
+    if (issuePayBtn) issuePayBtn.disabled = !(certUid && certUid !== '—');
+    if (autoBtn) autoBtn.disabled = !(certUid && certUid !== '—');
+    if (jumpBtn) jumpBtn.disabled = !(certUid && certUid !== '—');
+  }
 
-        applySelectedState(typeKey, '');
-        await syncBalanceGuard();
-        log('selected type', typeKey);
-      });
+  async function fetchSufficientSnapshot(typeKey) {
+    const wallet = currentWallet();
+    const ownerUserId = currentOwnerId();
+    const qs = new URLSearchParams({
+      rwa_type: String(typeKey || '').trim(),
+      wallet,
+      owner_user_id: ownerUserId
     });
+
+    const res = await getJson(`/rwa/cert/api/check-sufficient.php?${qs.toString()}`);
+    state.sufficientCache[typeKey] = res;
+    return res;
   }
 
-  function setProgress(step) {
-    const fill = $('activeProgressFill');
-    const label = $('activeProgressLabel');
-    const pct = Math.max(0, Math.min(100, (Number(step) / 5) * 100));
-    if (fill) fill.style.width = `${pct}%`;
-    if (label) label.textContent = `${step} / 5`;
-  }
+  function shortfallMessage(typeKey) {
+    const snap = state.sufficientCache[typeKey];
+    if (!snap) return textByLang('Insufficient balance.', '余额不足。');
 
-  function resetStepClasses(el) {
-    if (!el) return;
-    el.classList.remove(
-      'is-active',
-      'is-done',
-      'is-next',
-      'is-pulse',
-      'is-current-preview',
-      'is-current-payment',
-      'is-current-mint-ready',
-      'is-current-minting',
-      'is-current-issued'
+    const token = String(snap.token || '').trim();
+    const need = formatNum(snap.required);
+    const have = formatNum(snap.available);
+    const short = formatNum(snap.shortfall);
+
+    return textByLang(
+      `Insufficient ${token} balance.\nRequired: ${need}\nAvailable: ${have}\nShortfall: ${short}`,
+      `${token} 余额不足。\n所需: ${need}\n当前: ${have}\n差额: ${short}`
     );
   }
 
-  function paintStepCards(flow) {
-    const steps = [
-      $('factoryStep1'),
-      $('factoryStep2'),
-      $('factoryStep3'),
-      $('factoryStep4'),
-      $('factoryStep5')
-    ];
+  async function syncBalanceGuard() {
+    const typeKey = String(state.selectedTypeKey || '').trim();
+    if (!typeKey) return;
 
-    steps.forEach(resetStepClasses);
-
-    const currentMap = {
-      [FLOW.IDLE]: 0,
-      [FLOW.PREVIEW]: 1,
-      [FLOW.PAYMENT]: 2,
-      [FLOW.MINT_READY]: 3,
-      [FLOW.MINTING]: 4,
-      [FLOW.ISSUED]: 5
-    };
-
-    const current = Number(currentMap[flow] || 0);
-
-    steps.forEach((el, idx) => {
-      const n = idx + 1;
-      if (!el) return;
-
-      if (current === 0) {
-        if (n === 1) {
-          el.classList.add('is-next', 'is-pulse', 'is-current-preview');
-        }
-        return;
-      }
-
-      if (n < current) {
-        el.classList.add('is-done');
-        return;
-      }
-
-      if (n === current) {
-        el.classList.add('is-active', 'is-pulse');
-        if (flow === FLOW.PREVIEW) el.classList.add('is-current-preview');
-        if (flow === FLOW.PAYMENT) el.classList.add('is-current-payment');
-        if (flow === FLOW.MINT_READY) el.classList.add('is-current-mint-ready');
-        if (flow === FLOW.MINTING) el.classList.add('is-current-minting');
-        if (flow === FLOW.ISSUED) el.classList.add('is-current-issued');
-      }
-    });
-
-    document.body.setAttribute('data-cert-flow-state', flow);
-  }
-
-  function setFlowState(flow, detail = {}) {
-    state.flowState = flow;
-    if (detail.cert_uid) {
-      state.selectedCertUid = String(detail.cert_uid).trim();
-      window.__CERT_SELECTED_UID = state.selectedCertUid;
-    }
-
-    const map = { idle: 0, preview: 1, payment: 2, mint_ready: 3, minting: 4, issued: 5 };
-    setProgress(map[flow] || 0);
-    paintStepCards(flow);
-
-    if (flow === FLOW.ISSUED) setText('activeStatusText', 'ISSUED');
-    else if (flow === FLOW.MINTING) setText('activeStatusText', 'MINTING');
-    else if (flow === FLOW.MINT_READY) setText('activeStatusText', 'MINT READY');
-    else if (flow === FLOW.PAYMENT) setText('activeStatusText', 'PAYMENT CONFIRMED');
-    else if (flow === FLOW.PREVIEW) setText('activeStatusText', 'PREVIEW READY');
-    else setText('activeStatusText', 'READY');
-
-    syncUxGuard();
-  }
-
-  function stopAutoPay() {
-    if (state.autoPayTimer) {
-      clearInterval(state.autoPayTimer);
-      state.autoPayTimer = null;
-    }
-    state.autoPayUid = '';
-  }
-
-  function stopMintPoll() {
-    if (state.mintPollTimer) {
-      clearInterval(state.mintPollTimer);
-      state.mintPollTimer = null;
-    }
-    state.mintPollUid = '';
-  }
-
-  function isFinalMintedRow(row) {
-    if (!row || typeof row !== 'object') return false;
-    return Number(row.nft_minted || 0) === 1
-      && String(row.nft_item_address || '').trim() !== ''
-      && String(row.minted_at || '').trim() !== ''
-      && String(row.queue_bucket || '').trim() === 'issued';
-  }
-
-  function deriveFlowFromVerifyRow(row) {
-    if (!row || typeof row !== 'object') return FLOW.IDLE;
-    if (isFinalMintedRow(row)) return FLOW.ISSUED;
-
-    const queueBucket = String(row.queue_bucket || '').trim();
-    if (queueBucket === 'minting_process') return FLOW.MINTING;
-    if (queueBucket === 'mint_ready_queue') return FLOW.MINT_READY;
-
-    const paymentReady = Number(row.payment_verified || 0) === 1
-      || String(row.payment_status || '').trim().toLowerCase() === 'confirmed';
-
-    if (paymentReady) return FLOW.PAYMENT;
-    return FLOW.PREVIEW;
-  }
-
-  function applyVerifyRowToActive(row) {
-    if (!row || typeof row !== 'object') return;
-
-    const certUid = String(row.cert_uid || row.uid || row.cert || '').trim();
-    if (certUid) {
-      state.selectedCertUid = certUid;
-      window.__CERT_SELECTED_UID = certUid;
-      setText('activeCertUid', certUid);
-    }
-
-    state.activeQueueBucket = String(row.queue_bucket || '').trim();
-    state.lastPaymentStatus = String(row.payment_status || '').trim().toLowerCase();
-    state.lastPaymentVerified = Number(row.payment_verified || 0);
-
-    setText('activePaymentRef', row.payment_ref || '—');
-    setText('activePaymentText', row.payment_text || '—');
-    setText('activeNftItem', row.nft_item_address || '—');
-
-    const flow = deriveFlowFromVerifyRow(row);
-    setFlowState(flow, { cert_uid: certUid });
-
-    if (flow === FLOW.ISSUED) {
-      setText('nextStepBanner', 'Issued successfully. NFT mint confirmed.');
-      appendLogLine(`Issued: ${certUid}`, 'ok');
-      stopMintPoll();
-      return;
-    }
-
-    if (flow === FLOW.MINTING) {
-      setText('nextStepBanner', 'Wallet sign requested. Waiting for on-chain mint confirmation.');
-      return;
-    }
-
-    if (flow === FLOW.MINT_READY) {
-      setText('nextStepBanner', 'Payment confirmed. Finalize Mint is ready.');
-      return;
-    }
-
-    if (flow === FLOW.PAYMENT) {
-      setText('nextStepBanner', 'Business payment verified. Waiting for mint handoff.');
-      return;
-    }
-
-    setText('nextStepBanner', 'Next: Complete Business Payment');
-  }
-
-  async function fetchVerifyStatusRow(certUid) {
-    const uid = String(certUid || '').trim();
-    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
-
-    const url = `/rwa/cert/api/verify-status.php?cert_uid=${encodeURIComponent(uid)}`;
-    const res = await fetch(url, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !json || json.ok === false) {
-      throw new Error((json && (json.error || json.detail)) || 'VERIFY_STATUS_FAILED');
-    }
-
-    const row = Array.isArray(json.rows) && json.rows.length ? json.rows[0] : (json.row || null);
-    if (!row) throw new Error('VERIFY_STATUS_ROW_MISSING');
-    return row;
-  }
-
-  async function refreshMintStatus(certUid) {
-    const row = await fetchVerifyStatusRow(certUid);
-    applyVerifyRowToActive(row);
-    return row;
-  }
-
-  async function pingMintVerify(certUid) {
-    const uid = String(certUid || '').trim();
-    if (!uid || uid === '—') return null;
-
+    const issuePayBtn = $('rwaIssuePayBtn');
     try {
-      const res = await fetch(`/rwa/cert/api/mint-verify.php?cert_uid=${encodeURIComponent(uid)}`, {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: { 'Accept': 'application/json' }
-      });
-      return await res.json().catch(() => null);
-    } catch (_) {
-      return null;
+      const snap = await fetchSufficientSnapshot(typeKey);
+      const enough = snap.sufficient === true;
+      if (issuePayBtn) issuePayBtn.dataset.balanceGuard = enough ? 'ok' : 'insufficient';
+    } catch (e) {
+      warn('balance guard failed', e);
     }
   }
 
-  function startMintPoll(certUid) {
-    const uid = String(certUid || '').trim();
-    if (!uid || uid === '—') return;
-
-    stopMintPoll();
-    state.mintPollUid = uid;
-
-    state.mintPollTimer = window.setInterval(async () => {
-      try {
-        if (!state.mintPollUid) {
-          stopMintPoll();
-          return;
-        }
-
-        await pingMintVerify(uid);
-        const row = await refreshMintStatus(uid);
-
-        if (isFinalMintedRow(row)) {
-          stopMintPoll();
-        }
-      } catch (e) {
-        warn('mint poll failed', e);
-      }
-    }, 4000);
-  }
-
-  async function requestFinalizeMint(certUid) {
-    const uid = String(certUid || '').trim();
-    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
-
-    const res = await fetch(`/rwa/cert/api/mint-init.php?cert_uid=${encodeURIComponent(uid)}`, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !json || json.ok === false) {
-      throw new Error((json && (json.error || json.detail)) || 'MINT_INIT_FAILED');
-    }
-
-    state.finalizeJson = json;
-    return json;
-  }
-
-  function openMintWallet(finalizeJson) {
-    const deeplink = String(finalizeJson?.deeplink || finalizeJson?.wallet_link || '').trim();
-    if (!deeplink) throw new Error('MINT_DEEPLINK_MISSING');
-    window.location.href = deeplink;
-  }
-
-  async function handleFinalizeMint(certUid) {
-    const uid = String(certUid || state.selectedCertUid || '').trim();
-    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
-
-    const finalizeJson = await requestFinalizeMint(uid);
-
-    setFlowState(FLOW.MINTING, { cert_uid: uid });
-    setText('nextStepBanner', 'Wallet sign requested. Waiting for on-chain mint confirmation.');
-    appendLogLine(`Finalize Mint ready: ${uid}`, 'ok');
-
-    startMintPoll(uid);
-    openMintWallet(finalizeJson);
-
-    return finalizeJson;
-  }
-
-  function updateActiveFromIssue(typeKey, certUid, json) {
-    const meta = TYPE_MAP[typeKey] || {};
+  function updateActivePanel(meta, certUid, json) {
     const preview = json?.preview || {};
     const row = json?.preview_row || {};
     const payment = preview?.payment || {};
 
-    state.issueJson = json;
-    applySelectedState(typeKey, certUid);
-
     setText('activeFamilyPill', meta.familyLabel || '—');
     setText('activeName', preview.rwa_code || meta.rwa_code || meta.title || 'Preview Ready');
     setText('activeCode', row.rwa_code || meta.rwa_code || '—');
-    setText('activeSub', 'Preview response received. Continue to Issue & Pay.');
+    setText('activeSub', meta.unit || meta.unit_of_responsibility || '');
     setText('activeCertUid', certUid || '—');
     setText('activePaymentText', preview.payment_text || `${meta.amount || '-'} ${meta.token || ''}`.trim());
     setText('activePaymentRef', row.payment_ref || preview.payment_ref || payment.payment_ref || '—');
     setText('activeNftItem', row.nft_item_address || '—');
-    setText('nextStepBanner', 'Next: Complete Business Payment');
-
-    setFlowState(FLOW.PREVIEW, { cert_uid: certUid });
-    syncBalanceGuard();
-    appendLogLine(`Preview ready: ${certUid}`, 'ok');
-  }
-
-  async function handleCheckPreview(typeKey, btn) {
-    const meta = TYPE_MAP[typeKey];
-    if (!meta) throw new Error('UNKNOWN_TYPE');
-
-    const payload = {
-      rwa_type: meta.rwa_type,
-      family: meta.family,
-      rwa_code: meta.rwa_code,
-      wallet: currentWallet(),
-      ton_wallet: currentWallet(),
-      owner_user_id: currentOwnerId(),
-      csrf: csrfIssue()
-    };
-
-    if (btn) setBtnLoading(btn, 'Check & Preview');
-
-    try {
-      const res = await post(endpoint('endpointIssue', '/rwa/cert/api/issue.php'), payload);
-      const certUid = String(res?.cert_uid || res?.uid || res?.cert || '').trim();
-      if (!certUid) throw new Error('CERT_UID_MISSING');
-      updateActiveFromIssue(typeKey, certUid, res);
-      return res;
-    } finally {
-      if (btn) setBtnNormal(btn, 'Check & Preview');
-      forceUnlockActionButtons();
-    }
+    setText('nextStepBanner', textByLang('Next: Complete Business Payment', '下一步：完成业务支付'));
   }
 
   function clearQrNode(node) {
@@ -949,6 +499,22 @@ Shortfall: ${short}`;
     }
   }
 
+  function openIssuePayModal() {
+    const modal = $('issuePayModal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeIssuePayModal() {
+    const modal = $('issuePayModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
   function fillIssuePayModal(certUid, json) {
     const payment = json?.payment || {};
     state.issuePayJson = json;
@@ -960,13 +526,10 @@ Shortfall: ${short}`;
     setText('issuePayToken', payment.token_symbol || payment.token || '—');
     setText('issuePayAmount', payment.amount || '—');
     setText('issuePayRef', payment.payment_ref || '—');
-    setText('issuePayStatusText', payment.status || 'Waiting.');
-
-    const deeplink = String(payment.wallet_link || payment.deeplink || payment.wallet_url || '').trim();
+    setText('issuePayStatusText', payment.status || textByLang('Waiting.', '等待中。'));
 
     const tokenImg = $('issuePayTokenImg');
     const tokenSrc = tokenImageForSymbol(payment.token_symbol || payment.token || '');
-
     if (tokenImg) {
       if (tokenSrc) {
         tokenImg.src = tokenSrc;
@@ -977,10 +540,12 @@ Shortfall: ${short}`;
       }
     }
 
-    const linkEl = $('issuePayWalletLink');
-    if (linkEl) {
-      linkEl.href = deeplink || '#';
-      linkEl.textContent = deeplink || '—';
+    const deeplink = String(payment.wallet_link || payment.deeplink || payment.wallet_url || '').trim();
+
+    const walletLink = $('issuePayWalletLink');
+    if (walletLink) {
+      walletLink.href = deeplink || '#';
+      walletLink.textContent = deeplink || '—';
     }
 
     const walletBtn = $('issuePayWalletBtn');
@@ -1004,38 +569,12 @@ Shortfall: ${short}`;
     const qrImage = String(payment.qr_image || payment.qr_url || '').trim();
     const qrValue = String(payment.qr_text || deeplink || '').trim();
 
-    let renderedClientQr = false;
-    let renderedQrImg = false;
-
     if (qrImg) {
       qrImg.removeAttribute('src');
       qrImg.style.display = 'none';
-
       if (qrImage) {
         qrImg.src = qrImage;
         qrImg.style.display = '';
-        renderedQrImg = true;
-
-        qrImg.onerror = () => {
-          qrImg.style.display = 'none';
-          qrImg.removeAttribute('src');
-
-          if (qrText && qrValue) {
-            clearQrNode(qrText);
-            renderedClientQr = renderClientQr(qrText, qrValue);
-            if (renderedClientQr) {
-              qrText.style.display = '';
-              if (qrPlaceholder) qrPlaceholder.style.display = 'none';
-            } else {
-              qrText.textContent = qrValue;
-              qrText.style.display = '';
-              if (qrPlaceholder) qrPlaceholder.style.display = 'none';
-            }
-          } else if (qrPlaceholder) {
-            qrPlaceholder.style.display = '';
-            qrPlaceholder.textContent = 'QR pending...';
-          }
-        };
       }
     }
 
@@ -1043,260 +582,445 @@ Shortfall: ${short}`;
       clearQrNode(qrText);
       qrText.textContent = '';
       qrText.style.display = 'none';
-
-      if (!renderedQrImg && qrValue) {
-        renderedClientQr = renderClientQr(qrText, qrValue);
-        if (renderedClientQr) {
-          qrText.style.display = '';
-        } else {
-          qrText.textContent = qrValue;
-          qrText.style.display = '';
-        }
-      }
     }
 
     if (qrPlaceholder) {
-      const hasImg = renderedQrImg || !!(qrImg && qrImg.style.display !== 'none');
-      const hasFallback = !!qrValue;
-      qrPlaceholder.style.display = (!hasImg && !hasFallback) ? '' : 'none';
-      if (!hasImg && !hasFallback) {
-        qrPlaceholder.textContent = 'QR pending...';
+      qrPlaceholder.style.display = 'none';
+      qrPlaceholder.textContent = '';
+    }
+
+    if (!qrImage && qrText && qrValue) {
+      const rendered = renderClientQr(qrText, qrValue);
+      if (rendered) {
+        qrText.style.display = '';
+      } else {
+        qrText.textContent = qrValue;
+        qrText.style.display = '';
       }
     }
 
-    const statusBox = $('issuePayStatus');
-    if (statusBox) {
-      statusBox.classList.remove('payment-status--pending', 'payment-status--confirmed', 'payment-status--error');
-      const status = String(payment.status || '').toLowerCase();
-      const verified = Number(payment.verified || 0) === 1;
-      if (verified || status === 'confirmed') statusBox.classList.add('payment-status--confirmed');
-      else if (status && status !== 'pending') statusBox.classList.add('payment-status--error');
-      else statusBox.classList.add('payment-status--pending');
+    if (!qrImage && !qrValue && qrPlaceholder) {
+      qrPlaceholder.style.display = '';
+      qrPlaceholder.textContent = textByLang('QR pending...', '二维码待生成...');
     }
   }
 
-  function openIssuePayModal() {
-    const modal = $('issuePayModal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+  function mapUserFacingErrorMessage(raw) {
+    const msg = String(raw || '').trim();
+
+    if (msg.includes('RH2O_REQUIRES_10_GREEN_MINTED')) {
+      return {
+        title: textByLang('Preview Not Available', '暂时无法预览'),
+        body: textByLang(
+          'Blue RWA requires 10 minted Green RWA certificates first.',
+          '蓝证需要先拥有 10 张已铸造的绿证。'
+        )
+      };
+    }
+
+    if (msg.includes('RBLACK_REQUIRES_1_GOLD_MINTED')) {
+      return {
+        title: textByLang('Preview Not Available', '暂时无法预览'),
+        body: textByLang(
+          'Black RWA requires 1 minted Gold RWA certificates first.',
+          '黑证需要先拥有 1 张已铸造的金证。'
+        )
+      };
+    }
+
+    if (msg.includes('INSUFFICIENT_BALANCE')) {
+      return {
+        title: textByLang('Insufficient Balance', '余额不足'),
+        body: shortfallMessage(state.selectedTypeKey || '')
+      };
+    }
+
+    if (msg.includes('CERT_UID_REQUIRED')) {
+      return {
+        title: textByLang('Certificate ID Required', '缺少证书编号'),
+        body: textByLang(
+          'Please complete Check & Preview first before continuing.',
+          '请先完成检查与预览，再继续下一步。'
+        )
+      };
+    }
+
+    if (msg.includes('NO_ACTIVE_PAYMENT_CERT')) {
+      return {
+        title: textByLang('Notice', '提示'),
+        body: textByLang('No active payment certificate.', '没有可用的支付证书。')
+      };
+    }
+
+    if (msg.includes('MINT_DEEPLINK_MISSING')) {
+      return {
+        title: textByLang('Request Failed', '请求失败'),
+        body: textByLang('Mint wallet link is missing.', '缺少钱包唤起链接。')
+      };
+    }
+
+    if (msg.includes('MINT_INIT_FAILED')) {
+      return {
+        title: textByLang('Request Failed', '请求失败'),
+        body: textByLang('Finalize Mint failed.', 'Finalize Mint 失败。')
+      };
+    }
+
+    return {
+      title: textByLang('Request Failed', '请求失败'),
+      body: msg || textByLang('Request failed. Please try again.', '请求失败，请稍后再试。')
+    };
   }
 
-  function closeIssuePayModal() {
-    const modal = $('issuePayModal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+  async function handleCheckPreview(typeKey, btn) {
+    const meta = TYPE_MAP[typeKey];
+    if (!meta) throw new Error('UNKNOWN_TYPE');
+
+    const payload = {
+      rwa_type: meta.rwa_type,
+      family: meta.family,
+      rwa_code: meta.rwa_code,
+      wallet: currentWallet(),
+      ton_wallet: currentWallet(),
+      owner_user_id: currentOwnerId(),
+      csrf: csrfIssue()
+    };
+
+    if (btn) setBtnLoading(btn, textByLang('Check & Preview', '检查与预览'));
+
+    try {
+      const res = await postJson(endpoint('endpointIssue', '/rwa/cert/api/issue.php'), payload);
+      const certUid = String(res?.cert_uid || res?.uid || res?.cert || '').trim();
+      if (!certUid) throw new Error('CERT_UID_MISSING');
+
+      state.issueJson = res;
+      applySelectedState(typeKey, certUid);
+      updateActivePanel(meta, certUid, res);
+      setFlowState(FLOW.PREVIEW, { cert_uid: certUid });
+      await syncBalanceGuard();
+      appendLogLine(`Preview ready: ${certUid}`, 'ok');
+      return res;
+    } finally {
+      if (btn) setBtnNormal(btn, textByLang('Check & Preview', '检查与预览'));
+      syncUxGuard();
+    }
+  }
+
+  async function handleIssuePay() {
+    const typeKey = String(state.selectedTypeKey || window.__CERT_SELECTED_TYPE || '').trim();
+    const certUid = String(state.selectedCertUid || $('activeCertUid')?.textContent || '').trim();
+    const meta = TYPE_MAP[typeKey];
+
+    if (!meta) throw new Error('UNKNOWN_TYPE');
+    if (!certUid || certUid === '—') throw new Error('CERT_UID_REQUIRED');
+
+    const payload = {
+      cert_uid: certUid,
+      rwa_type: meta.rwa_type,
+      family: meta.family,
+      rwa_code: meta.rwa_code,
+      wallet: currentWallet(),
+      ton_wallet: currentWallet(),
+      owner_user_id: currentOwnerId(),
+      csrf: csrfIssue()
+    };
+
+    const res = await postJson(endpoint('endpointIssuePay', '/rwa/cert/api/issue-pay.php'), payload);
+    fillIssuePayModal(certUid, res);
+    openIssuePayModal();
+    setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
+    appendLogLine(`Issue & Pay ready: ${certUid}`, 'ok');
+    return res;
+  }
+
+  async function fetchVerifyStatusRow(certUid) {
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
+    const json = await getJson(`/rwa/cert/api/verify-status.php?cert_uid=${encodeURIComponent(uid)}`);
+    const row = Array.isArray(json.rows) && json.rows.length ? json.rows[0] : (json.row || null);
+    if (!row) throw new Error('VERIFY_STATUS_ROW_MISSING');
+    return row;
+  }
+
+  function deriveFlowFromVerifyRow(row) {
+    if (!row || typeof row !== 'object') return FLOW.IDLE;
+    const minted = Number(row.nft_minted || 0) === 1 && String(row.queue_bucket || '') === 'issued';
+    if (minted) return FLOW.ISSUED;
+    if (String(row.queue_bucket || '') === 'minting_process') return FLOW.MINTING;
+    if (String(row.queue_bucket || '') === 'mint_ready_queue') return FLOW.MINT_READY;
+    if (Number(row.payment_verified || 0) === 1 || String(row.payment_status || '').toLowerCase() === 'confirmed') return FLOW.PAYMENT;
+    return FLOW.PREVIEW;
+  }
+
+  function applyVerifyRowToActive(row) {
+    if (!row || typeof row !== 'object') return;
+
+    const certUid = String(row.cert_uid || row.uid || '').trim();
+    if (certUid) {
+      state.selectedCertUid = certUid;
+      window.__CERT_SELECTED_UID = certUid;
+      setText('activeCertUid', certUid);
+      setText('issuePayCertUid', certUid);
+      setText('activeMintCertUid', certUid);
+    }
+
+    state.activeQueueBucket = String(row.queue_bucket || '').trim();
+    state.lastPaymentStatus = String(row.payment_status || '').trim().toLowerCase();
+    state.lastPaymentVerified = Number(row.payment_verified || 0);
+
+    setText('activePaymentRef', row.payment_ref || '—');
+    setText('activePaymentText', row.payment_text || '—');
+    setText('activeNftItem', row.nft_item_address || '—');
+
+    setText('certMintTitle', certUid || '—');
+    setText('certMintRecipient', row?.mint?.recipient || '—');
+    setText('certMintAmount', row?.mint?.amount_ton || '—');
+    setText('certMintAmountNano', row?.payment_amount_units || row?.unit_of_responsibility || row?.payment_amount || row?.mint?.amount_nano || '—');
+    setText('certMintItemIndex', row?.payment_ref ? `REF: ${row.payment_ref}` : (row?.mint?.item_index || '—'));
+    setText('certMintStatusText', row?.mint_status || String(row.queue_bucket || '').replaceAll('_', ' '));
+    setText('certMintPayloadMini', row?.mint?.payload_b64 || '—');
+    setText('certMintDeeplink', row?.deeplink || row?.mint?.deeplink || row?.mint?.wallet_link || '—');
+    setText('certMintQrMeta', String(row.queue_bucket || '') === 'mint_ready_queue'
+      ? 'Mint ready. Finalize Mint will hand off to NFT Factory.'
+      : String(row.queue_bucket || '').replaceAll('_', ' '));
+
+    const getgemsBtn = $('certMintGetgemsBtn');
+    if (getgemsBtn) {
+      getgemsBtn.href = String(row?.getgems_url || row?.verify_url || '#').trim() || '#';
+    }
+
+    const flow = deriveFlowFromVerifyRow(row);
+    setFlowState(flow, { cert_uid: certUid });
+
+    if (flow === FLOW.ISSUED) {
+      setText('nextStepBanner', textByLang('Issued successfully. NFT mint confirmed.', '已成功签发。NFT 铸造已确认。'));
+      stopMintPoll();
+      document.dispatchEvent(new CustomEvent('cert:payment-confirmed', { detail: { cert_uid: certUid } }));
+      return;
+    }
+
+    if (flow === FLOW.MINTING) {
+      setText('nextStepBanner', textByLang('Wallet sign requested. Waiting for on-chain mint confirmation.', '已请求钱包签名。等待链上铸造确认。'));
+      return;
+    }
+
+    if (flow === FLOW.MINT_READY) {
+      setText('nextStepBanner', textByLang('Payment confirmed. Finalize Mint is ready.', '支付已确认。可继续 Finalize Mint。'));
+      document.dispatchEvent(new CustomEvent('cert:payment-confirmed', { detail: { cert_uid: certUid } }));
+      return;
+    }
+
+    if (flow === FLOW.PAYMENT) {
+      setText('nextStepBanner', textByLang('Business payment verified. Waiting for mint handoff.', '业务支付已验证。等待铸造交接。'));
+      document.dispatchEvent(new CustomEvent('cert:payment-confirmed', { detail: { cert_uid: certUid } }));
+      return;
+    }
+
+    setText('nextStepBanner', textByLang('Next: Complete Business Payment', '下一步：完成业务支付'));
   }
 
   async function handleConfirmPayment(certUid) {
-    const res = await post(endpoint('endpointConfirmPayment', '/rwa/cert/api/confirm-payment.php'), {
-      cert_uid: certUid,
-      uid: certUid,
-      cert: certUid,
+    const uid = String(certUid || state.selectedCertUid || $('issuePayCertUid')?.textContent || '').trim();
+    if (!uid || uid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
+
+    const res = await postJson(endpoint('endpointConfirmPayment', '/rwa/cert/api/confirm-payment.php'), {
+      cert_uid: uid,
+      wallet: currentWallet(),
+      owner_user_id: currentOwnerId(),
       csrf: csrfConfirmPayment()
     });
 
     const payment = res?.payment || {};
-    const verified = res?.verified === true || Number(payment.verified || 0) === 1 || String(payment.status || '').toLowerCase() === 'confirmed';
+    fillIssuePayModal(uid, { cert_uid: uid, payment, preview_row: { queue_bucket: res?.read_model?.queue_bucket || '' } });
 
-    fillIssuePayModal(certUid, { payment, preview_row: res?.preview_row || {} });
-
-    if (verified) {
-      setFlowState(FLOW.MINT_READY, { cert_uid: certUid });
-      setText('nextStepBanner', 'Payment confirmed. Continue in Mint Ready Queue.');
-      stopAutoPay();
-      appendLogLine(`Payment confirmed: ${certUid}`, 'ok');
-      try {
-        await refreshMintStatus(certUid);
-      } catch (e) {
-        warn('verify-status refresh after payment failed', e);
-      }
+    if (res?.read_model && typeof res.read_model === 'object') {
+      applyVerifyRowToActive(res.read_model);
     } else {
-      setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
-      appendLogLine(`Payment still pending: ${certUid}`, 'warn');
+      const row = await fetchVerifyStatusRow(uid);
+      applyVerifyRowToActive(row);
     }
 
+    document.dispatchEvent(new CustomEvent('cert:payment-reconfirm-done', {
+      detail: { cert_uid: uid, response: res }
+    }));
+
+    appendLogLine(`Payment verify refreshed: ${uid}`, 'ok');
     return res;
   }
 
+  function stopAutoPay() {
+    if (state.autoPayTimer) {
+      clearInterval(state.autoPayTimer);
+      state.autoPayTimer = null;
+    }
+    state.autoPayUid = '';
+  }
+
   function startAutoPay(certUid) {
-    if (!certUid) return;
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') return;
+
     stopAutoPay();
-    state.autoPayUid = certUid;
+    state.autoPayUid = uid;
+
     state.autoPayTimer = window.setInterval(async () => {
       try {
-        if (!state.autoPayUid) return stopAutoPay();
-        await handleConfirmPayment(certUid);
+        if (!state.autoPayUid) {
+          stopAutoPay();
+          return;
+        }
+        const res = await handleConfirmPayment(uid);
+        const verified = res?.verified === true || res?.payment?.status === 'confirmed';
+        if (verified) stopAutoPay();
       } catch (e) {
-        warn('auto payment verify failed', e);
+        warn('auto pay verify failed', e);
       }
     }, 5000);
   }
 
-  async function handleIssuePay() {
-    let certUid = String(state.selectedCertUid || '').trim();
-    let typeKey = String(state.selectedTypeKey || '').trim();
-
-    if (!typeKey) {
-      const selectedCard = getSelectedCard();
-      if (selectedCard) {
-        typeKey = String(
-          selectedCard.getAttribute('data-rule-key') ||
-          selectedCard.getAttribute('data-rwa-type') ||
-          window.__CERT_SELECTED_TYPE ||
-          ''
-        ).trim();
-      }
+  function stopMintPoll() {
+    if (state.mintPollTimer) {
+      clearInterval(state.mintPollTimer);
+      state.mintPollTimer = null;
     }
-
-    if (typeKey) {
-      state.selectedTypeKey = typeKey;
-      window.__CERT_SELECTED_TYPE = typeKey;
-    }
-
-    if (!certUid) {
-      certUid = String($('activeCertUid')?.textContent || '').trim();
-    }
-
-    if ((!certUid || certUid === '—') && typeKey) {
-      const card = getCardByType(typeKey);
-      const cardUid = String(card?.getAttribute('data-cert-uid') || '').trim();
-      if (cardUid) certUid = cardUid;
-    }
-
-    if (!certUid || certUid === '—') {
-      if (!typeKey) {
-        throw new Error('Please run Check & Preview first so a valid Cert UID is created.');
-      }
-
-      appendLogLine(`Issue & Pay requested without cert UID. Auto-running Check & Preview for ${typeKey}.`, 'warn');
-
-      const previewBtn = $(`issueBtn-${typeKey}`);
-      const previewRes = await handleCheckPreview(typeKey, previewBtn || null);
-      certUid = String(previewRes?.cert_uid || previewRes?.uid || previewRes?.cert || '').trim();
-    }
-
-    if (!certUid || certUid === '—') {
-      appendLogLine('BLOCKED: Missing cert_uid before POST', 'error');
-      throw new Error('CERT_UID_REQUIRED');
-    }
-
-    state.selectedCertUid = certUid;
-    window.__CERT_SELECTED_UID = certUid;
-
-    const selectedCard = getCardByType(typeKey) || getSelectedCard();
-    if (selectedCard) {
-      selectedCard.setAttribute('data-cert-uid', certUid);
-    }
-
-    setText('activeCertUid', certUid);
-
-    const res = await post(endpoint('endpointIssuePay', '/rwa/cert/api/issue-pay.php'), {
-      cert_uid: certUid,
-      uid: certUid,
-      cert: certUid
-    });
-
-    log('issue pay ok', res);
-    fillIssuePayModal(certUid, res);
-    openIssuePayModal();
-
-    const payment = res?.payment || {};
-    const isConfirmed =
-      String(payment.status || '').toLowerCase() === 'confirmed' ||
-      Number(payment.verified || 0) === 1;
-
-    setText('activePaymentText', `${payment.amount || '—'} ${payment.token_symbol || payment.token || ''}`.trim());
-    setText('activePaymentRef', payment.payment_ref || '—');
-    setText('nextStepBanner', isConfirmed ? 'Payment already confirmed. Ready for Mint Queue.' : 'Business payment modal opened.');
-    syncUxGuard();
-    syncBalanceGuard();
-
-    appendLogLine(`Issue & Pay opened: ${certUid}`, 'ok');
-
-    if (!isConfirmed) {
-      setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
-      startAutoPay(certUid);
-    } else {
-      setFlowState(FLOW.MINT_READY, { cert_uid: certUid });
-      try {
-        await refreshMintStatus(certUid);
-      } catch (e) {
-        warn('verify-status refresh after issue-pay failed', e);
-      }
-    }
-
-    return res;
+    state.mintPollUid = '';
   }
 
-  function bindCheckPreview() {
+  async function pingMintVerify(certUid) {
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') return null;
+    try {
+      return await getJson(`/rwa/cert/api/mint-verify.php?cert_uid=${encodeURIComponent(uid)}`);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function startMintPoll(certUid) {
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') return;
+
+    stopMintPoll();
+    state.mintPollUid = uid;
+
+    state.mintPollTimer = window.setInterval(async () => {
+      try {
+        if (!state.mintPollUid) {
+          stopMintPoll();
+          return;
+        }
+
+        await pingMintVerify(uid);
+        const row = await fetchVerifyStatusRow(uid);
+        applyVerifyRowToActive(row);
+
+        if (Number(row.nft_minted || 0) === 1 && String(row.queue_bucket || '') === 'issued') {
+          stopMintPoll();
+        }
+      } catch (e) {
+        warn('mint poll failed', e);
+      }
+    }, 4000);
+  }
+
+  async function requestFinalizeMint(certUid) {
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
+    const json = await getJson(`/rwa/cert/api/mint-init.php?cert_uid=${encodeURIComponent(uid)}`);
+    if (!json || json.ok === false) throw new Error('MINT_INIT_FAILED');
+    state.finalizeJson = json;
+    return json;
+  }
+
+  function openMintWallet(finalizeJson) {
+    const deeplink = String(finalizeJson?.deeplink || finalizeJson?.wallet_link || '').trim();
+    if (!deeplink) throw new Error('MINT_DEEPLINK_MISSING');
+    window.location.href = deeplink;
+  }
+
+  async function handleFinalizeMint(certUid) {
+    const uid = String(certUid || state.selectedCertUid || $('activeMintCertUid')?.textContent || $('activeCertUid')?.textContent || '').trim();
+    if (!uid || uid === '—') throw new Error('CERT_UID_REQUIRED');
+
+    const finalizeJson = await requestFinalizeMint(uid);
+    setFlowState(FLOW.MINTING, { cert_uid: uid });
+    setText('nextStepBanner', textByLang('Wallet sign requested. Waiting for on-chain mint confirmation.', '已请求钱包签名。等待链上铸造确认。'));
+    appendLogLine(`Finalize Mint ready: ${uid}`, 'ok');
+
+    startMintPoll(uid);
+    openMintWallet(finalizeJson);
+
+    return finalizeJson;
+  }
+
+  function bindCardSelection() {
+    document.querySelectorAll('.rwa-card').forEach((card) => {
+      card.addEventListener('click', async () => {
+        const typeKey = String(
+          card.getAttribute('data-rule-key') ||
+          card.getAttribute('data-rwa-type') ||
+          ''
+        ).trim();
+
+        if (!typeKey) return;
+
+        applySelectedState(typeKey, '');
+        setText('activeFamilyPill', TYPE_MAP[typeKey]?.familyLabel || '—');
+        setText('activeName', TYPE_MAP[typeKey]?.title || '—');
+        setText('activeCode', TYPE_MAP[typeKey]?.rwa_code || '—');
+        setText('activeSub', TYPE_MAP[typeKey]?.unit || '');
+        setText('activeCertUid', '—');
+        setText('activePaymentText', `${TYPE_MAP[typeKey]?.amount || '-'} ${TYPE_MAP[typeKey]?.token || ''}`.trim());
+        setText('activePaymentRef', '—');
+        setText('activeNftItem', '—');
+        setText('nextStepBanner', textByLang('Next: Check & Preview', '下一步：检查与预览'));
+        setFlowState(FLOW.IDLE);
+        await syncBalanceGuard();
+        log('selected type', typeKey);
+      });
+    });
+  }
+
+  function bindIssueButtons() {
     Object.keys(TYPE_MAP).forEach((typeKey) => {
       const btn = $(`issueBtn-${typeKey}`);
       if (!btn) return;
 
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
         try {
-          forceUnlockActionButtons();
-          applySelectedState(typeKey, '');
-
-          const enough = await hasEnoughDisplayedBalance(typeKey);
-          if (!enough) {
-            appendLogLine(`Blocked: insufficient balance for ${typeKey}.`, 'error');
-            showCenterNotice(shortfallMessage(typeKey), i18nTitle('insufficient_balance'));
-            await syncBalanceGuard();
-            return;
-          }
-
           await handleCheckPreview(typeKey, btn);
         } catch (e) {
-          err('preview failed', e);
-          appendLogLine(`Check & Preview failed: ${e.message}`, 'error');
+          err('check preview failed', e);
+          appendLogLine(`Check & Preview failed: ${e.message}`, 'warn');
           const mapped = mapUserFacingErrorMessage(e?.message || e);
           showCenterNotice(mapped.body, mapped.title);
-        } finally {
-          setBtnNormal(btn, 'Check & Preview');
-          forceUnlockActionButtons();
         }
       });
     });
   }
 
-  function bindIssuePay() {
-    const btn = $('rwaIssuePayBtn');
-    if (btn) {
-      btn.addEventListener('click', async () => {
+  function bindFactoryActionRow() {
+    const issuePayBtn = $('rwaIssuePayBtn');
+    const autoBtn = $('rwaAutoIssueBtn');
+    const jumpBtn = $('rwaJumpMintBtn');
+
+    if (issuePayBtn) {
+      issuePayBtn.addEventListener('click', async () => {
         try {
-          forceUnlockActionButtons();
-
-          const meta = getSelectedTypeMeta();
-          if (meta) {
-            const enough = await hasEnoughDisplayedBalance(meta.rwa_type);
-            if (!enough) {
-              appendLogLine(`Blocked: insufficient balance for ${meta.rwa_type}.`, 'error');
-              showCenterNotice(shortfallMessage(meta.rwa_type), i18nTitle('insufficient_balance'));
-              await syncBalanceGuard();
-              return;
-            }
-          }
-
-          setBtnLoading(btn, 'Issue & Pay');
+          setBtnLoading(issuePayBtn, textByLang('Issue & Pay', '签发并支付'));
           await handleIssuePay();
         } catch (e) {
           err('issue pay failed', e);
-          appendLogLine(`Issue & Pay failed: ${e.message}`, 'error');
+          appendLogLine(`Issue & Pay failed: ${e.message}`, 'warn');
           const mapped = mapUserFacingErrorMessage(e?.message || e);
           showCenterNotice(mapped.body, mapped.title);
         } finally {
-          setBtnNormal(btn, 'Issue & Pay');
-          forceUnlockActionButtons();
+          setBtnNormal(issuePayBtn, textByLang('Issue & Pay', '签发并支付'));
         }
       });
     }
 
-    const autoBtn = $('rwaAutoIssueBtn');
     if (autoBtn) {
       autoBtn.addEventListener('click', () => {
         try {
@@ -1309,20 +1033,18 @@ Shortfall: ${short}`;
           err('auto issue failed', e);
           appendLogLine(`Auto Issue Tx failed: ${e.message}`, 'warn');
           const mapped = mapUserFacingErrorMessage(e?.message || e);
-          showCenterNotice(mapped.body, mapped.title || i18nTitle('notice'));
+          showCenterNotice(mapped.body, mapped.title);
         }
       });
     }
 
-    const jumpBtn = $('rwaJumpMintBtn');
     if (jumpBtn) {
       jumpBtn.addEventListener('click', () => {
         const certUid = String(state.selectedCertUid || $('activeCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') {
-          showCenterNotice(getLang().startsWith('zh') ? '请先选择证书。' : 'Select a cert first.', i18nTitle('notice'));
+          showCenterNotice(textByLang('Select a cert first.', '请先选择证书。'), textByLang('Notice', '提示'));
           return;
         }
-
         const nftFactory = $('nftFactorySection');
         if (nftFactory) nftFactory.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -1367,14 +1089,14 @@ Shortfall: ${short}`;
         err('manual confirm payment failed', e);
         appendLogLine(`Refresh verify failed: ${e.message}`, 'warn');
         const mapped = mapUserFacingErrorMessage(e?.message || e);
-        showCenterNotice(mapped.body, mapped.title || i18nTitle('verify_failed'));
+        showCenterNotice(mapped.body, mapped.title);
       }
     });
 
     $('issuePayAutoBtn')?.addEventListener('click', () => {
       const certUid = String($('issuePayCertUid')?.textContent || '').trim();
       if (!certUid || certUid === '—') {
-        showCenterNotice(getLang().startsWith('zh') ? '没有可用的支付证书。' : 'No active payment cert.', i18nTitle('notice'));
+        showCenterNotice(textByLang('No active payment cert.', '没有可用的支付证书。'), textByLang('Notice', '提示'));
         return;
       }
       startAutoPay(certUid);
@@ -1392,7 +1114,7 @@ Shortfall: ${short}`;
         const certUid = String(state.selectedCertUid || $('activeMintCertUid')?.textContent || $('activeCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') throw new Error('CERT_UID_REQUIRED');
 
-        setBtnLoading(btn, 'Step 1 · Prepare & Mint Now');
+        setBtnLoading(btn, textByLang('Step 1 · Prepare & Mint Now', '第 1 步 · 准备并立即铸造'));
         await handleFinalizeMint(certUid);
       } catch (e) {
         err('finalize mint failed', e);
@@ -1400,7 +1122,7 @@ Shortfall: ${short}`;
         const mapped = mapUserFacingErrorMessage(e?.message || e);
         showCenterNotice(mapped.body, mapped.title);
       } finally {
-        setBtnNormal(btn, 'Step 1 · Prepare & Mint Now');
+        setBtnNormal(btn, textByLang('Step 1 · Prepare & Mint Now', '第 1 步 · 准备并立即铸造'));
       }
     });
   }
@@ -1410,71 +1132,68 @@ Shortfall: ${short}`;
       try {
         const certUid = String(ev?.detail?.cert_uid || '').trim();
         if (!certUid) return;
-
         state.selectedCertUid = certUid;
         window.__CERT_SELECTED_UID = certUid;
-        setText('activeCertUid', certUid);
-        setText('activeMintCertUid', certUid);
 
-        try {
-          await refreshMintStatus(certUid);
-        } catch (e) {
-          warn('handoff verify-status refresh failed', e);
+        const row = ev?.detail?.row || null;
+        if (row && typeof row === 'object') {
+          applyVerifyRowToActive(row);
+        } else {
+          const fresh = await fetchVerifyStatusRow(certUid);
+          applyVerifyRowToActive(fresh);
         }
 
         const nftFactory = $('nftFactorySection');
         if (nftFactory) nftFactory.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (e) {
-        warn('router handoff failed', e);
+        warn('cert:nft-focus handoff failed', e);
+      }
+    });
+
+    document.addEventListener('cert:payment-reconfirm', async (ev) => {
+      try {
+        const certUid = String(ev?.detail?.cert_uid || '').trim();
+        if (!certUid) return;
+
+        state.selectedCertUid = certUid;
+        window.__CERT_SELECTED_UID = certUid;
+        setText('activeCertUid', certUid);
+        setText('issuePayCertUid', certUid);
+
+        const row = ev?.detail?.row || null;
+        if (row && typeof row === 'object') {
+          setText('activeCode', row.rwa_code || '—');
+          setText('activePaymentRef', row.payment_ref || '—');
+          setText('activePaymentText', row.payment_text || '—');
+          setText('activeNftItem', row.nft_item_address || '—');
+          setText('nextStepBanner', textByLang('Refreshing payment verification…', '正在刷新支付验证…'));
+        }
+
+        setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
+        openIssuePayModal();
+        await handleConfirmPayment(certUid);
+      } catch (e) {
+        err('cert:payment-reconfirm failed', e);
+        appendLogLine(`Reconfirm Payment failed: ${e.message}`, 'warn');
+        const mapped = mapUserFacingErrorMessage(e?.message || e);
+        showCenterNotice(mapped.body, mapped.title);
       }
     });
   }
 
-  async function boot() {
+  function boot() {
+    renderBalanceTokenImages();
+    loadStorageSummary().catch(warn);
     bindCardSelection();
-    bindCheckPreview();
-    bindIssuePay();
+    bindIssueButtons();
+    bindFactoryActionRow();
     bindIssuePayModal();
     bindFinalizeMint();
     bindRouterHandoff();
-
-    setFlowState(FLOW.IDLE);
-    forceUnlockActionButtons();
     syncUxGuard();
-    await syncBalanceGuard();
-
-    if (state.selectedCertUid) {
-      try {
-        await refreshMintStatus(state.selectedCertUid);
-      } catch (e) {
-        warn('initial verify-status sync failed', e);
-      }
-    }
-
-    log('cert-actions ready');
+    setFlowState(FLOW.IDLE);
+    log('cert-actions global role lock ready');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { boot().catch(err); }, { once: true });
-  } else {
-    boot().catch(err);
-  }
+  document.addEventListener('DOMContentLoaded', boot, { once: true });
 })();
-
-function renderFactoryPayload(json) {
-  const el = document.getElementById('factoryPayload');
-  if (!el) return;
-
-  const payload = json.payload_b64 || '';
-  const wallet = json.wallet_link || '';
-
-  el.innerHTML = `
-    <div class="payload-box">
-      <div><b>Wallet Link</b></div>
-      <a href="${wallet}" target="_blank">${wallet}</a>
-
-      <div style="margin-top:10px;"><b>Payload</b></div>
-      <textarea style="width:100%;height:120px;">${payload}</textarea>
-    </div>
-  `;
-}

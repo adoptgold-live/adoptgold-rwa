@@ -1,18 +1,31 @@
 /**
  * /var/www/html/public/rwa/cert/cert.js
- * Version: v7.4.4-20260407-translator-only
+ * Version: v7.5.0-20260410-translator-only-global-lock
  *
- * MASTER LOCK
- * - Translator / language helper only
- * - NO issue / issue-pay / confirm-payment / mint binding here
- * - Router owns business logic
- * - Safe to load after cert-router.js
+ * GLOBAL MASTER LOCK
+ * - cert.js = translator only
+ * - NEVER own:
+ *   - Check & Preview
+ *   - Issue & Pay
+ *   - Reconfirm Payment
+ *   - balance loading
+ *   - token image loading
+ *   - queue polling
+ *   - queue rendering
+ *   - mint init / mint verify
+ *   - verify-status business logic
+ * - Safe to load before or after cert-router.js / cert-actions.js
+ * - Must preserve exact existing DOM ids
  */
 
 (function () {
   'use strict';
 
-  const LANG_KEY = 'poado_cert_lang_v744';
+  if (window.CERT_TRANSLATOR_ONLY_ACTIVE) return;
+  window.CERT_TRANSLATOR_ONLY_ACTIVE = true;
+
+  const LANG_KEY = 'poado_cert_lang_v750';
+  const $ = (id) => document.getElementById(id);
 
   const I18N = {
     en: {
@@ -160,10 +173,8 @@
     }
   };
 
-  const $ = (id) => document.getElementById(id);
-
   function certLog(...args) {
-    console.log('[CERT]', ...args);
+    console.log('[CERT_TRANSLATOR]', ...args);
   }
 
   function getLang() {
@@ -172,7 +183,7 @@
   }
 
   function saveLang(lang) {
-    localStorage.setItem(LANG_KEY, lang);
+    localStorage.setItem(LANG_KEY, lang === 'zh' ? 'zh' : 'en');
   }
 
   function t(lang, key) {
@@ -180,29 +191,29 @@
   }
 
   function applyLang(lang) {
-    document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
-    document.documentElement.setAttribute('data-lang', lang);
+    const next = lang === 'zh' ? 'zh' : 'en';
+
+    document.documentElement.setAttribute('lang', next === 'zh' ? 'zh-CN' : 'en');
+    document.documentElement.setAttribute('data-lang', next);
     document.body.classList.remove('lang-en', 'lang-zh');
-    document.body.classList.add(lang === 'zh' ? 'lang-zh' : 'lang-en');
+    document.body.classList.add(next === 'zh' ? 'lang-zh' : 'lang-en');
 
     document.querySelectorAll('[data-i18n]').forEach((node) => {
       const key = node.getAttribute('data-i18n');
       if (!key) return;
-      node.innerHTML = t(lang, key);
+      node.innerHTML = t(next, key);
     });
 
     const enBtn = $('langBtnEn');
     const zhBtn = $('langBtnZh');
-    if (enBtn) enBtn.classList.toggle('is-active', lang === 'en');
-    if (zhBtn) zhBtn.classList.toggle('is-active', lang === 'zh');
+    if (enBtn) enBtn.classList.toggle('is-active', next === 'en');
+    if (zhBtn) zhBtn.classList.toggle('is-active', next === 'zh');
 
-    window.__CERT_LANG = lang;
+    window.__CERT_LANG = next;
 
-    try {
-      window.dispatchEvent(new CustomEvent('cert:lang-changed', {
-        detail: { lang }
-      }));
-    } catch (_) {}
+    document.dispatchEvent(new CustomEvent('cert:lang-changed', {
+      detail: { lang: next }
+    }));
   }
 
   function bindLangButtons() {
@@ -220,8 +231,8 @@
   function initTranslator() {
     bindLangButtons();
     applyLang(getLang());
-    certLog('cert.js translator mode ready');
+    certLog('translator-only ready');
   }
 
-  document.addEventListener('DOMContentLoaded', initTranslator);
+  document.addEventListener('DOMContentLoaded', initTranslator, { once: true });
 })();
