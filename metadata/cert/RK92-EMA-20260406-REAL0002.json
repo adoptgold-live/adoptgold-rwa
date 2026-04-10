@@ -1,0 +1,52 @@
+{
+    "name": "RK92-EMA-20260406-REAL0002",
+    "description": "AdoptGold RWA Certificate NFT. Lean off-chain metadata prepared for collection minting and Getgems compatibility.",
+    "image": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/nft/image.png",
+    "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RK92-EMA-20260406-REAL0002",
+    "attributes": [
+        {
+            "trait_type": "Cert UID",
+            "value": "RK92-EMA-20260406-REAL0002"
+        },
+        {
+            "trait_type": "Family",
+            "value": "GENESIS"
+        },
+        {
+            "trait_type": "RWA Code",
+            "value": "RK92-EMA"
+        },
+        {
+            "trait_type": "RWA Type",
+            "value": "GOLD"
+        },
+        {
+            "trait_type": "Unit",
+            "value": "RK92-EMA"
+        },
+        {
+            "trait_type": "Snapshot Weight",
+            "value": 1
+        },
+        {
+            "trait_type": "Fingerprint",
+            "value": "3fe65a8e7315995745b8f08927c04d5e2f36416ce4d2f1b90f989e1f0d3b860a"
+        },
+        {
+            "trait_type": "TON Wallet",
+            "value": "UQBxc1nE_MGtIQpy1wTzVnoQTPfQmv5st_u2QJWSNNAvbYAv"
+        },
+        {
+            "trait_type": "Issued At",
+            "value": "2026-04-06 12:43:33"
+        },
+        {
+            "trait_type": "Price wEMS",
+            "value": 50000
+        },
+        {
+            "trait_type": "Price Units",
+            "value": "50000.000000"
+        }
+    ]
+}

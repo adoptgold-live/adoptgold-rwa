@@ -1,0 +1,28 @@
+{
+    "name": "GREEN RWA CERT #RCO2C-EMA-20260329-58C304B8",
+    "description": "GREEN RWA CERT · RCO2C-EMA-20260329-58C304B8",
+    "image": "https://adoptgold.app/rwa/metadata/cert/_fallback_vault/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260329-58C304B8/nft/image.png",
+    "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260329-58C304B8",
+    "attributes": [
+        {
+            "trait_type": "Cert UID",
+            "value": "RCO2C-EMA-20260329-58C304B8"
+        },
+        {
+            "trait_type": "RWA Code",
+            "value": "RCO2C-EMA"
+        },
+        {
+            "trait_type": "Type",
+            "value": "GREEN"
+        },
+        {
+            "trait_type": "Owner Wallet",
+            "value": "0:717359c4fcc1ad210a72d704f3567a104cf7d09afe6cb7fbb640959234d02f6d"
+        },
+        {
+            "trait_type": "Issuer",
+            "value": "Blockchain Group RWA FZCO (DMCC, Dubai, UAE)"
+        }
+    ]
+}

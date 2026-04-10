@@ -1,0 +1,283 @@
+#include "imports/stdlib.fc";
+
+;; /var/www/html/public/rwa/ton/contracts/v8_nft_collection.fc
+;; Version: v8.0.1-20260330-router-collection-with-sweep
+;;
+;; Purpose:
+;; - real V8 NFT collection
+;; - owns nft item code
+;; - exposes collection getters
+;; - only owner or configured router can mint
+;; - owner-only sweep / withdraw backup
+
+const int OP_SET_OWNER = 0x4f574e52;        ;; OWNR
+const int OP_SET_ROUTER = 0x52545253;       ;; RTRS
+const int OP_SET_CONTENT = 0x434f4e54;      ;; CONT
+const int OP_SET_MINT_PAUSED = 0x50415553;  ;; PAUS
+const int OP_OWNER_MINT = 0x4d494e54;       ;; MINT
+const int OP_ROUTER_MINT = 0x564d494e;      ;; VMIN
+const int OP_WITHDRAW = 0x57445448;         ;; WDTH
+
+const int ERR_NOT_OWNER = 401;
+const int ERR_NOT_ROUTER = 402;
+const int ERR_MINT_PAUSED = 403;
+const int ERR_BAD_OPCODE = 404;
+const int ERR_BAD_INDEX = 405;
+const int ERR_BAD_AMOUNT = 406;
+
+const int MIN_STORAGE_RESERVE = 30000000;   ;; 0.03 TON
+const int ITEM_DEPLOY_VALUE = 80000000;     ;; 0.08 TON
+const int MIN_WITHDRAW_KEEP = 30000000;     ;; 0.03 TON
+
+(slice, slice, int, cell, cell, int, int, slice, int) load_data() inline {
+    var ds = get_data().begin_parse();
+    slice owner = ds~load_msg_addr();
+    slice router = ds~load_msg_addr();
+    int next_index = ds~load_uint(64);
+    cell content = ds~load_ref();
+    cell item_code = ds~load_ref();
+    int rf = ds~load_uint(16);
+    int rb = ds~load_uint(16);
+    slice raddr = ds~load_msg_addr();
+    int paused = ds~load_uint(1);
+    return (owner, router, next_index, content, item_code, rf, rb, raddr, paused);
+}
+
+() save_data(slice owner, slice router, int next_index, cell content, cell item_code, int rf, int rb, slice raddr, int paused) impure inline {
+    set_data(begin_cell()
+        .store_slice(owner)
+        .store_slice(router)
+        .store_uint(next_index, 64)
+        .store_ref(content)
+        .store_ref(item_code)
+        .store_uint(rf, 16)
+        .store_uint(rb, 16)
+        .store_slice(raddr)
+        .store_uint(paused, 1)
+    .end_cell());
+}
+
+int eq_addr(slice a, slice b) inline {
+    return cell_hash(begin_cell().store_slice(a).end_cell()) ==
+           cell_hash(begin_cell().store_slice(b).end_cell());
+}
+
+() require_owner(slice sender, slice owner) impure inline {
+    throw_unless(ERR_NOT_OWNER, eq_addr(sender, owner));
+}
+
+() require_router_or_owner(slice sender, slice owner, slice router) impure inline {
+    throw_unless(ERR_NOT_ROUTER, eq_addr(sender, owner) | eq_addr(sender, router));
+}
+
+cell build_item_data(int index, slice collection, slice item_owner, cell item_content) inline {
+    return begin_cell()
+        .store_uint(1, 1)
+        .store_uint(index, 64)
+        .store_slice(collection)
+        .store_slice(item_owner)
+        .store_ref(item_content)
+    .end_cell();
+}
+
+cell build_item_state_init(cell item_code, cell item_data) inline {
+    return begin_cell()
+        .store_uint(0, 2)
+        .store_maybe_ref(item_code)
+        .store_maybe_ref(item_data)
+        .store_uint(0, 1)
+    .end_cell();
+}
+
+slice calculate_item_address(int wc, cell state_init) inline {
+    return begin_cell()
+        .store_uint(4, 3)
+        .store_int(wc, 8)
+        .store_uint(cell_hash(state_init), 256)
+    .end_cell().begin_parse();
+}
+
+() deploy_item(int index, slice collection_addr, slice item_owner, cell item_content, cell item_code) impure inline {
+    cell item_data = build_item_data(index, collection_addr, item_owner, item_content);
+    cell state_init = build_item_state_init(item_code, item_data);
+    slice item_addr = calculate_item_address(0, state_init);
+
+    var msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(item_addr)
+        .store_coins(ITEM_DEPLOY_VALUE)
+        .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(state_init)
+        .store_ref(begin_cell().end_cell())
+    .end_cell();
+
+    send_raw_message(msg, 1);
+}
+
+() send_tons(slice to, int amount) impure inline {
+    if (amount <= 0) { return (); }
+    var msg = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+    .end_cell();
+    send_raw_message(msg, 1);
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    msg_value = msg_value;
+
+    var cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice sender = cs~load_msg_addr();
+
+    var (owner, router, next_index, content, item_code, rf, rb, raddr, paused) = load_data();
+
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+
+    int op = in_msg_body~load_uint(32);
+    int qid = in_msg_body~load_uint(64);
+    qid = qid;
+
+    if (op == OP_SET_OWNER) {
+        require_owner(sender, owner);
+        slice new_owner = in_msg_body~load_msg_addr();
+        save_data(new_owner, router, next_index, content, item_code, rf, rb, raddr, paused);
+        return ();
+    }
+
+    if (op == OP_SET_ROUTER) {
+        require_owner(sender, owner);
+        slice new_router = in_msg_body~load_msg_addr();
+        save_data(owner, new_router, next_index, content, item_code, rf, rb, raddr, paused);
+        return ();
+    }
+
+    if (op == OP_SET_CONTENT) {
+        require_owner(sender, owner);
+        cell new_content = in_msg_body~load_ref();
+        save_data(owner, router, next_index, new_content, item_code, rf, rb, raddr, paused);
+        return ();
+    }
+
+    if (op == OP_SET_MINT_PAUSED) {
+        require_owner(sender, owner);
+        int p = in_msg_body~load_uint(1);
+        save_data(owner, router, next_index, content, item_code, rf, rb, raddr, p);
+        return ();
+    }
+
+    if (op == OP_OWNER_MINT) {
+        require_owner(sender, owner);
+        throw_unless(ERR_MINT_PAUSED, paused == 0);
+
+        raw_reserve(MIN_STORAGE_RESERVE, 2);
+
+        int forced_index = in_msg_body~load_uint(64);
+        slice item_owner = in_msg_body~load_msg_addr();
+        cell item_content = in_msg_body~load_ref();
+
+        throw_unless(ERR_BAD_INDEX, forced_index >= next_index);
+
+        int mint_index = forced_index;
+        if (forced_index == next_index) {
+            next_index = next_index + 1;
+        } else {
+            next_index = forced_index + 1;
+        }
+
+        save_data(owner, router, next_index, content, item_code, rf, rb, raddr, paused);
+        deploy_item(mint_index, my_address(), item_owner, item_content, item_code);
+        return ();
+    }
+
+    if (op == OP_ROUTER_MINT) {
+        require_router_or_owner(sender, owner, router);
+        throw_unless(ERR_MINT_PAUSED, paused == 0);
+
+        raw_reserve(MIN_STORAGE_RESERVE, 2);
+
+        slice item_owner = in_msg_body~load_msg_addr();
+        cell item_content = in_msg_body~load_ref();
+
+        int mint_index = next_index;
+        next_index = next_index + 1;
+
+        save_data(owner, router, next_index, content, item_code, rf, rb, raddr, paused);
+        deploy_item(mint_index, my_address(), item_owner, item_content, item_code);
+        return ();
+    }
+
+    if (op == OP_WITHDRAW) {
+        require_owner(sender, owner);
+        slice to = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_coins();
+
+        [int bal, cell extra_balance] = get_balance();
+        extra_balance = extra_balance;
+
+        int free = bal - MIN_WITHDRAW_KEEP;
+        throw_unless(ERR_BAD_AMOUNT, amount <= free);
+
+        send_tons(to, amount);
+        return ();
+    }
+
+    throw(ERR_BAD_OPCODE);
+}
+
+(int, cell, slice) get_collection_data() method_id {
+    var (owner, router, next_index, content, item_code, rf, rb, raddr, paused) = load_data();
+    router = router;
+    item_code = item_code;
+    rf = rf;
+    rb = rb;
+    raddr = raddr;
+    paused = paused;
+    return (next_index, content, owner);
+}
+
+(int, int, slice) royalty_params() method_id {
+    var (owner, router, next_index, content, item_code, rf, rb, raddr, paused) = load_data();
+    owner = owner;
+    router = router;
+    next_index = next_index;
+    content = content;
+    item_code = item_code;
+    paused = paused;
+    return (rf, rb, raddr);
+}
+
+slice get_nft_address_by_index(int index) method_id {
+    var (owner, router, next_index, content, item_code, rf, rb, raddr, paused) = load_data();
+    owner = owner;
+    router = router;
+    next_index = next_index;
+    content = content;
+    rf = rf;
+    rb = rb;
+    raddr = raddr;
+    paused = paused;
+
+    cell item_data = build_item_data(index, my_address(), null(), begin_cell().end_cell());
+    cell state_init = build_item_state_init(item_code, item_data);
+    return calculate_item_address(0, state_init);
+}
+
+(slice, int) get_router_state() method_id {
+    var (owner, router, next_index, content, item_code, rf, rb, raddr, paused) = load_data();
+    owner = owner;
+    next_index = next_index;
+    content = content;
+    item_code = item_code;
+    rf = rf;
+    rb = rb;
+    raddr = raddr;
+    return (router, paused);
+}

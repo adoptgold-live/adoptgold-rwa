@@ -1,0 +1,127 @@
+#include "imports/stdlib.fc";
+
+;; /var/www/html/public/rwa/ton/contracts/v8_nft_item.fc
+;; Version: v8.0.0-20260330-router-collection-item
+;;
+;; Purpose:
+;; - minimal NFT item contract for V8 collection
+;; - collection deploys item with owner + content
+;; - getter provided for explorer / marketplace compatibility baseline
+
+const int OP_TRANSFER = 0x5fcc3d14;
+const int OP_ASSIGN_OWNERSHIP = 0x05138d91;
+const int OP_GET_STATIC_DATA = 0x2fcb26a2;
+const int OP_REPORT_STATIC_DATA = 0x8b771735;
+
+const int ERR_NOT_OWNER = 401;
+const int ERR_BAD_OPCODE = 402;
+
+(int, int, slice, slice, cell) load_data() inline {
+    var ds = get_data().begin_parse();
+    int init = ds~load_uint(1);
+    int index = ds~load_uint(64);
+    slice collection = ds~load_msg_addr();
+    slice owner = ds~load_msg_addr();
+    cell content = ds~load_ref();
+    return (init, index, collection, owner, content);
+}
+
+() save_data(int init, int index, slice collection, slice owner, cell content) impure inline {
+    set_data(begin_cell()
+        .store_uint(init, 1)
+        .store_uint(index, 64)
+        .store_slice(collection)
+        .store_slice(owner)
+        .store_ref(content)
+    .end_cell());
+}
+
+int eq_addr(slice a, slice b) inline {
+    return cell_hash(begin_cell().store_slice(a).end_cell()) ==
+           cell_hash(begin_cell().store_slice(b).end_cell());
+}
+
+() send_msg_addr(slice to, int amount, int op, int query_id, slice payload_owner, slice response_dest) impure inline {
+    var body = begin_cell()
+        .store_uint(op, 32)
+        .store_uint(query_id, 64)
+        .store_slice(payload_owner)
+        .store_slice(response_dest)
+        .store_uint(0, 1)
+    .end_cell();
+
+    var msg = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+        .store_uint(1, 1)
+        .store_ref(body)
+    .end_cell();
+
+    send_raw_message(msg, 1);
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    msg_value = msg_value;
+
+    var cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice sender = cs~load_msg_addr();
+
+    var (init, index, collection, owner, content) = load_data();
+
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+
+    int op = in_msg_body~load_uint(32);
+    int qid = in_msg_body~load_uint(64);
+
+    if (op == OP_TRANSFER) {
+        throw_unless(ERR_NOT_OWNER, eq_addr(sender, owner));
+        slice new_owner = in_msg_body~load_msg_addr();
+        slice response_dest = in_msg_body~load_msg_addr();
+        in_msg_body~load_uint(1); ;; custom_payload maybe
+        int fwd_amount = in_msg_body~load_coins();
+        in_msg_body~load_uint(1); ;; either forward_payload in this minimal baseline
+
+        save_data(init, index, collection, new_owner, content);
+
+        if (~ response_dest.slice_empty?()) {
+            send_msg_addr(response_dest, 1, OP_ASSIGN_OWNERSHIP, qid, new_owner, owner);
+        }
+        fwd_amount = fwd_amount;
+        return ();
+    }
+
+    if (op == OP_GET_STATIC_DATA) {
+        var body = begin_cell()
+            .store_uint(OP_REPORT_STATIC_DATA, 32)
+            .store_uint(qid, 64)
+            .store_uint(index, 256)
+            .store_slice(collection)
+        .end_cell();
+
+        var msg = begin_cell()
+            .store_uint(0x10, 6)
+            .store_slice(sender)
+            .store_coins(1)
+            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+            .store_uint(1, 1)
+            .store_ref(body)
+        .end_cell();
+
+        send_raw_message(msg, 1);
+        return ();
+    }
+
+    throw(ERR_BAD_OPCODE);
+}
+
+(int, int, slice, slice, cell) get_nft_data() method_id {
+    return load_data();
+}

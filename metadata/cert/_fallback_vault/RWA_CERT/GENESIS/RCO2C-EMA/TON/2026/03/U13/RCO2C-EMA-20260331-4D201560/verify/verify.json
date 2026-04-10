@@ -1,0 +1,21 @@
+{
+    "ok": true,
+    "cert_uid": "RCO2C-EMA-20260331-4D201560",
+    "verify_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-4D201560",
+    "image_url": "/rwa/metadata/cert/_fallback_vault/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560/nft/image.png",
+    "rwa_code": "RCO2C-EMA",
+    "template_png": "/rwa/metadata/nft/rco2c.png",
+    "template_exists": true,
+    "qr_png": "/var/www/html/public/rwa/metadata/cert/_fallback_vault/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560/qr/verify-qr.png",
+    "qr_svg": "/var/www/html/public/rwa/metadata/cert/_fallback_vault/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560/qr/verify-qr.svg",
+    "layout": {
+        "x": 422,
+        "y": 392,
+        "size": 200
+    },
+    "used_fallback_placeholder": false,
+    "healthy": true,
+    "warnings": [],
+    "errors": [],
+    "generated_at": "2026-04-02T09:56:03+00:00"
+}

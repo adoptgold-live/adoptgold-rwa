@@ -1,0 +1,19 @@
+{
+    "ok": true,
+    "healthy": true,
+    "uid": "RLIFE-EMA-20260403-FC04B5D9",
+    "image_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/nft/image.png",
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/nft/image.png",
+    "meta_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/meta/metadata.json",
+    "meta_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/meta/metadata.json",
+    "verify_json_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/verify/verify.json",
+    "verify_json_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/verify/verify.json",
+    "verify_page_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RLIFE-EMA-20260403-FC04B5D9",
+    "artifact_ready": true,
+    "nft_healthy": true,
+    "image_authority": "_image-bundle.php",
+    "compose_engine": "imagemagick",
+    "used_fallback_placeholder": false,
+    "final_sha1": "021c445ca652fe84b6f786ef2cfb573b747218f2",
+    "final_size": 1621530
+}

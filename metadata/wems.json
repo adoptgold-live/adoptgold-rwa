@@ -1,0 +1,13 @@
+{
+  "name": "WEB3 Gold Mining Reward Token",
+  "symbol": "wEMS",
+  "decimals": 9,
+  "description": "Web3 Gold Mining Reward Token for the Adopt.Gold RWA responsibility ecosystem.",
+  "image": "https://adoptgold.app/rwa/metadata/wems.png",
+  "external_url": "https://adoptgold.app/",
+  "attributes": [
+    { "trait_type": "Network", "value": "TON" },
+    { "trait_type": "Standard", "value": "Jetton (TEP-74 / TEP-64 metadata)" },
+    { "trait_type": "Role", "value": "Web Gold Mining Reward" }
+  ]
+}

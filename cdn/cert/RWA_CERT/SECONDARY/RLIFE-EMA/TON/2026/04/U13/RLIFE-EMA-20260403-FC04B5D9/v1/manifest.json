@@ -1,0 +1,63 @@
+{
+    "cert_uid": "RLIFE-EMA-20260403-FC04B5D9",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "SECONDARY",
+    "rwa_code": "RLIFE-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-04-03 00:23:24",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9",
+    "relative_root": "RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9",
+    "files": {
+        "pdf": {
+            "exists": true,
+            "path": "pdf/RLIFE-EMA-20260403-FC04B5D9.pdf"
+        },
+        "metadata": {
+            "exists": true,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": true,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": true,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": true,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "secondary",
+        "rwa_type": "pink",
+        "price_wems": "",
+        "fingerprint_hash": "b916d0aa0aa50001c8f3a5ae8027ee4607244fb10e4d17b6a705f610528ab080",
+        "router_tx_hash": "",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "lifecycle",
+            "payment",
+            "mint",
+            "preview",
+            "owner_wallet_raw",
+            "nft_health",
+            "artifacts",
+            "auto_mint",
+            "cert_uid"
+        ]
+    }
+}

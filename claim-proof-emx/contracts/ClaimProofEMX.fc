@@ -1,0 +1,206 @@
+#include "stdlib.fc";
+
+const int OP_CLAIM_PROOF = 0x4350454D; ;; "CPEM"
+const int OP_SET_ENABLED = 0x53454E42; ;; "SENB"
+const int OP_SWEEP_TON   = 0x53575054; ;; "SWPT"
+
+const int ERR_DISABLED      = 100;
+const int ERR_BAD_SENDER    = 101;
+const int ERR_BAD_BODY      = 102;
+const int ERR_TOO_LOW_VALUE = 103;
+const int ERR_EXPIRED       = 104;
+const int ERR_BAD_SIG       = 105;
+const int ERR_REPLAY        = 106;
+const int ERR_BAD_ENABLED   = 108;
+const int ERR_BAD_SWEEP     = 110;
+const int ERR_BAD_AMOUNT    = 111;
+const int ERR_BAD_STATE     = 112;
+const int ERR_SWEEP_FLOOR   = 113;
+
+const int TREASURY_FEE     = 100000000; ;; 0.10 TON
+const int CONTRACT_RESERVE = 30000000;  ;; 0.03 TON
+const int CONTRACT_FLOOR   = 30000000;  ;; 0.03 TON
+
+int same_addr(slice a, slice b) inline {
+  return slice_hash(a) == slice_hash(b);
+}
+
+(slice, slice, int, int, int, int) load_data() inline {
+  slice ds = get_data().begin_parse();
+
+  slice admin = ds~load_msg_addr();
+  slice treasury = ds~load_msg_addr();
+  int enabled = ds~load_uint(1);
+
+  throw_unless(ERR_BAD_STATE, ds.slice_refs() > 0);
+  cell core_ref = ds~load_ref();
+  slice cs = core_ref.begin_parse();
+
+  int signer_pubkey = cs~load_uint(256);
+  int min_attached = cs~load_coins();
+  int last_claim_hash = cs~load_uint(256);
+
+  return (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash);
+}
+
+() save_data(
+  slice admin,
+  slice treasury,
+  int enabled,
+  int signer_pubkey,
+  int min_attached,
+  int last_claim_hash
+) impure inline {
+  cell core_ref = begin_cell()
+    .store_uint(signer_pubkey, 256)
+    .store_coins(min_attached)
+    .store_uint(last_claim_hash, 256)
+    .end_cell();
+
+  set_data(
+    begin_cell()
+      .store_slice(admin)
+      .store_slice(treasury)
+      .store_uint(enabled, 1)
+      .store_ref(core_ref)
+      .end_cell()
+  );
+}
+
+cell build_proof_core(
+  int op,
+  int query_id,
+  int claim_nonce,
+  slice recipient_owner,
+  int amount_units,
+  int valid_until,
+  int claim_ref_hash
+) inline {
+  return begin_cell()
+    .store_uint(op, 32)
+    .store_uint(query_id, 64)
+    .store_uint(claim_nonce, 64)
+    .store_slice(recipient_owner)
+    .store_uint(amount_units, 128)
+    .store_uint(valid_until, 32)
+    .store_uint(claim_ref_hash, 256)
+    .end_cell();
+}
+
+() send_ton(slice to, int value) impure inline {
+  if (value <= 0) {
+    return ();
+  }
+
+  cell msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(to)
+    .store_coins(value)
+    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+    .end_cell();
+
+  send_raw_message(msg, 1);
+}
+
+int load_msg_bounced(cell in_msg_full) inline {
+  slice s = in_msg_full.begin_parse();
+  int flags = s~load_uint(4);
+  return (flags & 1);
+}
+
+slice load_msg_sender(cell in_msg_full) inline {
+  slice s = in_msg_full.begin_parse();
+  s~load_uint(4);
+  return s~load_msg_addr();
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  if (load_msg_bounced(in_msg_full)) {
+    return ();
+  }
+
+  if (in_msg_body.slice_empty?()) {
+    return ();
+  }
+
+  var (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash) = load_data();
+  slice sender = load_msg_sender(in_msg_full);
+
+  int op = in_msg_body~load_uint(32);
+
+  if ((op == OP_SET_ENABLED) | (op == OP_SWEEP_TON)) {
+    throw_unless(ERR_BAD_SENDER, same_addr(sender, admin));
+
+    if (op == OP_SET_ENABLED) {
+      in_msg_body~load_uint(64);
+      int next_enabled = in_msg_body~load_uint(1);
+      throw_unless(ERR_BAD_ENABLED, (next_enabled == 0) | (next_enabled == 1));
+
+      save_data(admin, treasury, next_enabled, signer_pubkey, min_attached, last_claim_hash);
+      return ();
+    }
+
+    if (op == OP_SWEEP_TON) {
+      in_msg_body~load_uint(64);
+      int amount = in_msg_body~load_coins();
+      throw_unless(ERR_BAD_SWEEP, amount > 0);
+
+      [int balance_now, cell extra] = get_balance();
+      int balance_before = balance_now - msg_value;
+      int allowed = balance_before - CONTRACT_FLOOR;
+
+      throw_unless(ERR_SWEEP_FLOOR, allowed >= amount);
+
+      send_ton(treasury, amount);
+      return ();
+    }
+  }
+
+  throw_unless(ERR_DISABLED, enabled == 1);
+  throw_unless(ERR_BAD_BODY, op == OP_CLAIM_PROOF);
+  throw_unless(ERR_TOO_LOW_VALUE, msg_value >= min_attached);
+
+  int query_id = in_msg_body~load_uint(64);
+  int claim_nonce = in_msg_body~load_uint(64);
+  slice recipient_owner = in_msg_body~load_msg_addr();
+  int amount_units = in_msg_body~load_uint(128);
+  int valid_until = in_msg_body~load_uint(32);
+  int claim_ref_hash = in_msg_body~load_uint(256);
+  cell sig_ref = in_msg_body~load_ref();
+
+  throw_unless(ERR_BAD_AMOUNT, amount_units > 0);
+  throw_unless(ERR_EXPIRED, now() <= valid_until);
+
+  cell core = build_proof_core(
+    op,
+    query_id,
+    claim_nonce,
+    recipient_owner,
+    amount_units,
+    valid_until,
+    claim_ref_hash
+  );
+
+  int proof_hash = cell_hash(core);
+  throw_unless(ERR_REPLAY, proof_hash != last_claim_hash);
+
+  slice sig_slice = sig_ref.begin_parse();
+  throw_unless(ERR_BAD_SIG, check_signature(proof_hash, sig_slice, signer_pubkey));
+
+  save_data(admin, treasury, enabled, signer_pubkey, min_attached, proof_hash);
+
+  send_ton(treasury, TREASURY_FEE);
+}
+
+(slice, slice, int, int, int, int) get_config() method_id {
+  return load_data();
+}
+
+(int, int, int) get_constants() method_id {
+  return (TREASURY_FEE, CONTRACT_RESERVE, CONTRACT_FLOOR);
+}
+
+(int) get_last_claim_hash() method_id {
+  var (_, _, _, _, _, last_claim_hash) = load_data();
+  return last_claim_hash;
+}

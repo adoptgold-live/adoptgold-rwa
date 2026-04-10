@@ -1,0 +1,137 @@
+/* =========================================================
+ * Storage UI Module — Fuel
+ * File: /rwa/storage/fuel/style.css
+ * Version: v1.1-unified-20260320
+ * ========================================================= */
+
+:root{
+  --fuel-bg:#0c1118;
+  --fuel-panel:#0a0f16;
+  --fuel-border:rgba(132,92,255,.18);
+  --fuel-text:#eef2ff;
+  --fuel-muted:rgba(238,242,255,.65);
+  --fuel-purple:#8b7cff;
+  --fuel-purple-2:#6a5cff;
+  --fuel-green:#3df7a0;
+  --fuel-red:#ff6b6b;
+  --fuel-gold:#f6d768;
+}
+
+.fuel-modal{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(6px);
+  z-index:9999;
+}
+
+.fuel-box{
+  width:92%;
+  max-width:420px;
+  border-radius:14px;
+  padding:16px;
+  background:linear-gradient(180deg,var(--fuel-bg),#101722);
+  border:1px solid var(--fuel-border);
+  color:var(--fuel-text);
+  box-shadow:0 0 32px rgba(120,100,255,.12);
+}
+
+.fuel-header{
+  text-align:center;
+  font-size:15px;
+  font-weight:700;
+  color:var(--fuel-purple);
+  margin-bottom:12px;
+}
+
+.fuel-subtitle{
+  text-align:center;
+  font-size:12px;
+  color:var(--fuel-muted);
+  margin:-4px 0 12px;
+}
+
+.fuel-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.fuel-input,
+.fuel-select{
+  flex:1;
+  height:40px;
+  border-radius:8px;
+  border:1px solid var(--fuel-border);
+  background:var(--fuel-panel);
+  color:var(--fuel-text);
+  padding:0 10px;
+  outline:none;
+}
+
+.fuel-input:focus,
+.fuel-select:focus{
+  border-color:var(--fuel-purple);
+  box-shadow:0 0 0 1px rgba(139,124,255,.25);
+}
+
+.fuel-summary{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--fuel-muted);
+  text-align:center;
+}
+
+.fuel-summary strong{
+  color:var(--fuel-gold);
+}
+
+.fuel-btn{
+  width:100%;
+  height:40px;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(90deg,var(--fuel-green),#28c97d);
+  color:#05110a;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.fuel-btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.fuel-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+
+.fuel-actions .fuel-btn{
+  margin-top:0;
+}
+
+.fuel-btn-secondary{
+  background:#161d28;
+  border:1px solid var(--fuel-border);
+  color:var(--fuel-text);
+}
+
+.fuel-status{
+  margin-top:12px;
+  font-size:12px;
+  text-align:center;
+  min-height:18px;
+}
+
+.fuel-status.is-pending{ color:var(--fuel-gold); }
+.fuel-status.is-success{ color:var(--fuel-green); }
+.fuel-status.is-fail{ color:var(--fuel-red); }
+
+@media (max-width:360px){
+  .fuel-box{ padding:14px; }
+}

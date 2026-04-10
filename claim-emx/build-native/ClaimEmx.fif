@@ -1,0 +1,344 @@
+"Asm.fif" include
+// automatically generated from `/var/www/html/public/rwa/claim-emx/contracts/ClaimEmx.fc` incl:`/var/www/html/public/rwa/claim-emx/contracts/stdlib.fc` incl:`/var/www/html/public/rwa/claim-emx/contracts/stdlib-local.fc` 
+PROGRAM{
+  DECLPROC same_addr
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC build_claim_core
+  DECLPROC build_jetton_transfer_body
+  DECLPROC send_ton
+  DECLPROC send_emx_transfer
+  DECLPROC load_msg_bounced
+  DECLPROC load_msg_sender
+  DECLPROC recv_internal
+  103798 DECLMETHOD get_config
+  90121 DECLMETHOD get_constants
+  same_addr PROCINLINE:<{
+    //  a b
+    SWAP	//  b a
+    HASHSU	//  b _2
+    SWAP	//  _2 b
+    HASHSU	//  _2 _3
+    EQUAL	//  _4
+  }>
+  load_data PROCINLINE:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  ds
+    LDMSGADDR	//  admin ds
+    LDMSGADDR	//  admin treasury ds
+    1 LDU	//  admin treasury enabled ds
+    LDREF	//  admin treasury enabled _47 _46
+    DROP	//  admin treasury enabled core_ref
+    CTOS	//  admin treasury enabled cs
+    256 LDU	//  admin treasury enabled signer_pubkey cs
+    LDGRAMS	//  admin treasury enabled signer_pubkey min_attached cs
+    256 LDU	//  admin treasury enabled signer_pubkey min_attached last_claim_hash cs
+    LDMSGADDR	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master cs
+    LDREF	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master _57 _56
+    DROP	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master wallet_ref
+    CTOS	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master ws
+    LDMSGADDR	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master _59 _58
+    DROP	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet
+  }>
+  save_data PROCINLINE:<{
+    //  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet
+    NEWC	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet _9
+    SWAP	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master _9 emx_wallet
+    STSLICER	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master _10
+    ENDC	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master wallet_ref
+    s0 s4 XCHG
+    NEWC	//  admin treasury enabled wallet_ref min_attached last_claim_hash emx_master signer_pubkey _13
+    256 STU	//  admin treasury enabled wallet_ref min_attached last_claim_hash emx_master _15
+    s0 s3 XCHG2	//  admin treasury enabled wallet_ref emx_master last_claim_hash _15 min_attached
+    STGRAMS	//  admin treasury enabled wallet_ref emx_master last_claim_hash _16
+    256 STU	//  admin treasury enabled wallet_ref emx_master _18
+    SWAP	//  admin treasury enabled wallet_ref _18 emx_master
+    STSLICER	//  admin treasury enabled wallet_ref _19
+    STREF	//  admin treasury enabled _20
+    ENDC	//  admin treasury enabled core_ref
+    NEWC	//  admin treasury enabled core_ref _22
+    s0 s4 XCHG2	//  core_ref treasury enabled _22 admin
+    STSLICER	//  core_ref treasury enabled _23
+    ROT	//  core_ref enabled _23 treasury
+    STSLICER	//  core_ref enabled _24
+    1 STU	//  core_ref _26
+    STREF	//  _27
+    ENDC	//  _28
+    c4 POP
+  }>
+  build_claim_core PROCINLINE:<{
+    //  op query_id amount_units recipient valid_until
+    s0 s4 XCHG
+    NEWC	//  valid_until query_id amount_units recipient op _5
+    32 STU	//  valid_until query_id amount_units recipient _7
+    s1 s3 XCHG	//  valid_until recipient amount_units query_id _7
+    64 STU	//  valid_until recipient amount_units _9
+    128 STU	//  valid_until recipient _11
+    SWAP	//  valid_until _11 recipient
+    STSLICER	//  valid_until _12
+    32 STU	//  _14
+    ENDC	//  _15
+  }>
+  build_jetton_transfer_body PROCINLINE:<{
+    //  query_id amount_units recipient
+    0 PUSHINT	//  query_id amount_units recipient _3=0
+    DUP	//  query_id amount_units recipient _3=0 _4=0
+    260734629 PUSHINT	//  query_id amount_units recipient _3=0 _4=0 _5=260734629
+    NEWC	//  query_id amount_units recipient _3=0 _4=0 _5=260734629 _6
+    32 STU	//  query_id amount_units recipient _3=0 _4=0 _8
+    s1 s5 XCHG	//  _4=0 amount_units recipient _3=0 query_id _8
+    64 STU	//  _4=0 amount_units recipient _3=0 _10
+    s0 s3 XCHG2	//  _4=0 _3=0 recipient _10 amount_units
+    STGRAMS	//  _4=0 _3=0 recipient _11
+    SWAP	//  _4=0 _3=0 _11 recipient
+    STSLICER	//  _4=0 _3=0 _12
+    MYADDR	//  _4=0 _3=0 _12 _13
+    STSLICER	//  _4=0 _3=0 _14
+    s1 s2 XCHG	//  _3=0 _4=0 _14
+    1 STU	//  _3=0 _16
+    1 PUSHINT	//  _3=0 _16 _17=1
+    STGRAMS	//  _3=0 _18
+    1 STU	//  _20
+    ENDC	//  _21
+  }>
+  send_ton PROCINLINE:<{
+    //  to value
+    DUP	//  to value value
+    1 LESSINT	//  to value _3
+    IF:<{	//  to value
+      2DROP	// 
+    }>ELSE<{	//  to value
+      0 PUSHINT	//  to value _5=0
+      24 PUSHINT	//  to value _5=0 _6=24
+      NEWC	//  to value _5=0 _6=24 _7
+      6 STU	//  to value _5=0 _9
+      s0 s3 XCHG2	//  _5=0 value _9 to
+      STSLICER	//  _5=0 value _10
+      SWAP	//  _5=0 _10 value
+      STGRAMS	//  _5=0 _11
+      107 STU	//  _25
+      ENDC	//  msg
+      1 PUSHINT	//  msg _27=1
+      SENDRAWMSG
+    }>
+  }>
+  send_emx_transfer PROCINLINE:<{
+    //  emx_wallet ton_value query_id amount_units recipient
+    build_jetton_transfer_body INLINECALLDICT	//  emx_wallet ton_value body
+    0 PUSHINT	//  emx_wallet ton_value body _8=0
+    24 PUSHINT	//  emx_wallet ton_value body _8=0 _9=24
+    NEWC	//  emx_wallet ton_value body _8=0 _9=24 _10
+    6 STU	//  emx_wallet ton_value body _8=0 _12
+    s0 s4 XCHG2	//  _8=0 ton_value body _12 emx_wallet
+    STSLICER	//  _8=0 ton_value body _13
+    ROT	//  _8=0 body _13 ton_value
+    STGRAMS	//  _8=0 body _14
+    s1 s2 XCHG	//  body _8=0 _14
+    106 STU	//  body _26
+    STREF	//  _27
+    ENDC	//  msg
+    1 PUSHINT	//  msg _29=1
+    SENDRAWMSG
+  }>
+  load_msg_bounced PROCINLINE:<{
+    //  in_msg_full
+    CTOS	//  s
+    4 LDU	//  _10 _9
+    DROP	//  flags
+    1 PUSHINT	//  flags _7=1
+    AND	//  _8
+  }>
+  load_msg_sender PROCINLINE:<{
+    //  in_msg_full
+    CTOS	//  s
+    4 LDU	//  _9 _8
+    NIP	//  s
+    LDMSGADDR	//  _11 _10
+    DROP	//  _6
+  }>
+  recv_internal PROC:<{
+    c2 SAVE
+    SAMEALTSAVE	//  msg_value in_msg_full in_msg_body
+    OVER	//  msg_value in_msg_full in_msg_body in_msg_full
+    load_msg_bounced INLINECALLDICT	//  msg_value in_msg_full in_msg_body _3
+    IFJMP:<{	//  msg_value in_msg_full in_msg_body
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg_full in_msg_body
+    DUP	//  msg_value in_msg_full in_msg_body in_msg_body
+    SEMPTY	//  msg_value in_msg_full in_msg_body _4
+    IFJMP:<{	//  msg_value in_msg_full in_msg_body
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg_full in_msg_body
+    load_data INLINECALLDICT	//  msg_value in_msg_full in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet
+    s0 s9 XCHG	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master in_msg_full
+    load_msg_sender INLINECALLDICT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master sender
+    s0 s8 XCHG	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master in_msg_body
+    32 LDU	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body
+    OVER
+    1397050946 PUSHINT	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body op _20=1397050946
+    EQUAL	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _21
+    s2 PUSH
+    1397053260 PUSHINT	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _21 op _22=1397053260
+    EQUAL	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _21 _23
+    OR	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _24
+    s2 PUSH
+    1398231124 PUSHINT	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _24 op _25=1398231124
+    EQUAL	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _24 _26
+    OR	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body _27
+    IF:<{	//  msg_value emx_wallet sender admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op in_msg_body
+      s9 s8 XCPU	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op sender admin
+      same_addr INLINECALLDICT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _29
+      101 THROWIFNOT
+      DUP
+      1397050946 PUSHINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op op _31=1397050946
+      EQUAL	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _32
+      IFJMP:<{	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+        DROP
+        s4 POP
+        s8 POP	//  last_claim_hash emx_wallet in_msg_body admin treasury emx_master signer_pubkey min_attached
+        s0 s5 XCHG	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey in_msg_body
+        64 LDU	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey _160 _159
+        NIP	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey in_msg_body
+        1 LDU	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey _162 _161
+        DROP	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled
+        DUP	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled next_enabled
+        0 EQINT	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled _42
+        OVER	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled _42 next_enabled
+        1 EQINT	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled _42 _44
+        OR	//  last_claim_hash emx_wallet min_attached admin treasury emx_master signer_pubkey next_enabled _45
+        108 THROWIFNOT
+        s4 s7 XCHG
+        s3 s6 XCHG
+        s0 s5 XCHG
+        s4 s4 s3 XCHG3	//  admin treasury next_enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet
+        save_data INLINECALLDICT
+        RETALT
+      }>	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+      DUP
+      1397053260 PUSHINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op op _48=1397053260
+      EQUAL	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _49
+      IFJMP:<{	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+        DROP
+        s8 POP
+        s8 POP	//  last_claim_hash emx_master in_msg_body admin treasury enabled signer_pubkey min_attached
+        s0 s5 XCHG	//  last_claim_hash emx_master min_attached admin treasury enabled signer_pubkey in_msg_body
+        64 LDU	//  last_claim_hash emx_master min_attached admin treasury enabled signer_pubkey _164 _163
+        NIP	//  last_claim_hash emx_master min_attached admin treasury enabled signer_pubkey in_msg_body
+        LDMSGADDR	//  last_claim_hash emx_master min_attached admin treasury enabled signer_pubkey _166 _165
+        DROP	//  last_claim_hash emx_master min_attached admin treasury enabled signer_pubkey next_wallet
+        s4 s7 XCHG
+        s3 s6 XCHG
+        s5 s4 s0 XCHG3
+        s1 s3 s0 XCHG3	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master next_wallet
+        save_data INLINECALLDICT
+        RETALT
+      }>	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+      DUP
+      1398231124 PUSHINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op op _57=1398231124
+      EQUAL	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _58
+      IFJMP:<{	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+        s6 s7 XCHG
+        7 BLKDROP
+        s2 POP	//  msg_value treasury in_msg_body
+        64 LDU	//  msg_value treasury _168 _167
+        NIP	//  msg_value treasury in_msg_body
+        LDGRAMS	//  msg_value treasury _170 _169
+        DROP	//  msg_value treasury amount
+        DUP	//  msg_value treasury amount amount
+        0 GTINT	//  msg_value treasury amount _67
+        110 THROWIFNOT
+        BALANCE	//  msg_value treasury amount _71
+        UNPAIR	//  msg_value treasury amount _171 _172
+        DROP	//  msg_value treasury amount balance_now
+        s0 s3 XCHG2	//  amount treasury balance_now msg_value
+        SUB	//  amount treasury balance_before
+        50000000 PUSHINT	//  amount treasury balance_before _76=50000000
+        SUB	//  amount treasury allowed
+        s2 PUSH	//  amount treasury allowed amount
+        GEQ	//  amount treasury _79
+        110 THROWIFNOT
+        SWAP	//  treasury amount
+        send_ton INLINECALLDICT
+        RETALT
+      }>	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+    }>ELSE<{
+      s9 POP	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op
+    }>
+    s5 PUSH	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op enabled
+    1 EQINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _84
+    100 THROWIFNOT
+    DUP
+    1129071949 PUSHINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op op _87=1129071949
+    EQUAL	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _88
+    102 THROWIFNOT
+    s10 s3 PUSH2	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op msg_value min_attached
+    GEQ	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _91
+    103 THROWIFNOT
+    s9 PUSH	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op emx_wallet
+    SBITS	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _94
+    0 GTINT	//  msg_value emx_wallet in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master op _96
+    107 THROWIFNOT
+    s0 s8 XCHG	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master in_msg_body
+    64 LDU	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id in_msg_body
+    128 LDU	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units in_msg_body
+    LDMSGADDR	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient in_msg_body
+    32 LDU	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until in_msg_body
+    LDREF	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until _182 _181
+    DROP	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref
+    s3 PUSH	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref amount_units
+    0 GTINT	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref _118
+    109 THROWIFNOT
+    NOW	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref _121
+    s2 PUSH	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref _121 valid_until
+    LEQ	//  msg_value emx_wallet op admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient valid_until sig_ref _122
+    104 THROWIFNOT
+    s12 s4 s(-1) XCPUXC
+    s4 s3 s13 PU2XC	//  msg_value emx_wallet sig_ref admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient op query_id amount_units recipient valid_until
+    build_claim_core INLINECALLDICT	//  msg_value emx_wallet sig_ref admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient core
+    HASHCU	//  msg_value emx_wallet sig_ref admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master query_id amount_units recipient claim_hash
+    s0 s5 PUXC	//  msg_value emx_wallet sig_ref admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units recipient claim_hash last_claim_hash
+    NEQ	//  msg_value emx_wallet sig_ref admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units recipient _129
+    106 THROWIFNOT
+    s0 s10 XCHG	//  msg_value emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units sig_ref
+    CTOS	//  msg_value emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units sig_slice
+    s4 s6 s(-1) PU2XC	//  msg_value emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units claim_hash sig_slice signer_pubkey
+    CHKSIGNU	//  msg_value emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id amount_units _134
+    105 THROWIFNOT
+    s0 s11 XCHG
+    100000000 PUSHINT	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id msg_value _137=100000000
+    SUB	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id _138
+    30000000 PUSHINT	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id _138 _139=30000000
+    SUB	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id exec_value
+    DUP
+    250000000 PUSHINT	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id exec_value exec_value _142=250000000
+    GEQ	//  amount_units emx_wallet recipient admin treasury enabled signer_pubkey min_attached claim_hash emx_master query_id exec_value _143
+    111 THROWIFNOT
+    s7 PUSH
+    s6 s9 XCHG
+    s0 s5 XCHG
+    s4 s7 XCHG
+    s3 s9 XCHG
+    s0 s7 s9 XCHG3
+    s11 PUSH	//  amount_units emx_wallet recipient query_id treasury exec_value admin treasury enabled signer_pubkey min_attached claim_hash emx_master emx_wallet
+    save_data INLINECALLDICT
+    SWAP
+    100000000 PUSHINT	//  amount_units emx_wallet recipient query_id exec_value treasury _146=100000000
+    send_ton INLINECALLDICT
+    s0 s3 XCHG
+    s1 s4 s4 XCHG3	//  emx_wallet exec_value query_id amount_units recipient
+    send_emx_transfer INLINECALLDICT
+  }>
+  get_config PROC:<{
+    // 
+    load_data INLINECALLDICT	//  admin treasury enabled signer_pubkey min_attached last_claim_hash emx_master emx_wallet
+  }>
+  get_constants PROC:<{
+    // 
+    100000000 PUSHINT	//  _0=100000000
+    30000000 PUSHINT	//  _0=100000000 _1=30000000
+    50000000 PUSHINT	//  _0=100000000 _1=30000000 _2=50000000
+    250000000 PUSHINT	//  _0=100000000 _1=30000000 _2=50000000 _3=250000000
+  }>
+}END>c
+2 boc+>B "/var/www/html/public/rwa/claim-emx/build-native/ClaimEmx.boc" B>file

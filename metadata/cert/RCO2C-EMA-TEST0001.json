@@ -1,0 +1,13 @@
+{
+  "name": "RCO2C-EMA-TEST0001",
+  "description": "AdoptGold RWA Genesis Certificate NFT on TON.",
+  "image": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-TEST0001.png",
+  "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-TEST0001",
+  "attributes": [
+    { "trait_type": "Project", "value": "AdoptGold" },
+    { "trait_type": "Module", "value": "RWA Cert" },
+    { "trait_type": "Chain", "value": "TON" },
+    { "trait_type": "Certificate UID", "value": "RCO2C-EMA-TEST0001" },
+    { "trait_type": "Type", "value": "RCO2C-EMA" }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "RLIFE-EMA-20260403-FC04B5D9",
+  "description": "AdoptGold RWA Certificate NFT",
+  "image": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RLIFE-EMA/TON/2026/04/U13/RLIFE-EMA-20260403-FC04B5D9/nft/image.png",
+  "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RLIFE-EMA-20260403-FC04B5D9",
+  "attributes": [
+    {
+      "trait_type": "RWA Code",
+      "value": "RLIFE-EMA"
+    },
+    {
+      "trait_type": "Family",
+      "value": "GENESIS"
+    },
+    {
+      "trait_type": "Cert UID",
+      "value": "RLIFE-EMA-20260403-FC04B5D9"
+    },
+    {
+      "trait_type": "Unit of Responsibility",
+      "value": "10 kg tCO2e"
+    }
+  ]
+}

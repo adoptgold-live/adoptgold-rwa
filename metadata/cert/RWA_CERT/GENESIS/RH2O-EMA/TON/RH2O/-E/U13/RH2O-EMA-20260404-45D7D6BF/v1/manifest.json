@@ -1,0 +1,60 @@
+{
+    "cert_uid": "RH2O-EMA-20260404-45D7D6BF",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RH2O-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-04-04 07:45:58",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RH2O-EMA/TON/RH2O/-E/U13/RH2O-EMA-20260404-45D7D6BF",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RH2O-EMA/TON/RH2O/-E/U13/RH2O-EMA-20260404-45D7D6BF",
+    "relative_root": "RWA_CERT/GENESIS/RH2O-EMA/TON/RH2O/-E/U13/RH2O-EMA-20260404-45D7D6BF",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RH2O-EMA-20260404-45D7D6BF.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T23:45:01+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "genesis",
+        "rwa_type": "blue",
+        "price_wems": "5000",
+        "fingerprint_hash": "",
+        "router_tx_hash": "",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "lifecycle",
+            "payment",
+            "mint",
+            "preview",
+            "owner_wallet_raw",
+            "vault"
+        ]
+    }
+}

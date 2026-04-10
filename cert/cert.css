@@ -1,0 +1,3516 @@
+/**
+ * /var/www/html/public/rwa/cert/cert.css
+ * Version: v9.3.1-20260409-rwa-cert-final-balance-fix
+ *
+ * MASTER LOCK
+ * - Preserve all current DOM ids
+ * - Fix NFT Factory left/right visual balance by CSS only
+ * - Keep Mint Ready Queue visible and stable
+ * - Nothing visible below the 3 NFT Factory buttons except intended factory content
+ * - Full-file regen only
+ */
+
+:root{
+  --bg:#07090f;
+  --bg2:#0d111b;
+  --panel:#111522;
+  --panel2:#171d2d;
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,214,102,.24);
+  --text:#ffffff;
+  --muted:#aab2c7;
+  --muted2:#8992aa;
+  --gold:#ffd666;
+  --gold2:#ffb727;
+  --blue:#4da3ff;
+  --green:#6dffb3;
+  --green-strong:#00ff88;
+  --danger:#ff8c8c;
+  --shadow:0 18px 48px rgba(0,0,0,.35);
+  --radius:24px;
+  --radius-lg:28px;
+  --radius-md:18px;
+  --radius-sm:14px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{
+  scroll-behavior:smooth;
+  height:auto;
+  overflow-y:auto;
+}
+body{
+  height:auto;
+  overflow-y:auto;
+  background:
+    radial-gradient(circle at top, rgba(90,110,255,.08), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(255,183,39,.07), transparent 22%),
+    linear-gradient(180deg, #06080d 0%, #0a0d14 35%, #090c12 100%);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+img{max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+button,
+a,
+input,
+select,
+textarea{
+  pointer-events:auto;
+}
+button{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+button:disabled{
+  cursor:not-allowed;
+}
+
+.cert-shell{
+  width:min(1380px, calc(100% - 24px));
+  margin:18px auto 34px;
+  display:grid;
+  gap:18px;
+  overflow:visible !important;
+}
+
+.card-premium,
+.gold-factory{
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02)),
+    linear-gradient(180deg, rgba(16,20,30,.94), rgba(10,13,20,.96));
+  box-shadow:var(--shadow);
+  overflow:visible !important;
+}
+
+.section-block{padding:20px}
+
+.section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.section-kicker{
+  font-size:12px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--muted2);
+  margin-bottom:6px;
+}
+
+.section-title{
+  margin:0;
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.section-sub{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+}
+
+.lang-switch{
+  display:inline-flex;
+  gap:8px;
+  padding:6px;
+  border-radius:16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  position:relative;
+  z-index:5;
+}
+
+.lang-btn{
+  min-height:36px;
+  min-width:62px;
+  padding:0 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.10);
+  background:transparent;
+  color:#fff;
+  font-weight:800;
+}
+
+.lang-btn.is-active{
+  background:linear-gradient(180deg, rgba(255,214,102,.24), rgba(255,183,39,.12));
+  border-color:rgba(255,214,102,.30);
+  color:#ffe7ad;
+}
+
+.storage-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:16px;
+}
+
+.balance-box{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-height:92px;
+  padding:16px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+}
+
+.balance-icon{
+  width:54px;
+  height:54px;
+  border-radius:16px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  flex:0 0 54px;
+}
+
+.token-balance-img{
+  width:30px;
+  height:30px;
+  object-fit:contain;
+}
+
+.balance-k{
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--muted2);
+  margin-bottom:8px;
+}
+
+.balance-v{
+  font-size:24px;
+  font-weight:800;
+  line-height:1.15;
+}
+
+.balance-sub{
+  margin-top:7px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.factory-user{
+  min-width:320px;
+  max-width:100%;
+  padding:16px 18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.10);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+    linear-gradient(180deg, #182133, #101726);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  position:relative;
+  overflow:hidden;
+}
+
+.factory-user::before{
+  content:"OPERATOR";
+  position:absolute;
+  top:10px;
+  right:12px;
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.28);
+  font-weight:800;
+}
+
+.factory-user-k{
+  font-size:12px;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:#9db4d8;
+  margin-bottom:8px;
+  font-weight:800;
+}
+
+.factory-user-v{
+  font-size:28px;
+  line-height:1.08;
+  font-weight:900;
+  color:#ffffff;
+  text-shadow:0 0 12px rgba(77,163,255,.12);
+}
+
+.factory-user-s{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  color:#d7e3f7;
+  font-size:13px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+
+.factory-steps{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+}
+
+.step-card{
+  padding:16px;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  transition:border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+.step-num{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.step-title{font-size:14px;font-weight:800}
+
+.step-card.is-done{
+  border-color:rgba(109,255,179,.26);
+  background:linear-gradient(180deg, rgba(109,255,179,.10), rgba(109,255,179,.03));
+}
+
+.step-card.is-next{
+  border-color:rgba(255,214,102,.28);
+  background:linear-gradient(180deg, rgba(255,214,102,.11), rgba(255,214,102,.03));
+}
+
+.step-card.is-pulse{
+  animation:stepPulse 1.3s ease-in-out infinite;
+}
+
+@keyframes stepPulse{
+  0%,100%{ transform:translateY(0); box-shadow:none; }
+  50%{ transform:translateY(-2px); box-shadow:0 0 0 1px rgba(255,214,102,.20), 0 0 18px rgba(255,214,102,.10); }
+}
+
+.progress-wrap{
+  margin-top:16px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+}
+
+.progress-track{
+  height:12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg, rgba(255,214,102,.95), rgba(255,183,39,.95));
+  transition:width .25s ease;
+}
+
+.progress-label{
+  margin-top:10px;
+  font-size:12px;
+  color:#e5d4aa;
+  font-weight:700;
+}
+
+.factory-action-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+
+.factory-action-btn{
+  position:relative;
+  min-height:54px;
+  padding:0 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)),
+    linear-gradient(180deg, #202635, #141a27);
+  color:#ffffff;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.01em;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+}
+
+.factory-action-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(135deg, rgba(255,255,255,.10), transparent 40%, transparent 60%, rgba(255,255,255,.04));
+}
+
+.factory-action-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(77,163,255,.45);
+  box-shadow:
+    0 14px 28px rgba(0,0,0,.28),
+    0 0 18px rgba(77,163,255,.16),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.factory-action-btn:active{transform:translateY(0)}
+
+.factory-action-btn.secondary{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    linear-gradient(180deg, #1b2230, #121824);
+  border-color:rgba(255,255,255,.12);
+  color:#f5f7fb;
+}
+
+#rwaIssuePayBtn{
+  background:
+    linear-gradient(180deg, rgba(77,163,255,.22), rgba(77,163,255,.08)),
+    linear-gradient(180deg, #223149, #162133);
+  border-color:rgba(77,163,255,.34);
+}
+
+#rwaJumpMintBtn{
+  background:
+    linear-gradient(180deg, rgba(255,214,102,.24), rgba(255,183,39,.10)),
+    linear-gradient(180deg, #2b2415, #1b1610);
+  border-color:rgba(255,214,102,.34);
+  color:#fff2c2;
+}
+
+.factory-action-btn[data-loading="1"]::after,
+.btn-premium[data-loading="1"]::after,
+.gold-btn[data-loading="1"]::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  animation:btnShimmer 1.15s linear infinite;
+}
+
+@keyframes btnShimmer{
+  100%{ left:140%; }
+}
+
+.active-card{
+  margin-top:16px;
+  padding:18px;
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  transition:box-shadow .22s ease, border-color .22s ease, transform .22s ease;
+  overflow:visible !important;
+}
+
+.active-top{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.active-pill,
+.active-status{
+  min-height:32px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+
+.active-pill{
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+}
+
+.active-status{
+  border:1px solid rgba(255,214,102,.22);
+  background:rgba(255,214,102,.10);
+  color:#ffe5a3;
+}
+
+.active-name{margin-top:12px;font-size:26px;font-weight:900}
+.active-code{margin-top:6px;font-size:15px;color:#d7def0;font-weight:700}
+
+.active-sub{
+  margin-top:8px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.active-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:14px;
+}
+
+.mini-card{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+}
+
+.mini-k{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted2);
+  margin-bottom:8px;
+}
+
+.mini-v{
+  font-size:14px;
+  font-weight:700;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+
+.next-banner{
+  margin-top:14px;
+  padding:13px 14px;
+  border-radius:16px;
+  border:1px solid rgba(255,214,102,.16);
+  background:linear-gradient(180deg, rgba(255,214,102,.08), rgba(255,183,39,.04));
+  color:#f6dfaa;
+  font-size:13px;
+  box-shadow:0 0 12px rgba(255,214,92,.08);
+  transition:border-color .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+
+.queue-head{margin-top:16px}
+.mint-ready-list{display:grid;gap:12px;margin-top:12px}
+
+.mint-queue-row{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:14px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+}
+
+.queue-code{font-size:14px;font-weight:800}
+.queue-uid{margin-top:6px;font-size:12px;color:#cfd5e3;overflow-wrap:anywhere}
+.queue-pay{margin-top:6px;font-size:14px;font-weight:800;color:#ffe1a1}
+
+.mint-queue-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn-row-mini{
+  min-height:40px;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+}
+
+.btn-row-mini.gold{
+  background:linear-gradient(180deg, rgba(255,214,102,.22), rgba(255,183,39,.12));
+  border-color:rgba(255,214,102,.28);
+  color:#fff0be;
+}
+
+.queue-empty{
+  padding:20px;
+  border-radius:16px;
+  border:1px dashed rgba(255,255,255,.10);
+  color:#aab1c4;
+  text-align:center;
+  opacity:.85;
+}
+
+.card-grid{display:grid;gap:14px;margin-top:14px}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-1{grid-template-columns:1fr}
+
+.rwa-card{
+  position:relative;
+  padding:18px;
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  transition:transform .22s ease, box-shadow .22s ease, opacity .22s ease, border-color .22s ease, filter .22s ease;
+}
+
+.rwa-card:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.16);
+}
+
+.rwa-card.is-locked{opacity:.68}
+
+.rwa-card.is-selected{
+  border-color:rgba(0,255,140,.75) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,140,.22) inset,
+    0 0 22px rgba(0,255,140,.18),
+    0 0 44px rgba(0,255,140,.08);
+  transform:translateY(-2px);
+}
+
+.rwa-card.is-selected::after{
+  content:"SELECTED";
+  position:absolute;
+  top:10px;
+  right:10px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:linear-gradient(180deg, #b8ffcf 0%, #00ff88 100%);
+  color:#07120c;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  box-shadow:0 0 12px rgba(0,255,136,.30);
+}
+
+.rwa-card.is-dimmed{
+  opacity:.42;
+  filter:grayscale(.45);
+}
+
+.rwa-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.rwa-icon{
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  font-size:22px;
+}
+
+.rwa-badge{
+  min-height:28px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+
+.rwa-name{margin-top:14px;font-size:22px;font-weight:900}
+.rwa-code{margin-top:6px;font-size:13px;color:#dbe1ee;font-weight:700}
+.rwa-meta{display:grid;gap:8px;margin-top:14px}
+
+.rwa-line{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:13px;
+  align-items:flex-start;
+}
+
+.rwa-line .k{color:var(--muted)}
+.rwa-line .v{
+  font-weight:700;
+  text-align:right;
+}
+
+.rwa-rule-note{
+  margin-top:14px;
+  min-height:40px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px dashed rgba(255,255,255,.08);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.btn-premium,
+.issue-btn{
+  position:relative;
+  margin-top:14px;
+  min-height:46px;
+  width:100%;
+  border:none;
+  border-radius:16px;
+  padding:0 16px;
+  background:linear-gradient(180deg, rgba(255,214,102,.22), rgba(255,183,39,.12));
+  border:1px solid rgba(255,214,102,.22);
+  color:#fff0be;
+  font-size:14px;
+  font-weight:900;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
+}
+
+.btn-premium:disabled,
+.issue-btn:disabled{opacity:.55}
+
+.issue-btn.is-selected{
+  border-color:rgba(0,255,136,.95) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.96) 0%, rgba(0,210,112,.96) 100%) !important;
+  color:#04110a !important;
+  box-shadow:0 0 16px rgba(0,255,136,.32);
+}
+
+.gold-factory{
+  border-color:rgba(255,214,102,.20);
+  background:
+    radial-gradient(circle at top right, rgba(255,211,92,.18), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(255,183,39,.12), transparent 22%),
+    linear-gradient(180deg, rgba(39,25,7,.96), rgba(16,12,8,.98));
+}
+
+.gold-inner{padding:24px}
+
+.gold-main{
+  display:grid;
+  grid-template-columns:1.2fr .9fr;
+  gap:18px;
+  margin-top:18px;
+}
+
+.gold-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.gold-mini,
+.gold-payload,
+.deeplink-box,
+.settlement-card{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,232,178,.08);
+  background:rgba(255,255,255,.03);
+}
+
+.gold-mini-k{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#d8c58f;
+  margin-bottom:8px;
+}
+
+.gold-mini-v{
+  font-size:14px;
+  font-weight:700;
+  color:#fff1c8;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+
+.gold-payload{margin-top:12px}
+
+.gold-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+
+.gold-actions-2{
+  grid-template-columns:1fr;
+}
+
+.gold-btn{
+  position:relative;
+  min-height:48px;
+  border-radius:16px;
+  border:1px solid rgba(255,214,102,.24);
+  background:linear-gradient(180deg, rgba(255,214,102,.20), rgba(255,183,39,.10));
+  color:#fff0be;
+  font-size:14px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 14px;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+}
+
+.gold-btn.secondary{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.factory-action-btn.is-glow,
+.gold-btn.is-glow{
+  box-shadow:0 0 0 1px rgba(0,255,136,.20) inset, 0 0 18px rgba(0,255,136,.18);
+}
+
+.pay-token-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+.pay-token-img{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  object-fit:contain;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  padding:4px;
+}
+
+.log-box{
+  min-height:160px;
+  max-height:360px;
+  overflow:auto;
+  display:grid;
+  gap:10px;
+  padding:4px;
+  margin-top:12px;
+}
+
+.log-row{
+  display:grid;
+  gap:6px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+}
+
+.log-time{
+  font-size:11px;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:var(--muted2);
+}
+
+.log-msg{
+  font-size:13px;
+  line-height:1.6;
+  color:#fff;
+  word-break:break-word;
+}
+
+.tone-ok .log-msg{color:#d9ffe8}
+.tone-warn .log-msg{color:#ffeab5}
+.tone-error .log-msg{color:#ffd0d0}
+
+.tonconnect-mount{margin-top:14px}
+
+.compat-hidden{
+  display:none !important;
+  pointer-events:none !important;
+}
+
+.mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+
+/* Payment modal */
+.pay-modal-backdrop,
+.issue-pay-modal,
+#issuePayModal{
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  display:none;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  padding:16px;
+  overflow:auto;
+  pointer-events:auto;
+  align-items:center;
+  justify-content:center;
+}
+
+.pay-modal-backdrop.active,
+.issue-pay-modal.active,
+#issuePayModal.active{
+  display:flex;
+}
+
+.pay-modal-card,
+.issue-pay-modal__dialog,
+#issuePayModal .issue-pay-modal__dialog{
+  width:min(960px, calc(100vw - 24px));
+  max-height:calc(100vh - 24px);
+  border-radius:22px;
+  border:1px solid rgba(255,214,102,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+    linear-gradient(180deg, #151a26, #0d1119);
+  box-shadow:
+    0 0 0 1px rgba(255,214,92,.16) inset,
+    0 0 30px rgba(255,214,92,.09),
+    0 22px 66px rgba(0,0,0,.45);
+  animation:sheetUp .24s ease;
+  pointer-events:auto;
+  display:flex;
+  flex-direction:column;
+  overflow:auto;
+  margin:0 auto;
+}
+
+.pay-modal-head,
+.issue-pay-modal__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:18px 18px 0;
+  flex-wrap:wrap;
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:linear-gradient(180deg, rgba(21,26,38,.96), rgba(13,17,25,.96));
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+
+.pay-modal-main,
+.issue-pay-modal__main,
+.issue-pay-modal__dialog{
+  align-items:stretch;
+}
+
+.issue-pay-modal__dialog{
+  padding:18px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,.92fr);
+  gap:20px;
+}
+
+.issue-pay-modal__left,
+.issue-pay-modal__right{
+  min-width:0;
+}
+
+.issue-pay-modal__left{
+  display:grid;
+  gap:12px;
+  align-content:start;
+}
+
+.issue-pay-modal__right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.issue-pay-modal__left > *,
+.issue-pay-modal__right > *,
+.issue-pay-field,
+.issue-pay-card{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+
+.issue-pay-qr-only{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+#issuePayQrWrapInner{
+  width:100%;
+  min-height:auto !important;
+  height:auto !important;
+  overflow:visible !important;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+  transition:box-shadow .24s ease, border-color .24s ease, transform .24s ease;
+}
+
+#issuePayQrImg,
+#issuePayQrImage{
+  display:block;
+  width:min(100%, 320px) !important;
+  max-width:320px !important;
+  height:auto !important;
+  aspect-ratio:1 / 1;
+  object-fit:contain !important;
+  margin:0 auto;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#fff;
+  padding:10px;
+  box-sizing:border-box;
+}
+
+.issue-pay-qr-only #issuePayQrImg{
+  width:min(100%, 320px) !important;
+  height:auto;
+}
+
+#issuePayQrText{
+  width:100%;
+  text-align:center;
+}
+
+#issuePayQrText img,
+#issuePayQrText canvas{
+  display:block !important;
+  width:min(100%, 320px) !important;
+  max-width:320px !important;
+  height:auto !important;
+  margin:0 auto !important;
+  background:#fff;
+  padding:10px;
+  border-radius:14px;
+  box-sizing:border-box;
+}
+
+#issuePayQrPlaceholder{
+  color:#d8c58f;
+  font-size:13px;
+  line-height:1.6;
+}
+
+#issuePayQrLink{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+}
+
+.pay-link-url,
+.wallet-deeplink-link{
+  display:inline-block;
+  max-width:100%;
+  color:#8fd0ff;
+  text-decoration:underline;
+  word-break:break-all;
+}
+
+.wallet-deeplink-link:hover,
+.pay-link-url:hover{
+  color:#fff3c9;
+}
+
+.deeplink-box{
+  margin-top:18px !important;
+  padding:14px 16px !important;
+}
+
+.deeplink-box .gold-mini-v{
+  margin-top:6px;
+}
+
+/* Payment status tones */
+.payment-status--pending{
+  border-color:rgba(255,214,102,.28) !important;
+  background:linear-gradient(180deg, rgba(255,214,102,.14), rgba(255,183,39,.06)) !important;
+  color:#ffe7ac !important;
+  box-shadow:0 0 0 1px rgba(255,214,102,.08) inset;
+  animation:paymentPendingPulse 1.4s ease-in-out infinite;
+}
+
+.payment-status--confirmed{
+  border-color:rgba(0,255,136,.36) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.18), rgba(0,210,112,.08)) !important;
+  color:#d9ffeb !important;
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 14px rgba(0,255,136,.10);
+  animation:none;
+}
+
+.payment-status--error{
+  border-color:rgba(255,140,140,.30) !important;
+  background:linear-gradient(180deg, rgba(255,140,140,.14), rgba(255,140,140,.06)) !important;
+  color:#ffd6d6 !important;
+  animation:none;
+}
+
+@keyframes paymentPendingPulse{
+  0%,100%{ box-shadow:0 0 0 1px rgba(255,214,102,.08) inset, 0 0 0 rgba(255,214,102,0); }
+  50%{ box-shadow:0 0 0 1px rgba(255,214,102,.14) inset, 0 0 18px rgba(255,214,102,.10); }
+}
+
+.pay-modal-card .settlement-card:has(#issuePayQrImg),
+.issue-pay-modal__right:has(#issuePayQrImg),
+.issue-pay-modal__right:has(#issuePayQrImage){
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 16px rgba(0,255,136,.10);
+}
+
+@keyframes sheetUp{
+  from{ transform:translateY(40px); opacity:0; }
+  to{ transform:translateY(0); opacity:1; }
+}
+
+/* Force mint QR hidden */
+#certMintQrWrap,
+#certMintQrImg,
+#certMintQrPlaceholder{
+  display:none !important;
+}
+
+/* V2 hidden shell / router support */
+#cert-app{width:100%}
+
+#cert-global-status-root[hidden],
+#cert-queue-summary-root[hidden],
+#cert-workspace-root[hidden],
+#cert-selected-context-root[hidden],
+#cert-action-status-root[hidden],
+#cert-modal-root[hidden],
+#cert-stage-payment[hidden],
+#cert-stage-repair[hidden],
+#cert-stage-verify[hidden],
+#cert-stage-mint-init[hidden],
+#cert-stage-mint-verify[hidden],
+#cert-stage-minted[hidden],
+#cert-panel-issuance-factory[hidden],
+#cert-panel-mint-ready[hidden],
+#cert-panel-minting-process[hidden],
+#cert-panel-issued[hidden],
+#cert-panel-blocked[hidden]{
+  display:none !important;
+}
+
+#cert-global-status-root{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:18000;
+  width:min(420px, calc(100vw - 24px));
+  pointer-events:none;
+}
+
+#cert-global-status-bar{
+  display:grid;
+  gap:10px;
+}
+
+.cert-status-toast,
+.cert-action-toast{
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg, rgba(16,20,30,.95), rgba(10,13,20,.96));
+  color:#fff;
+  box-shadow:0 18px 42px rgba(0,0,0,.34);
+  pointer-events:auto;
+}
+
+.cert-status-toast.is-ok{border-color:rgba(109,255,179,.28)}
+.cert-status-toast.is-warn{border-color:rgba(255,214,102,.30)}
+.cert-status-toast.is-error{border-color:rgba(255,140,140,.30)}
+
+#cert-workspace-root{
+  display:grid;
+  grid-template-columns:minmax(320px, .96fr) minmax(320px, 1.04fr);
+  gap:18px;
+  overflow:visible !important;
+}
+
+#cert-queue-column-root,
+#cert-stage-column-root{
+  display:grid;
+  gap:14px;
+}
+
+#cert-queue-tabs-root{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.cert-queue-tab,
+#cert-tab-issuance-factory,
+#cert-tab-mint-ready,
+#cert-tab-minting-process,
+#cert-tab-issued,
+#cert-tab-blocked{
+  min-height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.cert-queue-tab.is-active,
+#cert-tab-issuance-factory.is-active,
+#cert-tab-mint-ready.is-active,
+#cert-tab-minting-process.is-active,
+#cert-tab-issued.is-active,
+#cert-tab-blocked.is-active{
+  border-color:rgba(255,214,102,.24);
+  background:linear-gradient(180deg, rgba(255,214,102,.18), rgba(255,183,39,.08));
+  color:#ffe8ae;
+}
+
+#cert-queue-panels-root{
+  display:grid;
+  gap:12px;
+}
+
+#cert-panel-issuance-factory,
+#cert-panel-mint-ready,
+#cert-panel-minting-process,
+#cert-panel-issued,
+#cert-panel-blocked{
+  padding:16px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+
+#cert-panel-count-issuance-factory,
+#cert-panel-count-mint-ready,
+#cert-panel-count-minting-process,
+#cert-panel-count-issued,
+#cert-panel-count-blocked{
+  margin-bottom:12px;
+  font-size:12px;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:var(--muted2);
+}
+
+#cert-list-issuance-factory,
+#cert-list-mint-ready,
+#cert-list-minting-process,
+#cert-list-issued,
+#cert-list-blocked{
+  display:grid;
+  gap:12px;
+}
+
+#cert-empty-issuance-factory,
+#cert-empty-mint-ready,
+#cert-empty-minting-process,
+#cert-empty-issued,
+#cert-empty-blocked{
+  padding:16px;
+  border-radius:16px;
+  border:1px dashed rgba(255,255,255,.10);
+  color:var(--muted);
+  text-align:center;
+}
+
+#cert-stage-context-root{
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:#d9deea;
+  font-size:13px;
+  line-height:1.6;
+}
+
+#cert-stage-root{
+  display:grid;
+  gap:14px;
+}
+
+#cert-stage-issue,
+#cert-stage-payment,
+#cert-stage-repair,
+#cert-stage-verify,
+#cert-stage-mint-init,
+#cert-stage-mint-verify,
+#cert-stage-minted{
+  padding:16px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+
+#cert-action-status-root{
+  display:grid;
+  gap:10px;
+}
+
+#cert-action-status-log{
+  display:grid;
+  gap:10px;
+}
+
+#cert-modal-root{
+  position:fixed;
+  inset:0;
+  z-index:19500;
+  pointer-events:none;
+}
+
+#cert-modal-root > *{
+  pointer-events:auto;
+}
+
+#cert-selected-context-root{
+  display:none;
+}
+
+#cert-selected-cert-uid,
+#cert-selected-cert-code,
+#cert-selected-cert-bucket,
+#cert-selected-cert-stage{
+  display:none;
+}
+
+/* Router/view helper classes */
+.cert-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+}
+
+.cert-summary-card{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+
+.cert-summary-k{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted2);
+  margin-bottom:8px;
+}
+
+.cert-summary-v{
+  font-size:22px;
+  font-weight:900;
+  color:#fff;
+}
+
+.cert-row,
+.mint-row,
+.queue-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.mint-row.is-focused,
+.queue-row.is-focused,
+.cert-row.is-focused{
+  border-color:rgba(0,255,136,.34);
+  box-shadow:0 0 0 1px rgba(0,255,136,.08) inset, 0 0 18px rgba(0,255,136,.10);
+  transform:translateY(-1px);
+}
+
+.cert-row-main{
+  display:grid;
+  gap:6px;
+  min-width:0;
+}
+
+.cert-row-title{
+  font-size:14px;
+  font-weight:900;
+  color:#fff;
+}
+
+.cert-row-sub{
+  font-size:12px;
+  color:#cfd6e6;
+  overflow-wrap:anywhere;
+}
+
+.cert-row-meta{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.cert-chip{
+  min-height:28px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.cert-chip.is-gold{
+  border-color:rgba(255,214,102,.24);
+  background:rgba(255,214,102,.10);
+  color:#ffe7ac;
+}
+
+.cert-chip.is-ok{
+  border-color:rgba(109,255,179,.24);
+  background:rgba(109,255,179,.10);
+  color:#dffff0;
+}
+
+.cert-chip.is-warn{
+  border-color:rgba(255,214,102,.24);
+  background:rgba(255,214,102,.10);
+  color:#ffe7ac;
+}
+
+.cert-chip.is-error{
+  border-color:rgba(255,140,140,.24);
+  background:rgba(255,140,140,.10);
+  color:#ffd9d9;
+}
+
+.cert-row-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.cert-modal-sheet{
+  width:min(980px, calc(100% - 20px));
+  margin:18px auto;
+  padding:18px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.10);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+    linear-gradient(180deg, #141925, #0d1119);
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+
+.cert-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.cert-modal-body{
+  display:grid;
+  gap:14px;
+}
+
+.cert-modal-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.cert-modal-card{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+
+/* Global flow stage classes */
+.cert-stage,
+[data-flow-stage]{
+  transition:border-color .22s ease, background .22s ease, box-shadow .22s ease, transform .22s ease;
+}
+
+.cert-stage.is-pending,
+[data-flow-stage].is-pending{
+  border-color:rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+
+.cert-stage.is-active,
+[data-flow-stage].is-active{
+  border-color:rgba(255,214,102,.28);
+  background:linear-gradient(180deg, rgba(255,214,102,.12), rgba(255,183,39,.04));
+  box-shadow:0 0 0 1px rgba(255,214,102,.08) inset, 0 0 18px rgba(255,214,102,.10);
+  transform:translateY(-1px);
+}
+
+.cert-stage.is-done,
+[data-flow-stage].is-done{
+  border-color:rgba(0,255,136,.24);
+  background:linear-gradient(180deg, rgba(0,255,136,.10), rgba(0,210,112,.03));
+  box-shadow:0 0 0 1px rgba(0,255,136,.06) inset;
+}
+
+/* Active panel polish */
+.active-card:has(#activeStatusText:not(:empty)){
+  box-shadow:0 0 0 1px rgba(255,215,112,.12) inset, 0 0 18px rgba(255,215,112,.08);
+}
+
+#activeStatusText{
+  transition:color .2s ease, text-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+
+#activeStatusText:not(:empty){
+  text-shadow:0 0 12px rgba(255,220,120,.18);
+}
+
+/* Flow-state body flags */
+body[data-cert-flow-state="preview"] #activeStatusText{ color:#ffe7ac; }
+body[data-cert-flow-state="payment"] #activeStatusText{ color:#ffe7ac; }
+body[data-cert-flow-state="mint_ready"] #activeStatusText{ color:#d9ffeb; }
+body[data-cert-flow-state="minting"] #activeStatusText{ color:#9fd0ff; }
+body[data-cert-flow-state="issued"] #activeStatusText{ color:#d9ffeb; }
+
+/* Next step banner tones */
+#nextStepBanner[data-tone="preview"],
+#certNextStepBanner[data-tone="preview"]{ border-color:rgba(255,214,102,.20); }
+
+#nextStepBanner[data-tone="payment"],
+#certNextStepBanner[data-tone="payment"]{
+  border-color:rgba(255,214,102,.24);
+  background:linear-gradient(180deg, rgba(255,214,102,.10), rgba(255,183,39,.05));
+}
+
+#nextStepBanner[data-tone="mint_ready"],
+#certNextStepBanner[data-tone="mint_ready"]{
+  border-color:rgba(0,255,136,.24);
+  background:linear-gradient(180deg, rgba(0,255,136,.11), rgba(0,210,112,.05));
+  color:#d9ffeb;
+}
+
+#nextStepBanner[data-tone="minting"],
+#certNextStepBanner[data-tone="minting"]{
+  border-color:rgba(77,163,255,.28);
+  background:linear-gradient(180deg, rgba(77,163,255,.12), rgba(77,163,255,.05));
+  color:#d8ebff;
+}
+
+#nextStepBanner[data-tone="issued"],
+#certNextStepBanner[data-tone="issued"]{
+  border-color:rgba(0,255,136,.28);
+  background:linear-gradient(180deg, rgba(0,255,136,.14), rgba(0,210,112,.06));
+  color:#d9ffeb;
+  box-shadow:0 0 18px rgba(0,255,136,.10);
+}
+
+/* Mint flow */
+#mintFlowPanel,
+.mint-flow{
+  transition:border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+
+#mintFlowPanel.is-minting,
+.mint-flow.is-minting{
+  border-color:rgba(77,163,255,.28);
+  box-shadow:0 0 0 1px rgba(77,163,255,.08) inset, 0 0 18px rgba(77,163,255,.12);
+}
+
+#mintFlowPanel.is-issued,
+.mint-flow.is-issued{
+  border-color:rgba(0,255,136,.28);
+  box-shadow:0 0 0 1px rgba(0,255,136,.08) inset, 0 0 20px rgba(0,255,136,.12);
+}
+
+#mintSuccessBanner,
+.cert-success-banner{
+  display:none;
+  margin-top:14px;
+  padding:18px 20px;
+  border-radius:18px;
+  border:1px solid rgba(0,255,136,.24);
+  background:linear-gradient(180deg, rgba(0,255,136,.14), rgba(0,210,112,.06));
+  color:#d9ffeb;
+  box-shadow:0 0 20px rgba(0,255,136,.10);
+}
+
+#mintSuccessBanner.is-show,
+.cert-success-banner.is-show{
+  display:block;
+}
+
+#mintSuccessBanner .success-title,
+.cert-success-banner .success-title{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+
+#mintSuccessBanner .success-sub,
+.cert-success-banner .success-sub{
+  margin-top:8px;
+  font-size:14px;
+  line-height:1.6;
+  color:#d5ffe8;
+}
+
+/* final polish ui */
+.is-pulse{
+  animation:certPulseGlow 1.6s ease-in-out 1;
+}
+
+@keyframes certPulseGlow{
+  0%{ box-shadow:0 0 0 rgba(255,214,102,0); }
+  40%{ box-shadow:0 0 0 1px rgba(255,214,102,.28), 0 0 24px rgba(255,214,102,.18); }
+  100%{ box-shadow:0 0 0 rgba(255,214,102,0); }
+}
+
+/* single issue-pay QR render safety */
+#issuePayQrText > *:not(:last-child){
+  display:none !important;
+}
+
+.issue-pay-client-qr{
+  width:280px;
+  height:280px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto;
+  background:#fff;
+  padding:10px;
+  border-radius:14px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+.issue-pay-client-qr img,
+.issue-pay-client-qr canvas{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+}
+
+.issue-pay-client-qr > *{
+  max-width:100% !important;
+  max-height:100% !important;
+}
+
+.issue-pay-client-qr > *:not(:last-child){
+  display:none !important;
+}
+
+.issue-pay-client-qr img,
+.issue-pay-client-qr canvas,
+.issue-pay-client-qr table{
+  display:block !important;
+  margin:0 auto !important;
+}
+
+/* Responsive */
+@media (max-width: 1200px){
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .factory-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gold-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cert-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media (max-width: 900px){
+  .storage-grid{grid-template-columns:1fr}
+  .active-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gold-main{grid-template-columns:1fr}
+  .gold-actions,
+  .factory-action-row{grid-template-columns:1fr}
+  .mint-queue-row,
+  .cert-row,
+  .mint-row,
+  .queue-row{grid-template-columns:1fr}
+  .grid-4,.grid-3{grid-template-columns:1fr}
+  .factory-user{min-width:100%}
+  #cert-workspace-root{grid-template-columns:1fr}
+  .cert-modal-grid{grid-template-columns:1fr}
+
+  .pay-modal-card,
+  .issue-pay-modal__dialog,
+  #issuePayModal .issue-pay-modal__dialog{
+    width:calc(100vw - 16px);
+    max-height:calc(100vh - 16px);
+    border-radius:18px;
+  }
+
+  .pay-modal-main{
+    grid-template-columns:1fr;
+  }
+
+  .issue-pay-modal__dialog{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+
+  .issue-pay-qr-only{
+    padding-top:8px;
+  }
+
+  .rwa-card.is-selected{
+    transform:none;
+  }
+
+  .rwa-card.is-selected::after{
+    top:8px;
+    right:8px;
+    font-size:10px;
+  }
+}
+
+@media (max-width: 640px){
+  .cert-shell{
+    width:min(100% - 16px, 100%);
+    margin:14px auto 28px;
+    gap:14px;
+  }
+  .section-block,.gold-inner{padding:16px}
+  .section-title{font-size:22px}
+  .active-grid{grid-template-columns:1fr}
+  .gold-grid{grid-template-columns:1fr}
+  .factory-user-v{font-size:24px}
+  .factory-user-s{font-size:12px}
+  .pay-modal-backdrop,
+  .issue-pay-modal,
+  #issuePayModal{padding:10px}
+  .cert-summary-grid{grid-template-columns:1fr}
+  #cert-global-status-root{
+    top:12px;
+    right:8px;
+    width:min(100vw - 16px, 100%);
+  }
+  #issuePayQrImg,
+  #issuePayQrImage,
+  #issuePayQrText img,
+  #issuePayQrText canvas{
+    width:min(100%, 280px) !important;
+    max-width:280px !important;
+  }
+}
+
+[data-lang="zh"] .section-kicker,
+[data-lang="zh"] .mini-k,
+[data-lang="zh"] .gold-mini-k,
+[data-lang="zh"] .balance-k,
+[data-lang="zh"] .cert-summary-k{
+  letter-spacing:.06em;
+}
+
+/* =========================================================
+   LOCKED ISSUE & PAY MODAL LAYOUT FIX
+   ========================================================= */
+
+.pay-modal-backdrop,
+.issue-pay-modal,
+#issuePayModal{
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  overflow:hidden;
+}
+
+.pay-modal-backdrop.active,
+.issue-pay-modal.active,
+#issuePayModal.active{
+  display:flex;
+}
+
+.pay-modal-card,
+.issue-pay-modal__dialog,
+#issuePayModal .issue-pay-modal__dialog{
+  width:min(1120px, calc(100vw - 24px));
+  height:min(860px, calc(100vh - 24px));
+  max-height:calc(100vh - 24px);
+  margin:0 auto;
+  border-radius:22px;
+  border:1px solid rgba(255,214,102,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+    linear-gradient(180deg, #151a26, #0d1119);
+  box-shadow:
+    0 0 0 1px rgba(255,214,92,.16) inset,
+    0 0 30px rgba(255,214,92,.09),
+    0 22px 66px rgba(0,0,0,.45);
+  animation:sheetUp .24s ease;
+  overflow:hidden !important;
+
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.08fr) minmax(320px, .92fr);
+  grid-template-rows:auto minmax(0,1fr);
+  grid-template-areas:
+    "head head"
+    "left right";
+  gap:18px;
+  padding:18px;
+  align-items:stretch;
+}
+
+.pay-modal-head,
+.issue-pay-modal__head{
+  grid-area:head;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:0;
+  margin:0;
+  position:relative;
+  top:auto;
+  z-index:auto;
+  background:
+    linear-gradient(180deg, rgba(8,16,36,.92), rgba(5,10,24,.92));
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  min-height:88px;
+  padding:20px 22px 18px;
+}
+
+.issue-pay-modal__left{
+  grid-area:left;
+  min-width:0;
+  min-height:0;
+  display:grid;
+  grid-auto-rows:min-content;
+  gap:12px;
+  align-content:start;
+  overflow:auto;
+  padding-right:6px;
+}
+
+.issue-pay-modal__right{
+  grid-area:right;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+  padding-left:6px;
+}
+
+.issue-pay-modal__left > *,
+.issue-pay-modal__right > *,
+.issue-pay-field,
+.issue-pay-card{
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+
+.issue-pay-card,
+.issue-pay-field,
+.deeplink-box,
+.settlement-card{
+  padding:14px 16px;
+}
+
+.issue-pay-qr-only,
+#issuePayQrWrapInner{
+  width:100%;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+#issuePayQrLink{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:320px;
+}
+
+#issuePayQrImage,
+#issuePayQrImg{
+  display:block;
+  width:min(100%, 340px) !important;
+  max-width:340px !important;
+  height:auto !important;
+  aspect-ratio:1 / 1;
+  object-fit:contain !important;
+  margin:0 auto;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#fff;
+  padding:12px;
+  box-sizing:border-box;
+}
+
+#issuePayQrText{
+  width:100%;
+  text-align:center;
+}
+
+#issuePayQrPlaceholder{
+  color:#d8c58f;
+  font-size:13px;
+  line-height:1.6;
+  text-align:center;
+}
+
+#issuePayStatus{
+  min-height:64px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+#issuePayWalletLink{
+  display:inline-block;
+  max-width:100%;
+  word-break:break-all;
+}
+
+#issuePayModal .gold-actions{
+  margin-top:0 !important;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+#issuePayCloseBtn{
+  min-width:112px;
+  min-height:48px;
+  align-self:flex-start;
+}
+
+@media (max-width: 980px){
+  .pay-modal-card,
+  .issue-pay-modal__dialog,
+  #issuePayModal .issue-pay-modal__dialog{
+    width:calc(100vw - 16px);
+    height:calc(100vh - 16px);
+    max-height:calc(100vh - 16px);
+    border-radius:18px;
+
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto minmax(0,1fr);
+    grid-template-areas:
+      "head"
+      "right"
+      "left";
+    gap:14px;
+    padding:14px;
+  }
+
+  .issue-pay-modal__right{
+    padding-left:0;
+    overflow:visible;
+  }
+
+  .issue-pay-modal__left{
+    padding-right:0;
+  }
+
+  #issuePayQrLink{
+    min-height:auto;
+  }
+
+  #issuePayModal .gold-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .pay-modal-backdrop,
+  .issue-pay-modal,
+  #issuePayModal{
+    padding:8px;
+  }
+
+  .pay-modal-card,
+  .issue-pay-modal__dialog,
+  #issuePayModal .issue-pay-modal__dialog{
+    width:calc(100vw - 8px);
+    height:calc(100vh - 8px);
+    max-height:calc(100vh - 8px);
+    border-radius:16px;
+    padding:12px;
+  }
+
+  .pay-modal-head,
+  .issue-pay-modal__head{
+    padding:16px;
+    min-height:auto;
+  }
+
+  #issuePayQrImage,
+  #issuePayQrImg{
+    width:min(100%, 280px) !important;
+    max-width:280px !important;
+  }
+}
+
+
+
+
+/* =========================================================
+   ISSUE & PAY MODAL - FINAL AUTHORITATIVE REPAIR
+   ========================================================= */
+
+#issuePayModal{
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  overflow:auto;
+}
+
+#issuePayModal.active{
+  display:flex;
+}
+
+#issuePayModal .issue-pay-modal__dialog{
+  width:min(1120px, calc(100vw - 24px));
+  max-height:calc(100vh - 24px);
+  margin:0 auto;
+  border-radius:22px;
+  border:1px solid rgba(255,214,102,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+    linear-gradient(180deg, #151a26, #0d1119);
+  box-shadow:
+    0 0 0 1px rgba(255,214,92,.16) inset,
+    0 0 30px rgba(255,214,92,.09),
+    0 22px 66px rgba(0,0,0,.45);
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);
+  grid-template-rows:auto minmax(0,1fr);
+  grid-template-areas:
+    "head head"
+    "left right";
+  gap:18px;
+  padding:18px;
+  overflow:auto;
+}
+
+#issuePayModal .issue-pay-modal__head{
+  grid-area:head;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:20px 22px 18px;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(8,16,36,.92), rgba(5,10,24,.92));
+  border:1px solid rgba(255,255,255,.06);
+}
+
+#issuePayModal .issue-pay-modal__left{
+  grid-area:left;
+  min-width:0;
+  display:grid;
+  gap:12px;
+  align-content:start;
+  overflow:auto;
+  padding-right:6px;
+}
+
+#issuePayModal .issue-pay-modal__right{
+  grid-area:right;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+  padding-left:6px;
+}
+
+#issuePayModal .issue-pay-card,
+#issuePayModal .settlement-card,
+#issuePayModal .deeplink-box{
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+
+#issuePayModal .gold-mini-k{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#d8c58f;
+  margin-bottom:8px;
+}
+
+#issuePayModal .gold-mini-v{
+  font-size:14px;
+  font-weight:700;
+  color:#fff1c8;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+
+#issuePayModal .gold-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:0 !important;
+}
+
+#issuePayModal .gold-btn{
+  min-height:46px;
+  border-radius:14px;
+}
+
+#issuePayModal .issue-pay-qr-only,
+#issuePayModal #issuePayQrWrapInner{
+  width:100%;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+#issuePayModal #issuePayQrLink{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+}
+
+#issuePayModal #issuePayQrImage{
+  display:block;
+  width:min(100%, 320px) !important;
+  max-width:320px !important;
+  height:auto !important;
+  aspect-ratio:1/1;
+  object-fit:contain !important;
+  margin:0 auto;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#fff;
+  padding:12px;
+  box-sizing:border-box;
+}
+
+#issuePayModal #issuePayQrText{
+  width:100%;
+  text-align:center;
+}
+
+#issuePayModal #issuePayQrPlaceholder{
+  color:#d8c58f;
+  font-size:13px;
+  line-height:1.6;
+  text-align:center;
+}
+
+#issuePayModal #issuePayWalletLink{
+  display:inline-block;
+  max-width:100%;
+  word-break:break-all;
+}
+
+#issuePayModal #issuePayStatus{
+  min-height:64px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+#issuePayModal #issuePayTokenImg{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  object-fit:contain;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  padding:4px;
+}
+
+#issuePayModal .pay-token-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+@media (max-width: 980px){
+  #issuePayModal .issue-pay-modal__dialog{
+    width:calc(100vw - 16px);
+    max-height:calc(100vh - 16px);
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "head"
+      "right"
+      "left";
+    gap:14px;
+    padding:14px;
+  }
+
+  #issuePayModal .gold-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  #issuePayModal{
+    padding:8px;
+  }
+
+  #issuePayModal .issue-pay-modal__dialog{
+    width:calc(100vw - 8px);
+    max-height:calc(100vh - 8px);
+    border-radius:16px;
+    padding:12px;
+  }
+
+  #issuePayModal .issue-pay-modal__head{
+    padding:16px;
+  }
+
+  #issuePayModal #issuePayQrImage{
+    width:min(100%, 280px) !important;
+    max-width:280px !important;
+  }
+}
+
+
+/* =========================================================
+   NFT FACTORY FINAL 3x3 BALANCE SAME-HEIGHT LAYOUT
+   - left removes visible item index
+   - right top merges settlement status + mint status
+   ========================================================= */
+
+#nftFactorySection{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,214,102,.18);
+  background:
+    radial-gradient(circle at top right, rgba(255,201,92,.12), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(255,183,39,.08), transparent 20%),
+    linear-gradient(180deg, rgba(36,24,8,.96), rgba(15,10,7,.98));
+}
+
+#nftFactorySection .gold-inner{
+  padding:20px 20px 18px !important;
+}
+
+#nftFactorySection .section-kicker{
+  color:#d7bf83;
+  margin-bottom:6px;
+}
+
+#nftFactorySection .section-title{
+  font-size:28px !important;
+  line-height:1.08;
+  margin-bottom:6px;
+  color:#fff3cf;
+  letter-spacing:-.02em;
+}
+
+#nftFactorySection .section-sub{
+  max-width:760px;
+  color:#cdbb96;
+  font-size:13px;
+  line-height:1.55;
+  margin-top:0;
+}
+
+.nft-grid-3x3{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-auto-rows:minmax(132px, 1fr);
+  gap:16px;
+  margin-top:16px;
+  align-items:stretch;
+}
+
+.nft-card{
+  min-width:0;
+  min-height:132px;
+  height:100%;
+  padding:14px 15px 13px;
+  border-radius:16px;
+  border:1px solid rgba(255,214,102,.12);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)),
+    linear-gradient(180deg, rgba(55,37,13,.50), rgba(22,14,9,.68));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 22px rgba(0,0,0,.18);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+#nftFactorySection .gold-mini-k{
+  font-size:10px !important;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#d8c58f !important;
+  margin-bottom:8px !important;
+}
+
+#nftFactorySection .gold-mini-v{
+  font-size:15px;
+  line-height:1.45;
+  font-weight:800;
+  color:#fff3cf;
+  word-break:break-word;
+}
+
+#certMintRecipient{
+  color:#dbe7ff !important;
+  font-size:14px !important;
+}
+
+#certMintAmount{
+  color:#ffffff !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+}
+
+.nft-amount-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+#certMintTokenImgWrap{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  overflow:hidden;
+  flex:0 0 auto;
+}
+
+#certMintTokenImg{
+  width:24px;
+  height:24px;
+  object-fit:contain;
+}
+
+.nft-status-combo{
+  justify-content:flex-start;
+}
+
+.nft-status-topline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.nft-status-pill,
+#certMintStatusText{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-height:34px !important;
+  width:max-content;
+  max-width:100%;
+  padding:0 12px !important;
+  border-radius:999px !important;
+  border:1px solid rgba(0,255,136,.26) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.14), rgba(0,210,112,.05)) !important;
+  color:#dffff1 !important;
+  font-size:13px !important;
+  font-weight:900 !important;
+  box-shadow:0 0 14px rgba(0,255,136,.08) !important;
+  text-shadow:none !important;
+}
+
+#certMintQrMeta{
+  color:#d8e4f7 !important;
+  font-size:13px !important;
+  line-height:1.58;
+}
+
+#certMintPayloadLink{
+  display:flex !important;
+  align-items:flex-start !important;
+  min-height:42px !important;
+  margin-top:8px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.035);
+  text-decoration:none;
+  color:#dce9ff !important;
+  word-break:break-all;
+  user-select:all;
+}
+
+#certMintPayloadMini{
+  min-height:20px !important;
+  margin-top:8px;
+  opacity:.82;
+  word-break:break-all;
+  color:#dce9ff !important;
+}
+
+.nft-flow-copy{
+  line-height:1.7;
+  opacity:.94;
+}
+
+.nft-ux-note{
+  margin-top:10px;
+  opacity:.82;
+  font-size:12px;
+  line-height:1.5;
+  color:rgba(214,255,229,.82);
+}
+
+.nft-action-bar{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin-top:18px !important;
+}
+
+.nft-action-bar > *{
+  min-width:0;
+  width:100%;
+  text-align:center;
+  justify-content:center;
+}
+
+#nftFactorySection .gold-btn{
+  min-height:46px !important;
+}
+
+#nftFactorySection .gold-btn.secondary{
+  background:linear-gradient(180deg, rgba(17,47,32,.96), rgba(11,33,22,.96));
+  color:#dfffea;
+  border:1px solid rgba(72,255,153,.20);
+  box-shadow:none;
+}
+
+@media (max-width: 980px){
+  .nft-grid-3x3{
+    grid-template-columns:1fr;
+    grid-auto-rows:auto;
+  }
+}
+
+@media (max-width: 640px){
+  .nft-action-bar{
+    grid-template-columns:1fr !important;
+  }
+}
+
+
+
+
+/* =========================================================
+   HARD HIDE ALL LEGACY / LEAKED UI BELOW FACTORY CONSOLE
+   ========================================================= */
+
+#cert-queue-tabs-root,
+#cert-queue-panels-root,
+#cert-workspace-root,
+#cert-queue-summary-root,
+#cert-action-status-root,
+#cert-global-status-root,
+#cert-modal-root,
+#mintFlowPanel,
+#mintSuccessBanner,
+#issuePayQrPlaceholder:not(#issuePayModal #issuePayQrPlaceholder),
+.payment-qr,
+.payment-section,
+.factory-payment,
+.qr-panel,
+.qr-section,
+.payment-or,
+#rwaPaymentSection,
+#rwaPaymentQr,
+#rwaQrContainer{
+  display:none !important;
+}
+
+
+
+/* =========================================================
+   FACTORY STEP CARDS - DISTINCT CURRENT STAGE COLORS
+   ========================================================= */
+
+.factory-steps .step-card{
+  transition:border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease, color .18s ease;
+}
+
+.factory-steps .step-card.is-done{
+  border-color:rgba(0,255,136,.28);
+  background:linear-gradient(180deg, rgba(0,255,136,.12), rgba(0,210,112,.04));
+  box-shadow:0 0 0 1px rgba(0,255,136,.08) inset;
+}
+
+.factory-steps .step-card.is-current-preview{
+  border-color:rgba(255,214,102,.32);
+  background:linear-gradient(180deg, rgba(255,214,102,.16), rgba(255,183,39,.05));
+  box-shadow:0 0 0 1px rgba(255,214,102,.10) inset, 0 0 16px rgba(255,214,102,.10);
+}
+
+.factory-steps .step-card.is-current-payment{
+  border-color:rgba(77,163,255,.34);
+  background:linear-gradient(180deg, rgba(77,163,255,.16), rgba(77,163,255,.05));
+  box-shadow:0 0 0 1px rgba(77,163,255,.10) inset, 0 0 16px rgba(77,163,255,.10);
+}
+
+.factory-steps .step-card.is-current-mint-ready{
+  border-color:rgba(0,255,136,.34);
+  background:linear-gradient(180deg, rgba(0,255,136,.16), rgba(0,210,112,.05));
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 16px rgba(0,255,136,.10);
+}
+
+.factory-steps .step-card.is-current-minting{
+  border-color:rgba(185,120,255,.34);
+  background:linear-gradient(180deg, rgba(185,120,255,.16), rgba(185,120,255,.05));
+  box-shadow:0 0 0 1px rgba(185,120,255,.10) inset, 0 0 16px rgba(185,120,255,.10);
+}
+
+.factory-steps .step-card.is-current-issued{
+  border-color:rgba(0,255,136,.42);
+  background:linear-gradient(180deg, rgba(0,255,136,.20), rgba(0,210,112,.06));
+  box-shadow:0 0 0 1px rgba(0,255,136,.12) inset, 0 0 20px rgba(0,255,136,.14);
+}
+
+
+
+/* === v24.0.0-20260409-stage-qr-fallback-flow-fix === */
+/* authoritative late override: keep modal QR fallback visible, keep distinct step colors */
+
+#issuePayModal #issuePayQrWrapInner,
+#issuePayQrWrapInner{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:12px !important;
+  width:100% !important;
+  min-height:100% !important;
+  height:auto !important;
+  overflow:visible !important;
+}
+
+#issuePayModal #issuePayQrLink,
+#issuePayQrLink{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:100% !important;
+  min-height:320px;
+}
+
+#issuePayModal #issuePayQrImage,
+#issuePayModal #issuePayQrImg,
+#issuePayQrImage,
+#issuePayQrImg{
+  display:block;
+  width:min(100%, 340px) !important;
+  max-width:340px !important;
+  height:auto !important;
+  aspect-ratio:1 / 1;
+  object-fit:contain !important;
+  margin:0 auto !important;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#fff;
+  padding:12px;
+  box-sizing:border-box;
+}
+
+/* CRITICAL: do NOT hide client QR fallback */
+#issuePayModal #issuePayQrText,
+#issuePayQrText{
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:0;
+  text-align:center;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+#issuePayModal #issuePayQrText img,
+#issuePayModal #issuePayQrText canvas,
+#issuePayModal #issuePayQrText table,
+#issuePayQrText img,
+#issuePayQrText canvas,
+#issuePayQrText table{
+  display:block !important;
+  width:min(100%, 340px) !important;
+  max-width:340px !important;
+  height:auto !important;
+  margin:0 auto !important;
+  background:#fff;
+  padding:12px;
+  border-radius:14px;
+  box-sizing:border-box;
+}
+
+#issuePayQrText > *:not(:last-child),
+.issue-pay-client-qr > *:not(:last-child){
+  display:none !important;
+}
+
+.issue-pay-client-qr{
+  width:300px;
+  height:300px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 auto !important;
+  background:#fff;
+  padding:12px;
+  border-radius:14px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+.issue-pay-client-qr img,
+.issue-pay-client-qr canvas,
+.issue-pay-client-qr table{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 auto !important;
+}
+
+/* placeholder only when no image and no qr_text fallback */
+#issuePayModal #issuePayQrPlaceholder,
+#issuePayQrPlaceholder{
+  display:block;
+  color:#d8c58f;
+  font-size:13px;
+  line-height:1.6;
+  text-align:center;
+}
+
+/* step cards: keep done green */
+.factory-steps .step-card.is-done{
+  border-color:rgba(0,255,136,.32) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.16), rgba(0,210,112,.05)) !important;
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 16px rgba(0,255,136,.10) !important;
+  color:#d9ffeb !important;
+}
+
+/* current stage colors */
+.factory-steps .step-card.is-current-preview{
+  border-color:rgba(255,214,102,.34) !important;
+  background:linear-gradient(180deg, rgba(255,214,102,.18), rgba(255,183,39,.06)) !important;
+  box-shadow:0 0 0 1px rgba(255,214,102,.10) inset, 0 0 16px rgba(255,214,102,.12) !important;
+  color:#ffe9b3 !important;
+}
+
+.factory-steps .step-card.is-current-payment{
+  border-color:rgba(77,163,255,.36) !important;
+  background:linear-gradient(180deg, rgba(77,163,255,.18), rgba(77,163,255,.06)) !important;
+  box-shadow:0 0 0 1px rgba(77,163,255,.10) inset, 0 0 16px rgba(77,163,255,.12) !important;
+  color:#dcecff !important;
+}
+
+.factory-steps .step-card.is-current-mint-ready{
+  border-color:rgba(0,255,136,.36) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.18), rgba(0,210,112,.06)) !important;
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 16px rgba(0,255,136,.12) !important;
+  color:#dcffee !important;
+}
+
+.factory-steps .step-card.is-current-minting{
+  border-color:rgba(186,131,255,.38) !important;
+  background:linear-gradient(180deg, rgba(186,131,255,.18), rgba(130,88,255,.06)) !important;
+  box-shadow:0 0 0 1px rgba(186,131,255,.10) inset, 0 0 16px rgba(186,131,255,.14) !important;
+  color:#efe2ff !important;
+}
+
+.factory-steps .step-card.is-current-issued{
+  border-color:rgba(0,255,136,.40) !important;
+  background:linear-gradient(180deg, rgba(0,255,136,.22), rgba(0,210,112,.07)) !important;
+  box-shadow:0 0 0 1px rgba(0,255,136,.12) inset, 0 0 20px rgba(0,255,136,.14) !important;
+  color:#ffffff !important;
+}
+
+/* shared active state polish */
+.factory-steps .step-card.is-active{
+  transform:translateY(-1px);
+}
+
+.factory-steps .step-card.is-pulse{
+  animation:certStepPulse 1.35s ease-in-out infinite !important;
+}
+
+@keyframes certStepPulse{
+  0%,100%{
+    transform:translateY(0);
+  }
+  50%{
+    transform:translateY(-2px);
+  }
+}
+
+/* stop generic active look from overriding current-stage colors */
+.cert-stage.is-active,
+[data-flow-stage].is-active{
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+
+/* responsive qr fallback */
+@media (max-width: 980px){
+  #issuePayModal #issuePayQrImage,
+  #issuePayModal #issuePayQrImg,
+  #issuePayModal #issuePayQrText img,
+  #issuePayModal #issuePayQrText canvas,
+  #issuePayModal #issuePayQrText table,
+  #issuePayQrImage,
+  #issuePayQrImg,
+  #issuePayQrText img,
+  #issuePayQrText canvas,
+  #issuePayQrText table{
+    width:min(100%, 300px) !important;
+    max-width:300px !important;
+  }
+}
+
+@media (max-width: 640px){
+  #issuePayModal #issuePayQrImage,
+  #issuePayModal #issuePayQrImg,
+  #issuePayModal #issuePayQrText img,
+  #issuePayModal #issuePayQrText canvas,
+  #issuePayModal #issuePayQrText table,
+  #issuePayQrImage,
+  #issuePayQrImg,
+  #issuePayQrText img,
+  #issuePayQrText canvas,
+  #issuePayQrText table{
+    width:min(100%, 280px) !important;
+    max-width:280px !important;
+  }
+
+  .issue-pay-client-qr{
+    width:280px;
+    height:280px;
+  }
+}
+
+
+/* v20260409-finalize-handoff-green-highlight */
+.mint-row.is-selected-mint,
+.mint-row.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  background: linear-gradient(180deg, rgba(0,255,136,.16), rgba(0,210,112,.05)) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 18px rgba(0,255,136,.12) !important;
+}
+
+.mint-row.is-selected-mint .queue-code,
+.mint-row.is-focused .queue-code,
+.mint-row.is-selected-mint .queue-uid,
+.mint-row.is-focused .queue-uid{
+  color:#dcffee !important;
+}
+
+.mint-row.is-selected-mint .btn-row-mini.gold,
+.mint-row.is-focused .btn-row-mini.gold{
+  box-shadow: 0 0 0 1px rgba(0,255,136,.18) inset;
+}
+
+
+/* v20260409-nft-factory-green-glow-lock */
+.mint-row.is-selected-mint,
+.mint-row.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  background: linear-gradient(180deg, rgba(0,255,136,.16), rgba(0,210,112,.05)) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 18px rgba(0,255,136,.12) !important;
+}
+
+.mint-row.is-selected-mint .queue-code,
+.mint-row.is-focused .queue-code,
+.mint-row.is-selected-mint .queue-uid,
+.mint-row.is-focused .queue-uid{
+  color:#dcffee !important;
+}
+
+#nftFactorySection.is-selected-cert,
+#nftFactorySection.is-focused,
+.nft-factory-card.is-selected-cert,
+.nft-factory-card.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 24px rgba(0,255,136,.16),
+    0 0 48px rgba(0,255,136,.08) !important;
+}
+
+#nftFactorySection.is-selected-cert .nft-factory-title,
+#nftFactorySection.is-focused .nft-factory-title,
+.nft-factory-card.is-selected-cert .nft-factory-title,
+.nft-factory-card.is-focused .nft-factory-title{
+  color:#dcffee !important;
+}
+
+
+/* v20260409-mint-result-ui */
+.mint-result-banner{
+  margin-top:16px;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid rgba(0,255,136,.35);
+  background:linear-gradient(180deg, rgba(0,255,136,.14), rgba(0,210,112,.05));
+  color:#dcffee;
+  box-shadow:0 0 0 1px rgba(0,255,136,.10) inset, 0 0 18px rgba(0,255,136,.10);
+  font-weight:700;
+}
+
+
+/* v20260409-safe-ui-factory-glow */
+#nftFactorySection.is-selected-cert,
+#nftFactorySection.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 24px rgba(0,255,136,.16),
+    0 0 48px rgba(0,255,136,.08) !important;
+}
+
+
+/* v20260409-finalize-selected-green-lock */
+.mint-row.is-selected-mint,
+.mint-row.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  background: linear-gradient(180deg, rgba(0,255,136,.16), rgba(0,210,112,.05)) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 18px rgba(0,255,136,.12) !important;
+}
+
+.mint-row.is-selected-mint .queue-code,
+.mint-row.is-focused .queue-code,
+.mint-row.is-selected-mint .queue-uid,
+.mint-row.is-focused .queue-uid{
+  color:#dcffee !important;
+}
+
+#nftFactorySection.is-selected-cert,
+#nftFactorySection.is-focused{
+  border-color: rgba(0,255,136,.42) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.12) inset,
+    0 0 24px rgba(0,255,136,.16),
+    0 0 48px rgba(0,255,136,.08) !important;
+}
+
+#mintStepLadder{
+  display:grid;
+  gap:8px;
+  margin:12px 0 14px;
+}
+#mintStepLadder .mint-step{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+}
+#mintStepLadder .mint-step .num{
+  width:24px;
+  height:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  font-weight:700;
+  background:rgba(255,255,255,.08);
+}
+#mintStepLadder .mint-step.done{
+  border-color:rgba(0,255,140,.35);
+  background:rgba(0,255,140,.08);
+}
+#mintStepLadder .mint-step.active{
+  border-color:rgba(255,215,0,.45);
+  background:rgba(255,215,0,.08);
+  box-shadow:0 0 0 1px rgba(255,215,0,.12) inset, 0 0 18px rgba(255,215,0,.12);
+}
+#mintStepLadder .mint-step.idle{
+  opacity:.72;
+}
+#mintConfidenceBadges,
+#nftConfidenceBadges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:10px 0;
+}
+.mint-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.15);
+}
+.mint-badge.ok{
+  color:#b8ffd7;
+  background:rgba(0,255,140,.08);
+  border-color:rgba(0,255,140,.3);
+}
+#mintCountdown.countdown{
+  margin:8px 0 12px;
+  font-weight:600;
+}
+#mintCountdown.ok{ color:#9ff7c2; }
+#mintCountdown.warn{ color:#ffd76a; }
+#mintCountdown.danger,
+#mintCountdown.expired{ color:#ff8a8a; }
+
+.nft-factory-card{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  padding:14px;
+  background:rgba(0,0,0,.35);
+}
+
+.factory-banner{
+  margin-bottom:10px;
+  font-weight:600;
+  color:#ffe082;
+}
+
+.factory-grid{
+  display:grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap:14px;
+}
+
+.factory-preview{
+  width:100%;
+  border-radius:12px;
+  background:#000;
+}
+
+.factory-right .row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  gap:10px;
+}
+
+.factory-right .row.full{
+  flex-direction:column;
+}
+
+.factory-right textarea{
+  width:100%;
+  min-height:70px;
+}
+
+.factory-actions{
+  margin-top:10px;
+}
+
+.btn-wallet{
+  display:block;
+  padding:10px;
+  background:#00c853;
+  color:#000;
+  text-align:center;
+  border-radius:10px;
+  font-weight:700;
+}
+
+.btn-verify{
+  display:block;
+  padding:10px;
+  background:#2962ff;
+  color:#fff;
+  text-align:center;
+  border-radius:10px;
+  font-weight:700;
+}
+
+.factory-status{
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.factory-error{
+  color:#ff5252;
+  margin-top:8px;
+}
+
+.countdown.ok{color:#00e676;}
+.countdown.warn{color:#ffd740;}
+.countdown.danger{color:#ff5252;}
+.countdown.expired{color:#ff8a80;}
+
+
+/* NFT FACTORY - UI REFINE */
+#nftFactorySection.nft-factory-card{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:720px;
+}
+
+#nftFactorySection .factory-grid{
+  display:grid;
+  grid-template-columns:minmax(320px, 0.95fr) minmax(420px, 1.15fr);
+  gap:16px;
+  align-items:stretch;
+  min-height:560px;
+}
+
+#nftFactorySection .factory-left,
+#nftFactorySection .factory-right{
+  display:flex;
+  flex-direction:column;
+  min-height:100%;
+}
+
+#nftFactorySection .factory-left{
+  justify-content:flex-start;
+}
+
+#nftFactorySection .factory-right{
+  justify-content:flex-start;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(255,255,255,.03);
+}
+
+#nftFactorySection .factory-preview{
+  width:100%;
+  aspect-ratio:1 / 1.18;
+  object-fit:contain;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:
+    radial-gradient(circle at top, rgba(255,215,0,.08), transparent 40%),
+    rgba(0,0,0,.42);
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+
+#nftFactorySection .factory-right .row{
+  display:grid;
+  grid-template-columns:140px 1fr auto;
+  align-items:start;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+#nftFactorySection .factory-right .row > label{
+  font-weight:700;
+  color:#f5d97a;
+  line-height:1.4;
+}
+
+#nftFactorySection .factory-right .row > span{
+  min-width:0;
+  word-break:break-word;
+  line-height:1.45;
+}
+
+#nftFactorySection .factory-right .row.full{
+  grid-template-columns:1fr;
+}
+
+#nftFactorySection .factory-right textarea{
+  width:100%;
+  min-height:88px;
+  resize:vertical;
+  border-radius:10px;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.36);
+  color:#fff;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:12px;
+  line-height:1.45;
+}
+
+#nftFactorySection .factory-actions{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+#nftFactorySection .btn-wallet,
+#nftFactorySection .btn-verify,
+#nftFactorySection button[id^="copy"]{
+  border:none;
+  cursor:pointer;
+  transition:transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+}
+
+#nftFactorySection .btn-wallet:hover,
+#nftFactorySection .btn-verify:hover,
+#nftFactorySection button[id^="copy"]:hover{
+  transform:translateY(-1px);
+}
+
+#nftFactorySection .factory-status{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:2px;
+}
+
+#nftFactoryStatusText,
+#settlementStatusText{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+}
+
+#nftFactoryError.factory-error{
+  min-height:22px;
+  font-weight:600;
+}
+
+#mintConfidenceBadges,
+#nftConfidenceBadges{
+  min-height:30px;
+}
+
+#mintStepLadder{
+  min-height:206px;
+}
+
+#mintCountdown{
+  min-height:22px;
+  font-weight:700;
+}
+
+#nftFactorySection.is-selected-mint{
+  box-shadow:0 0 0 1px rgba(255,215,0,.16), 0 0 22px rgba(255,215,0,.08);
+}
+
+@media (max-width: 980px){
+  #nftFactorySection .factory-grid{
+    grid-template-columns:1fr;
+    min-height:auto;
+  }
+
+  #nftFactorySection.nft-factory-card{
+    min-height:auto;
+  }
+
+  #nftFactorySection .factory-preview{
+    aspect-ratio:1 / 1;
+  }
+
+  #nftFactorySection .factory-right .row{
+    grid-template-columns:1fr;
+  }
+
+  #nftFactorySection .factory-status{
+    grid-template-columns:1fr;
+  }
+}
+
+
+.cert-queue-row{
+  transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.cert-queue-row.queue-moving{
+  opacity:.50;
+  transform:scale(.985);
+}
+.cert-queue-row.queue-moved{
+  box-shadow:0 0 0 1px rgba(0,255,140,.22), 0 0 16px rgba(0,255,140,.14);
+}
+.cert-queue-row.is-in-progress{
+  border-color:rgba(255,215,0,.35) !important;
+  background:rgba(255,215,0,.06) !important;
+}
+.cert-queue-row.is-issued{
+  border-color:rgba(0,255,140,.35) !important;
+  background:rgba(0,255,140,.08) !important;
+}
+
+.mint-success-toast{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:99999;
+  min-width:240px;
+  max-width:420px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:rgba(0,255,140,.12);
+  border:1px solid rgba(0,255,140,.32);
+  color:#d8ffe9;
+  font-weight:700;
+  box-shadow:0 12px 30px rgba(0,0,0,.28);
+  opacity:0;
+  transform:translateY(12px);
+  pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.mint-success-toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+/* v20260409-nft-factory-option-a-final */
+
+#nftFactorySection .factory-grid,
+#nftFactoryPreviewImage,
+#nftFactoryCertUid,
+#nftFactoryRecipient,
+#nftFactoryCollection,
+#nftFactoryOwnerWallet,
+#nftFactoryAmountTon,
+#nftFactoryAmountNano,
+#nftFactoryPayload,
+#nftFactoryWalletBtn,
+#verifyAtGetgemsBtn{
+  display:none !important;
+}
+
+#nftFactorySection .gold-inner{
+  padding:18px 18px 16px !important;
+}
+
+#nftFactorySection .section-sub{
+  margin-bottom:10px;
+}
+
+#nftFactorySection .gold-main.nft-settlement-layout{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr) !important;
+  gap:14px !important;
+  align-items:start !important;
+  margin-top:14px !important;
+}
+
+#nftFactorySection .gold-left,
+#nftFactorySection .gold-right{
+  min-width:0;
+}
+
+#nftFactorySection .gold-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+
+#nftFactorySection .gold-mini,
+#nftFactorySection .gold-payload,
+#nftFactorySection .settlement-card{
+  min-height:84px;
+}
+
+#certMintPayloadMini,
+#certMintDeeplink,
+#certMintRecipient,
+#certMintItemIndex,
+#certMintAmountNano{
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+#certMintPayloadMini{
+  min-height:54px;
+  max-height:160px;
+  overflow:auto;
+  padding-right:4px;
+}
+
+#certMintDeeplink{
+  min-height:54px;
+  max-height:160px;
+  overflow:auto;
+  padding-right:4px;
+}
+
+#certMintStatusText{
+  width:max-content;
+  max-width:100%;
+}
+
+#nftFactorySection .gold-actions{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin-top:14px !important;
+}
+
+#nftFactorySection .gold-btn{
+  min-height:46px !important;
+}
+
+.mint-row.queue-moving{
+  opacity:.50;
+  transform:scale(.985);
+}
+
+.mint-row.queue-moved{
+  box-shadow:0 0 0 1px rgba(0,255,140,.22), 0 0 16px rgba(0,255,140,.14);
+}
+
+.mint-row.is-in-progress{
+  border-color:rgba(255,215,0,.35) !important;
+  background:rgba(255,215,0,.06) !important;
+}
+
+.mint-row.is-issued{
+  border-color:rgba(0,255,140,.35) !important;
+  background:rgba(0,255,140,.08) !important;
+}
+
+@media (max-width: 980px){
+  #nftFactorySection .gold-main.nft-settlement-layout{
+    grid-template-columns:1fr !important;
+  }
+
+  #nftFactorySection .gold-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  #nftFactorySection .gold-actions{
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* v20260409-nft-factory-structure-repair */
+#nftFactorySection{
+  display:block !important;
+}
+
+#nftFactorySection > .gold-inner{
+  display:block !important;
+}
+
+#nftFactorySection .gold-main.nft-settlement-layout{
+  display:grid !important;
+}
+
+#nftFactorySection .gold-actions{
+  display:grid !important;
+}
+
+/* v20260409-wallet-open-manual-after-prepare */
+#mintFactoryIndicators{
+  margin-top:14px;
+  display:grid;
+  gap:10px;
+}
+
+#mintFactoryIndicators #mintRealtimeBar{
+  order:1;
+}
+
+#mintFactoryIndicators #mintLiveTxStatus{
+  order:2;
+  font-size:14px;
+  color:#dfffea;
+}
+
+#mintFactoryIndicators #mintStepLadder{
+  order:3;
+  margin:0;
+}
+
+#mintFactoryIndicators #mintCountdown{
+  order:4;
+  margin:2px 0 0;
+}
+
+#mintFactoryIndicators #mintConfidenceBadges{
+  order:5;
+  margin:0;
+}
+
+#mintFactoryIndicators .mint-step{
+  background:rgba(255,255,255,.025);
+}
+
+@media (max-width: 640px){
+  #mintFactoryIndicators{
+    margin-top:12px;
+  }
+}
+
+/* v20260409-prepare-cta-glow-pulse */
+#certMintPrepareBtn.prepare-cta-ready{
+  border-color: rgba(0,255,136,.42) !important;
+  background:
+    linear-gradient(180deg, rgba(0,255,136,.22), rgba(0,210,112,.10)),
+    linear-gradient(180deg, #183224, #102118) !important;
+  color:#dcffee !important;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.14) inset,
+    0 0 22px rgba(0,255,136,.18),
+    0 0 44px rgba(0,255,136,.08) !important;
+}
+
+#certMintPrepareBtn.prepare-cta-ready:hover{
+  border-color: rgba(109,255,179,.56) !important;
+  box-shadow:
+    0 0 0 1px rgba(109,255,179,.18) inset,
+    0 0 26px rgba(109,255,179,.22),
+    0 0 52px rgba(109,255,179,.10) !important;
+}
+
+#certMintPrepareBtn.prepare-cta-ready.is-pulse{
+  animation: adgPrepareCtaPulse 1.25s ease-in-out infinite;
+}
+
+@keyframes adgPrepareCtaPulse{
+  0%,100%{
+    transform:translateY(0);
+    box-shadow:
+      0 0 0 1px rgba(0,255,136,.14) inset,
+      0 0 18px rgba(0,255,136,.14),
+      0 0 36px rgba(0,255,136,.06);
+  }
+  50%{
+    transform:translateY(-1px);
+    box-shadow:
+      0 0 0 1px rgba(109,255,179,.20) inset,
+      0 0 28px rgba(109,255,179,.22),
+      0 0 58px rgba(109,255,179,.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #certMintPrepareBtn.prepare-cta-ready.is-pulse{
+    animation:none !important;
+  }
+}
+
+
+/* v20260409-final-ultra-polish */
+#certMintPrepareBtn[disabled],
+#certMintPrepareBtn[aria-disabled="true"]{
+  opacity:.58 !important;
+  cursor:not-allowed !important;
+  filter:saturate(.75);
+  box-shadow:none !important;
+}
+
+#certMintPrepareBtn[disabled]:hover,
+#certMintPrepareBtn[aria-disabled="true"]:hover{
+  transform:none !important;
+}
+
+#nftFactorySection.issued-success-flash{
+  animation: adgIssuedSuccessFlash 1.8s ease-out 1;
+}
+
+@keyframes adgIssuedSuccessFlash{
+  0%{
+    box-shadow:
+      0 0 0 1px rgba(0,255,136,.10) inset,
+      0 0 0 rgba(0,255,136,0);
+  }
+  35%{
+    box-shadow:
+      0 0 0 1px rgba(109,255,179,.22) inset,
+      0 0 28px rgba(109,255,179,.22),
+      0 0 56px rgba(109,255,179,.12);
+  }
+  100%{
+    box-shadow:
+      0 0 0 1px rgba(0,255,136,.10) inset,
+      0 0 0 rgba(0,255,136,0);
+  }
+}
+
+#mintLiveTxStatus{
+  transition: color .18s ease, opacity .18s ease;
+}

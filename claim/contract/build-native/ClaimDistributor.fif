@@ -1,0 +1,204 @@
+"Asm.fif" include
+// automatically generated from `/var/www/html/public/rwa/claim/contract/contracts/ClaimDistributor.fc` incl:`/var/www/html/public/rwa/claim/contract/contracts/stdlib.fc` 
+PROGRAM{
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC same_addr
+  DECLPROC get_wallet
+  DECLPROC calc_hash
+  DECLPROC build_jetton_body
+  DECLPROC send_jetton
+  DECLPROC recv_internal
+  load_data PROCINLINE:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  ds
+    LDMSGADDR	//  admin ds
+    1 LDU	//  admin enabled ds
+    256 LDU	//  admin enabled last_hash ds
+    LDREF	//  admin enabled last_hash _24 _23
+    DROP	//  admin enabled last_hash wallets
+  }>
+  save_data PROCINLINE:<{
+    //  admin enabled last_hash wallets
+    NEWC	//  admin enabled last_hash wallets _4
+    s0 s4 XCHG2	//  wallets enabled last_hash _4 admin
+    STSLICER	//  wallets enabled last_hash _5
+    s1 s2 XCHG	//  wallets last_hash enabled _5
+    1 STU	//  wallets last_hash _7
+    256 STU	//  wallets _9
+    STREF	//  _10
+    ENDC	//  _11
+    c4 POP
+  }>
+  same_addr PROCINLINE:<{
+    //  a b
+    SWAP	//  b a
+    HASHSU	//  b _2
+    SWAP	//  _2 b
+    HASHSU	//  _2 _3
+    EQUAL	//  _4
+  }>
+  get_wallet PROCINLINE:<{
+    //  wallets token_code
+    SWAP	//  token_code wallets
+    CTOS	//  token_code ds
+    LDMSGADDR	//  token_code w1 ds
+    LDMSGADDR	//  token_code w1 w2 ds
+    LDMSGADDR	//  token_code w1 w2 w3 ds
+    LDMSGADDR	//  token_code w1 w2 w3 w4 ds
+    LDMSGADDR	//  token_code w1 w2 w3 w4 _40 _39
+    DROP	//  token_code w1 w2 w3 w4 w5
+    s5 PUSH	//  token_code w1 w2 w3 w4 w5 token_code
+    1 EQINT	//  token_code w1 w2 w3 w4 w5 _20
+    IF:<{	//  token_code w1 w2 w3 w4 w5
+      s4 s5 XCHG
+      5 BLKDROP	//  w1
+    }>ELSE<{	//  token_code w1 w2 w3 w4 w5
+      s5 PUSH	//  token_code w1 w2 w3 w4 w5 token_code
+      2 EQINT	//  token_code w1 w2 w3 w4 w5 _22
+      IFJMP:<{	//  token_code w1 w2 w3 w4 w5
+        s3 s5 XCHG
+        5 BLKDROP	//  w2
+      }>	//  token_code w1 w2 w3 w4 w5
+      s3 POP	//  token_code w1 w5 w3 w4
+      s4 PUSH	//  token_code w1 w5 w3 w4 token_code
+      3 EQINT	//  token_code w1 w5 w3 w4 _24
+      IFJMP:<{	//  token_code w1 w5 w3 w4
+        s1 s4 XCHG
+        4 BLKDROP	//  w3
+      }>	//  token_code w1 w5 w3 w4
+      NIP	//  token_code w1 w5 w4
+      s3 PUSH	//  token_code w1 w5 w4 token_code
+      4 EQINT	//  token_code w1 w5 w4 _26
+      IFJMP:<{	//  token_code w1 w5 w4
+        3 1 BLKDROP2	//  w4
+      }>	//  token_code w1 w5 w4
+      DROP	//  token_code w1 w5
+      s0 s2 XCHG	//  w5 w1 token_code
+      5 EQINT	//  w5 w1 _28
+      IFJMP:<{	//  w5 w1
+        DROP	//  w5
+      }>	//  w5 w1
+      NIP	//  w1
+      401 THROW
+    }>
+  }>
+  calc_hash PROCINLINE:<{
+    //  qid token_code to_addr amount ref_hash
+    s0 s4 XCHG
+    NEWC	//  ref_hash token_code to_addr amount qid _5
+    64 STU	//  ref_hash token_code to_addr amount _7
+    s1 s3 XCHG	//  ref_hash amount to_addr token_code _7
+    8 STU	//  ref_hash amount to_addr _9
+    SWAP	//  ref_hash amount _9 to_addr
+    STSLICER	//  ref_hash amount _10
+    SWAP	//  ref_hash _10 amount
+    STGRAMS	//  ref_hash _11
+    256 STU	//  _13
+    ENDC	//  _14
+    HASHCU	//  _15
+  }>
+  build_jetton_body PROCINLINE:<{
+    //  amount to_addr ref_hash
+    NEWC	//  amount to_addr ref_hash _4
+    256 STU	//  amount to_addr _6
+    ENDC	//  amount to_addr fwd
+    1 PUSHINT	//  amount to_addr fwd _8=1
+    0 PUSHINT	//  amount to_addr fwd _8=1 _9=0
+    DUP	//  amount to_addr fwd _8=1 _9=0 _10=0
+    260734629 PUSHINT	//  amount to_addr fwd _8=1 _9=0 _10=0 _11=260734629
+    NEWC	//  amount to_addr fwd _8=1 _9=0 _10=0 _11=260734629 _12
+    32 STU	//  amount to_addr fwd _8=1 _9=0 _10=0 _14
+    64 STU	//  amount to_addr fwd _8=1 _9=0 _16
+    s0 s5 XCHG2	//  _9=0 to_addr fwd _8=1 _16 amount
+    STGRAMS	//  _9=0 to_addr fwd _8=1 _17
+    s3 PUSH	//  _9=0 to_addr fwd _8=1 _17 to_addr
+    STSLICER	//  _9=0 to_addr fwd _8=1 _18
+    s0 s3 XCHG2	//  _9=0 _8=1 fwd _18 to_addr
+    STSLICER	//  _9=0 _8=1 fwd _19
+    s1 s3 XCHG	//  fwd _8=1 _9=0 _19
+    1 STU	//  fwd _8=1 _21
+    OVER	//  fwd _8=1 _21 _22=1
+    STGRAMS	//  fwd _8=1 _23
+    1 STU	//  fwd _25
+    STREF	//  _26
+    ENDC	//  _27
+  }>
+  send_jetton PROCINLINE:<{
+    //  wallet_addr amount to_addr ref_hash
+    build_jetton_body INLINECALLDICT	//  wallet_addr body
+    0 PUSHINT	//  wallet_addr body _7=0
+    24 PUSHINT	//  wallet_addr body _7=0 _8=24
+    NEWC	//  wallet_addr body _7=0 _8=24 _9
+    6 STU	//  wallet_addr body _7=0 _11
+    s0 s3 XCHG2	//  _7=0 body _11 wallet_addr
+    STSLICER	//  _7=0 body _12
+    5000000 PUSHINT	//  _7=0 body _12 _13=5000000
+    STGRAMS	//  _7=0 body _14
+    s1 s2 XCHG	//  body _7=0 _14
+    107 STU	//  body _28
+    STREF	//  _29
+    ENDC	//  msg
+    1 PUSHINT	//  msg _31=1
+    SENDRAWMSG
+  }>
+  recv_internal PROC:<{
+    //  my_balance msg_value in_msg_full in_msg_body
+    2 2 BLKDROP2	//  in_msg_full in_msg_body
+    DUP	//  in_msg_full in_msg_body in_msg_body
+    SEMPTY	//  in_msg_full in_msg_body _4
+    IFJMP:<{	//  in_msg_full in_msg_body
+      2DROP	// 
+    }>	//  in_msg_full in_msg_body
+    SWAP	//  in_msg_body in_msg_full
+    CTOS	//  in_msg_body cs
+    4 LDU	//  in_msg_body flags cs
+    SWAP
+    1 PUSHINT	//  in_msg_body cs flags _11=1
+    AND	//  in_msg_body cs _12
+    IFJMP:<{	//  in_msg_body cs
+      2DROP	// 
+    }>	//  in_msg_body cs
+    LDMSGADDR	//  in_msg_body _70 _69
+    DROP	//  in_msg_body sender
+    load_data INLINECALLDICT	//  in_msg_body sender admin enabled last_hash wallets
+    s4 s3 XCPU	//  in_msg_body wallets admin enabled last_hash sender admin
+    same_addr INLINECALLDICT	//  in_msg_body wallets admin enabled last_hash _22
+    403 THROWIFNOT
+    OVER	//  in_msg_body wallets admin enabled last_hash enabled
+    1 EQINT	//  in_msg_body wallets admin enabled last_hash _26
+    404 THROWIFNOT
+    s0 s4 XCHG	//  last_hash wallets admin enabled in_msg_body
+    32 LDU	//  last_hash wallets admin enabled op in_msg_body
+    64 LDU	//  last_hash wallets admin enabled op qid in_msg_body
+    s0 s2 XCHG
+    1129073970 PUSHINT	//  last_hash wallets admin enabled in_msg_body qid op _36=1129073970
+    NEQ	//  last_hash wallets admin enabled in_msg_body qid _37
+    IF:<{	//  last_hash wallets admin enabled in_msg_body qid
+      400 THROW
+    }>	//  last_hash wallets admin enabled in_msg_body qid
+    SWAP	//  last_hash wallets admin enabled qid in_msg_body
+    8 LDU	//  last_hash wallets admin enabled qid token_code in_msg_body
+    LDMSGADDR	//  last_hash wallets admin enabled qid token_code to_addr in_msg_body
+    LDGRAMS	//  last_hash wallets admin enabled qid token_code to_addr amount in_msg_body
+    256 LDU	//  last_hash wallets admin enabled qid token_code to_addr amount _86 _85
+    DROP	//  last_hash wallets admin enabled qid token_code to_addr amount ref_hash
+    OVER	//  last_hash wallets admin enabled qid token_code to_addr amount ref_hash amount
+    0 GTINT	//  last_hash wallets admin enabled qid token_code to_addr amount ref_hash _56
+    406 THROWIFNOT
+    s4 s3 s2 XCPU2
+    s3 s6 PUSH2	//  last_hash wallets admin enabled ref_hash token_code to_addr amount qid token_code to_addr amount ref_hash
+    calc_hash INLINECALLDICT	//  last_hash wallets admin enabled ref_hash token_code to_addr amount h
+    s0 s8 PUXC	//  h wallets admin enabled ref_hash token_code to_addr amount h last_hash
+    NEQ	//  h wallets admin enabled ref_hash token_code to_addr amount _61
+    405 THROWIFNOT
+    s6 s2 PUXC	//  h wallets admin enabled ref_hash amount to_addr wallets token_code
+    get_wallet INLINECALLDICT	//  h wallets admin enabled ref_hash amount to_addr wallet_addr
+    s0 s3 XCHG	//  h wallets admin enabled wallet_addr amount to_addr ref_hash
+    send_jetton INLINECALLDICT
+    2SWAP	//  admin enabled h wallets
+    save_data INLINECALLDICT
+  }>
+}END>c
+2 boc+>B "/var/www/html/public/rwa/claim/contract/build-native/ClaimDistributor.boc" B>file

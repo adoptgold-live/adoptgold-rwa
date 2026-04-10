@@ -1,0 +1,250 @@
+#include "stdlib.fc";
+
+const int OP_CLAIM          = 0x434C454D;
+const int OP_SET_ENABLED    = 0x53454E42;
+const int OP_SET_EMX_WALLET = 0x5345574C;
+const int OP_SWEEP_TON      = 0x53575054;
+
+const int JETTON_OP_TRANSFER = 0xf8a7ea5;
+
+const int ERR_DISABLED      = 100;
+const int ERR_BAD_SENDER    = 101;
+const int ERR_BAD_BODY      = 102;
+const int ERR_TOO_LOW_VALUE = 103;
+const int ERR_EXPIRED       = 104;
+const int ERR_BAD_SIG       = 105;
+const int ERR_REPLAY        = 106;
+const int ERR_NO_EMX_WALLET = 107;
+const int ERR_BAD_ENABLED   = 108;
+const int ERR_BAD_AMOUNT    = 109;
+const int ERR_BAD_SWEEP     = 110;
+const int ERR_TOO_LOW_EXEC  = 111;
+
+const int TREASURY_FEE      = 100000000; ;; 0.10 TON
+const int CONTRACT_RESERVE  = 30000000;  ;; 0.03 TON
+const int CONTRACT_FLOOR    = 50000000;  ;; 0.05 TON
+
+;; AUTO-DEPLOY RECIPIENT WALLET SAFETY:
+;; we require more TON forwarded to the sender EMX wallet so it has
+;; enough budget to deploy recipient jetton wallet on first transfer.
+const int MIN_FORWARD_TO_JW = 250000000; ;; 0.25 TON
+
+int same_addr(slice a, slice b) inline {
+  return slice_hash(a) == slice_hash(b);
+}
+
+(slice, slice, int, int, int, int, slice, slice) load_data() inline {
+  slice ds = get_data().begin_parse();
+
+  slice admin = ds~load_msg_addr();
+  slice treasury = ds~load_msg_addr();
+  int enabled = ds~load_uint(1);
+
+  cell core_ref = ds~load_ref();
+  slice cs = core_ref.begin_parse();
+
+  int signer_pubkey = cs~load_uint(256);
+  int min_attached = cs~load_coins();
+  int last_claim_hash = cs~load_uint(256);
+  slice emx_master = cs~load_msg_addr();
+
+  cell wallet_ref = cs~load_ref();
+  slice ws = wallet_ref.begin_parse();
+  slice emx_wallet = ws~load_msg_addr();
+
+  return (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, emx_wallet);
+}
+
+() save_data(
+  slice admin,
+  slice treasury,
+  int enabled,
+  int signer_pubkey,
+  int min_attached,
+  int last_claim_hash,
+  slice emx_master,
+  slice emx_wallet
+) impure inline {
+  cell wallet_ref = begin_cell()
+    .store_slice(emx_wallet)
+    .end_cell();
+
+  cell core_ref = begin_cell()
+    .store_uint(signer_pubkey, 256)
+    .store_coins(min_attached)
+    .store_uint(last_claim_hash, 256)
+    .store_slice(emx_master)
+    .store_ref(wallet_ref)
+    .end_cell();
+
+  set_data(
+    begin_cell()
+      .store_slice(admin)
+      .store_slice(treasury)
+      .store_uint(enabled, 1)
+      .store_ref(core_ref)
+      .end_cell()
+  );
+}
+
+cell build_claim_core(
+  int op,
+  int query_id,
+  int amount_units,
+  slice recipient,
+  int valid_until
+) inline {
+  return begin_cell()
+    .store_uint(op, 32)
+    .store_uint(query_id, 64)
+    .store_uint(amount_units, 128)
+    .store_slice(recipient)
+    .store_uint(valid_until, 32)
+    .end_cell();
+}
+
+cell build_jetton_transfer_body(
+  int query_id,
+  int amount_units,
+  slice recipient
+) inline {
+  return begin_cell()
+    .store_uint(JETTON_OP_TRANSFER, 32)
+    .store_uint(query_id, 64)
+    .store_coins(amount_units)
+    .store_slice(recipient)     ;; destination owner
+    .store_slice(my_address())  ;; response destination
+    .store_uint(0, 1)           ;; no custom payload
+    .store_coins(1)             ;; forward 1 nanoton notification only
+    .store_uint(0, 1)           ;; no forward payload
+    .end_cell();
+}
+
+() send_ton(slice to, int value) impure inline {
+  if (value <= 0) {
+    return ();
+  }
+
+  cell msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(to)
+    .store_coins(value)
+    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+    .end_cell();
+
+  send_raw_message(msg, 1);
+}
+
+() send_emx_transfer(slice emx_wallet, int ton_value, int query_id, int amount_units, slice recipient) impure inline {
+  cell body = build_jetton_transfer_body(query_id, amount_units, recipient);
+
+  cell msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(emx_wallet)
+    .store_coins(ton_value)
+    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+    .store_ref(body)
+    .end_cell();
+
+  send_raw_message(msg, 1);
+}
+
+int load_msg_bounced(cell in_msg_full) inline {
+  slice s = in_msg_full.begin_parse();
+  int flags = s~load_uint(4);
+  return (flags & 1);
+}
+
+slice load_msg_sender(cell in_msg_full) inline {
+  slice s = in_msg_full.begin_parse();
+  s~load_uint(4);
+  return s~load_msg_addr();
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  if (load_msg_bounced(in_msg_full)) {
+    return ();
+  }
+
+  if (in_msg_body.slice_empty?()) {
+    return ();
+  }
+
+  var (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, emx_wallet) = load_data();
+  slice sender = load_msg_sender(in_msg_full);
+
+  int op = in_msg_body~load_uint(32);
+
+  if ((op == OP_SET_ENABLED) | (op == OP_SET_EMX_WALLET) | (op == OP_SWEEP_TON)) {
+    throw_unless(ERR_BAD_SENDER, same_addr(sender, admin));
+
+    if (op == OP_SET_ENABLED) {
+      in_msg_body~load_uint(64);
+      int next_enabled = in_msg_body~load_uint(1);
+      throw_unless(ERR_BAD_ENABLED, (next_enabled == 0) | (next_enabled == 1));
+
+      save_data(admin, treasury, next_enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, emx_wallet);
+      return ();
+    }
+
+    if (op == OP_SET_EMX_WALLET) {
+      in_msg_body~load_uint(64);
+      slice next_wallet = in_msg_body~load_msg_addr();
+
+      save_data(admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, next_wallet);
+      return ();
+    }
+
+    if (op == OP_SWEEP_TON) {
+      in_msg_body~load_uint(64);
+      int amount = in_msg_body~load_coins();
+      throw_unless(ERR_BAD_SWEEP, amount > 0);
+
+      [int balance_now, cell extra] = get_balance();
+      int balance_before = balance_now - msg_value;
+      int allowed = balance_before - CONTRACT_FLOOR;
+      throw_unless(ERR_BAD_SWEEP, allowed >= amount);
+
+      send_ton(treasury, amount);
+      return ();
+    }
+  }
+
+  throw_unless(ERR_DISABLED, enabled == 1);
+  throw_unless(ERR_BAD_BODY, op == OP_CLAIM);
+  throw_unless(ERR_TOO_LOW_VALUE, msg_value >= min_attached);
+  throw_unless(ERR_NO_EMX_WALLET, emx_wallet.slice_bits() > 0);
+
+  int query_id = in_msg_body~load_uint(64);
+  int amount_units = in_msg_body~load_uint(128);
+  slice recipient = in_msg_body~load_msg_addr();
+  int valid_until = in_msg_body~load_uint(32);
+  cell sig_ref = in_msg_body~load_ref();
+
+  throw_unless(ERR_BAD_AMOUNT, amount_units > 0);
+  throw_unless(ERR_EXPIRED, now() <= valid_until);
+
+  cell core = build_claim_core(op, query_id, amount_units, recipient, valid_until);
+  int claim_hash = cell_hash(core);
+  throw_unless(ERR_REPLAY, claim_hash != last_claim_hash);
+
+  slice sig_slice = sig_ref.begin_parse();
+  throw_unless(ERR_BAD_SIG, check_signature(claim_hash, sig_slice, signer_pubkey));
+
+  int exec_value = msg_value - TREASURY_FEE - CONTRACT_RESERVE;
+  throw_unless(ERR_TOO_LOW_EXEC, exec_value >= MIN_FORWARD_TO_JW);
+
+  save_data(admin, treasury, enabled, signer_pubkey, min_attached, claim_hash, emx_master, emx_wallet);
+
+  send_ton(treasury, TREASURY_FEE);
+  send_emx_transfer(emx_wallet, exec_value, query_id, amount_units, recipient);
+}
+
+(slice, slice, int, int, int, int, slice, slice) get_config() method_id {
+  var (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, emx_wallet) = load_data();
+  return (admin, treasury, enabled, signer_pubkey, min_attached, last_claim_hash, emx_master, emx_wallet);
+}
+
+(int, int, int, int) get_constants() method_id {
+  return (TREASURY_FEE, CONTRACT_RESERVE, CONTRACT_FLOOR, MIN_FORWARD_TO_JW);
+}

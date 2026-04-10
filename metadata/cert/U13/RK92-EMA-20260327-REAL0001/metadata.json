@@ -1,0 +1,14 @@
+{
+  "name": "RWA Gold Cert #RK92-EMA-20260327-REAL0001",
+  "description": "Certified Record of Gold Mining Responsibility Rights issued under the RWA Standard Organisation Framework.",
+  "image": "https://adoptgold.app/rwa/metadata/cert/U13/RK92-EMA-20260327-REAL0001/image.png",
+  "external_url": "https://adoptgold.app/rwa/cert/verify.php?cert_uid=RK92-EMA-20260327-REAL0001",
+  "attributes": [
+    { "trait_type": "RWA Code", "value": "RK92-EMA" },
+    { "trait_type": "RWA Type", "value": "gold" },
+    { "trait_type": "Family", "value": "GENESIS" },
+    { "trait_type": "Unit of Responsibility", "value": "1 g Gold Nugget" },
+    { "trait_type": "Framework", "value": "RWA Standard Organisation (RSO)" },
+    { "trait_type": "Chain", "value": "TON" }
+  ]
+}

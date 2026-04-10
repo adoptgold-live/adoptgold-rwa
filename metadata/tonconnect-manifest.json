@@ -1,0 +1,10 @@
+{
+  "manifestVersion": 2,
+  "url": "https://adoptgold.app/",
+  "name": "AdoptGold RWA",
+  "iconUrl": "https://adoptgold.app/metadata/wems.png",
+  "termsOfUseUrl": "https://adoptgold.app/terms/",
+  "privacyPolicyUrl": "https://adoptgold.app/privacy/",
+  "bridgeUrl": "https://bridge.tonapi.io/bridge",
+  "description": "AdoptGold RWA dApp — Real World Asset adoption ecosystem. Certified by Blockchain Group Ltd. Hong Kong."
+}

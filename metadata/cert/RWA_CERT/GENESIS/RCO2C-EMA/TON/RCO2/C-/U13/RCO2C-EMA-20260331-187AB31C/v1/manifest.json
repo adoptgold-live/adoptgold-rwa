@@ -1,0 +1,71 @@
+{
+    "cert_uid": "RCO2C-EMA-20260331-187AB31C",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RCO2C-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-03-31 13:54:54",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/RCO2/C-/U13/RCO2C-EMA-20260331-187AB31C",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/RCO2/C-/U13/RCO2C-EMA-20260331-187AB31C",
+    "relative_root": "RWA_CERT/GENESIS/RCO2C-EMA/TON/RCO2/C-/U13/RCO2C-EMA-20260331-187AB31C",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RCO2C-EMA-20260331-187AB31C.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-08T02:00:01+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "GENESIS",
+        "rwa_type": "green",
+        "price_wems": "1000",
+        "fingerprint_hash": "53B9CB8958FDF0898E1EB7E312DA1B89C04E58207849364A4C06F92555FF9892",
+        "router_tx_hash": "DEV_ONECLICK_TX",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "vault",
+            "nft_health",
+            "lifecycle",
+            "nft_prepare",
+            "nft",
+            "nft_layout",
+            "auto_mint",
+            "owner_wallet_raw",
+            "history",
+            "payment",
+            "preview",
+            "mint_verify",
+            "metadata_url",
+            "getgems_metadata",
+            "payment_truth",
+            "mint",
+            "mint_request"
+        ]
+    }
+}

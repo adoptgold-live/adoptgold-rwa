@@ -1,0 +1,63 @@
+{
+    "cert_uid": "RPROP-EMA-20260406-68159C82",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "SECONDARY",
+    "rwa_code": "RPROP-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-04-06 23:05:19",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/RPRO/P-/U13/RPROP-EMA-20260406-68159C82",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/RPRO/P-/U13/RPROP-EMA-20260406-68159C82",
+    "relative_root": "RWA_CERT/SECONDARY/RPROP-EMA/TON/RPRO/P-/U13/RPROP-EMA-20260406-68159C82",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RPROP-EMA-20260406-68159C82.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-08T02:00:01+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "SECONDARY",
+        "rwa_type": "royal_blue",
+        "price_wems": "0",
+        "fingerprint_hash": "4781fa22ad65f9e486930bdef5c6c7fa7c904b5591d6c363c7e8cceb6c3cd1cc",
+        "router_tx_hash": "",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "bootstrap_created",
+            "created_via",
+            "bootstrap_stub_paths",
+            "payment",
+            "owner_wallet_raw",
+            "lifecycle",
+            "artifacts",
+            "nft_health",
+            "auto_mint"
+        ]
+    }
+}

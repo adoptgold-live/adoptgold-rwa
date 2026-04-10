@@ -1,0 +1,95 @@
+{
+  "name": "{{CERT_UID}}",
+  "description": "Official AdoptGold RWA Certificate NFT. This certificate represents a certified responsibility-rights asset issued under the RWA Standard Organisation framework on TON.",
+  "image": "{{NFT_IMAGE_URL}}",
+  "external_url": "{{VERIFY_URL}}",
+  "animation_url": "{{PDF_URL}}",
+  "attributes": [
+    {
+      "trait_type": "Cert UID",
+      "value": "{{CERT_UID}}"
+    },
+    {
+      "trait_type": "RWA Type",
+      "value": "{{RWA_TYPE}}"
+    },
+    {
+      "trait_type": "Family",
+      "value": "{{FAMILY}}"
+    },
+    {
+      "trait_type": "RWA Code",
+      "value": "{{RWA_CODE}}"
+    },
+    {
+      "trait_type": "Responsibility Unit",
+      "value": "{{RESPONSIBILITY_UNIT}}"
+    },
+    {
+      "trait_type": "Chain",
+      "value": "TON"
+    },
+    {
+      "trait_type": "Project",
+      "value": "AdoptGold"
+    },
+    {
+      "trait_type": "Module",
+      "value": "RWA Cert"
+    },
+    {
+      "trait_type": "Framework",
+      "value": "RWA Standard Organisation"
+    },
+    {
+      "trait_type": "Issuer",
+      "value": "Blockchain Group RWA FZCO (DMCC, Dubai, UAE)"
+    },
+    {
+      "trait_type": "Owner Wallet",
+      "value": "{{OWNER_WALLET}}"
+    },
+    {
+      "trait_type": "Issued At",
+      "value": "{{ISSUED_AT_ISO}}"
+    },
+    {
+      "trait_type": "Payment Token",
+      "value": "{{PAYMENT_TOKEN}}"
+    },
+    {
+      "trait_type": "Payment Amount",
+      "value": "{{PAYMENT_AMOUNT}}"
+    },
+    {
+      "trait_type": "Fingerprint Hash",
+      "value": "{{FINGERPRINT_HASH}}"
+    },
+    {
+      "trait_type": "Verify URL",
+      "value": "{{VERIFY_URL}}"
+    }
+  ],
+  "properties": {
+    "category": "image",
+    "collection": "AdoptGold RWA Cert Collection",
+    "cert_uid": "{{CERT_UID}}",
+    "verify_url": "{{VERIFY_URL}}",
+    "pdf_url": "{{PDF_URL}}",
+    "image_url": "{{NFT_IMAGE_URL}}",
+    "fingerprint_hash": "{{FINGERPRINT_HASH}}",
+    "owner_wallet": "{{OWNER_WALLET}}",
+    "mint_model": "Public Mint",
+    "royalty_bps": 2500,
+    "files": [
+      {
+        "uri": "{{NFT_IMAGE_URL}}",
+        "type": "image/png"
+      },
+      {
+        "uri": "{{PDF_URL}}",
+        "type": "application/pdf"
+      }
+    ]
+  }
+}

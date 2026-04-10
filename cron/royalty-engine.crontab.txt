@@ -1,0 +1,6 @@
+# RWA Royalty Engine
+# Adjust schedule if needed
+
+*/10 * * * * /usr/bin/php /var/www/html/public/rwa/cron/royalty-snapshot.php >> /var/log/rwa-royalty-snapshot.log 2>&1
+*/10 * * * * /usr/bin/php /var/www/html/public/rwa/cron/royalty-claim-queue.php >> /var/log/rwa-royalty-claim-queue.log 2>&1
+*/15 * * * * /usr/bin/php /var/www/html/public/rwa/cron/royalty-claim-payout.php >> /var/log/rwa-royalty-claim-payout.log 2>&1

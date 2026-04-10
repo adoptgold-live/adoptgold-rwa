@@ -1,0 +1,9 @@
+{
+    "ok": true,
+    "healthy": true,
+    "used_fallback_placeholder": false,
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/devtest/RCO2C-EMA-20260331-187AB31C/nft/image.png",
+    "verify_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-187AB31C",
+    "metadata_url": "https://adoptgold.app/rwa/metadata/cert/devtest/RCO2C-EMA-20260331-187AB31C/meta/metadata.json",
+    "checked_at": "2026-03-31T13:54:54+00:00"
+}

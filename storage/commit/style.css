@@ -1,0 +1,290 @@
+#commitModal[hidden] {
+  display: none !important;
+}
+
+#commitModal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+#commitModal .storage-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(4px);
+}
+
+#commitModal .storage-modal__panel {
+  position: relative;
+  width: min(960px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  margin: 12px auto;
+  background: #080a09;
+  border: 1px solid rgba(125,255,159,.22);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 1px rgba(125,255,159,.06) inset,
+    0 0 28px rgba(125,255,159,.08),
+    0 0 60px rgba(246,215,104,.05);
+  color: #eff8f1;
+}
+
+#commitModal .storage-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(125,255,159,.22);
+  border-radius: 12px;
+  background: #0d1310;
+  color: #eff8f1;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#commitModal .storage-modal__head {
+  padding: 18px 18px 10px;
+  border-bottom: 1px solid rgba(125,255,159,.12);
+}
+
+#commitModal .storage-modal__head h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #f6d768;
+}
+
+#commitModal .storage-modal__head p {
+  margin: 0;
+  color: rgba(239,248,241,.72);
+  font-size: 13px;
+}
+
+#commitModal .storage-modal__body {
+  padding: 16px;
+}
+
+#commitModal .storage-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+#commitModal .storage-card {
+  background: linear-gradient(180deg, rgba(13,19,16,.96), rgba(8,11,10,.98));
+  border: 1px solid rgba(125,255,159,.14);
+  border-radius: 16px;
+  padding: 14px;
+  min-height: 100%;
+}
+
+#commitModal .storage-card h4 {
+  margin: 0 0 12px;
+  color: #7dff9f;
+  font-size: 15px;
+  letter-spacing: .02em;
+}
+
+#commitModal .storage-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+#commitModal .storage-label {
+  display: block;
+  color: rgba(239,248,241,.78);
+  font-size: 12px;
+}
+
+#commitModal .storage-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgba(125,255,159,.18);
+  border-radius: 12px;
+  background: #06080a;
+  color: #eff8f1;
+  padding: 0 14px;
+  outline: none;
+  font-size: 15px;
+}
+
+#commitModal .storage-input:focus {
+  border-color: rgba(246,215,104,.5);
+  box-shadow: 0 0 0 3px rgba(246,215,104,.08);
+}
+
+#commitModal .storage-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#commitModal .storage-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(125,255,159,.18);
+  background: #101612;
+  color: #eff8f1;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#commitModal .storage-btn--gold {
+  background: linear-gradient(180deg, rgba(246,215,104,.18), rgba(246,215,104,.08));
+  border-color: rgba(246,215,104,.35);
+  color: #f6d768;
+}
+
+#commitModal .storage-btn--green {
+  background: linear-gradient(180deg, rgba(125,255,159,.16), rgba(125,255,159,.06));
+  border-color: rgba(125,255,159,.28);
+  color: #7dff9f;
+}
+
+#commitModal .storage-btn.is-live {
+  border-color: rgba(246,215,104,.45);
+  color: #f6d768;
+  box-shadow: 0 0 0 1px rgba(246,215,104,.16) inset, 0 0 18px rgba(246,215,104,.12);
+}
+
+#commitModal .storage-note {
+  margin: 12px 0 0;
+  color: rgba(239,248,241,.62);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+#commitModal .storage-log {
+  margin: 14px 0 0;
+  min-height: 150px;
+  max-height: 240px;
+  overflow: auto;
+  background: #050706;
+  color: #a6ffbe;
+  border: 1px solid rgba(125,255,159,.12);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+#commitModal .storage-info-block {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(125,255,159,.1);
+  border-radius: 12px;
+  background: rgba(6,8,10,.8);
+}
+
+#commitModal .storage-info-label {
+  margin-bottom: 6px;
+  color: rgba(239,248,241,.56);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+#commitModal .storage-info-value {
+  color: #f6d768;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+#commitModal .storage-link-break {
+  display: inline-block;
+  color: #7dff9f;
+  font-size: 13px;
+  line-height: 1.45;
+  word-break: break-all;
+  text-decoration: none;
+}
+
+#commitModal .storage-qr-wrap {
+  margin-top: 14px;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(246,215,104,.24);
+  border-radius: 16px;
+  background: #050706;
+  padding: 14px;
+}
+
+#commitModal .storage-qr-wrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
+}
+
+#commitModal .storage-status-line {
+  margin-top: 14px;
+}
+
+#commitModal .storage-live-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(125,255,159,.18);
+  background: #0d1310;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#commitModal .storage-live-pill.is-idle {
+  color: rgba(239,248,241,.72);
+}
+
+#commitModal .storage-live-pill.is-waiting {
+  color: #f6d768;
+  border-color: rgba(246,215,104,.35);
+}
+
+#commitModal .storage-live-pill.is-ok {
+  color: #7dff9f;
+  border-color: rgba(125,255,159,.35);
+}
+
+#commitModal .storage-live-pill.is-error {
+  color: #ff8e7f;
+  border-color: rgba(255,142,127,.35);
+}
+
+@media (max-width: 768px) {
+  #commitModal .storage-modal__panel {
+    width: calc(100vw - 16px);
+    margin: 8px auto;
+    max-height: calc(100vh - 16px);
+    border-radius: 16px;
+  }
+
+  #commitModal .storage-modal__body {
+    padding: 12px;
+  }
+
+  #commitModal .storage-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #commitModal .storage-card {
+    padding: 12px;
+  }
+
+  #commitModal .storage-btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "ok": true,
+    "healthy": true,
+    "uid": "RPROP-EMA-20260406-68159C82",
+    "image_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/nft/image.png",
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/nft/image.png",
+    "meta_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/meta/metadata.json",
+    "meta_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/meta/metadata.json",
+    "verify_json_path": "/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/verify/verify.json",
+    "verify_json_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/SECONDARY/RPROP-EMA/TON/2026/04/U13/RPROP-EMA-20260406-68159C82/verify/verify.json",
+    "verify_page_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RPROP-EMA-20260406-68159C82",
+    "artifact_ready": true,
+    "nft_healthy": true,
+    "image_authority": "_image-bundle.php",
+    "compose_engine": "imagemagick",
+    "used_fallback_placeholder": false,
+    "final_sha1": "c0fd749fb2acc2da5ba5ada259564fcd3e293662",
+    "final_size": 1597706
+}

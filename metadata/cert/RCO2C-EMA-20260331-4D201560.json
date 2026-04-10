@@ -1,0 +1,52 @@
+{
+    "name": "RCO2C-EMA-20260331-4D201560",
+    "description": "AdoptGold RWA Certificate NFT. Lean off-chain metadata prepared for collection minting and Getgems compatibility.",
+    "image": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560/nft/image.png",
+    "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-4D201560",
+    "attributes": [
+        {
+            "trait_type": "Cert UID",
+            "value": "RCO2C-EMA-20260331-4D201560"
+        },
+        {
+            "trait_type": "Family",
+            "value": "GENESIS"
+        },
+        {
+            "trait_type": "RWA Code",
+            "value": "RCO2C-EMA"
+        },
+        {
+            "trait_type": "RWA Type",
+            "value": "GREEN"
+        },
+        {
+            "trait_type": "Unit",
+            "value": "RCO2C-EMA"
+        },
+        {
+            "trait_type": "Snapshot Weight",
+            "value": 1
+        },
+        {
+            "trait_type": "Fingerprint",
+            "value": "EB6BAC0BBC5907B8C0A21BF4B0CF4FB2766A6E6CC2B7E4EA8F74403F7C03D8AA"
+        },
+        {
+            "trait_type": "TON Wallet",
+            "value": "0:717359c4fcc1ad210a72d704f3567a104cf7d09afe6cb7fbb640959234d02f6d"
+        },
+        {
+            "trait_type": "Issued At",
+            "value": "2026-03-31 11:18:01"
+        },
+        {
+            "trait_type": "Price wEMS",
+            "value": 1000
+        },
+        {
+            "trait_type": "Price Units",
+            "value": "1000.000000"
+        }
+    ]
+}

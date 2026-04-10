@@ -1,0 +1,24 @@
+{
+  "name": "RCO2C-EMA-20260331-4D201560",
+  "description": "AdoptGold RWA Certificate NFT",
+  "image": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560/nft/image.png",
+  "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-4D201560",
+  "attributes": [
+    {
+      "trait_type": "RWA Code",
+      "value": "RCO2C-EMA"
+    },
+    {
+      "trait_type": "Family",
+      "value": "GENESIS"
+    },
+    {
+      "trait_type": "Cert UID",
+      "value": "RCO2C-EMA-20260331-4D201560"
+    },
+    {
+      "trait_type": "Unit of Responsibility",
+      "value": "10 kg tCO2e"
+    }
+  ]
+}

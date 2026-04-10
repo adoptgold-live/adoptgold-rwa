@@ -1,0 +1,309 @@
+"Asm.fif" include
+// automatically generated from `contracts/rwa_cert_collection_v2.fc` incl:`contracts/imports/stdlib.fc` 
+PROGRAM{
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC addr_eq
+  DECLPROC throw_unless_owner
+  DECLPROC build_royalty_cell
+  DECLPROC send_royalty_params
+  DECLPROC send_tons
+  DECLPROC available_to_withdraw
+  DECLPROC recv_internal
+  85719 DECLMETHOD royalty_params
+  67085 DECLMETHOD get_collection_data_ext
+  102491 DECLMETHOD get_collection_data
+  load_data PROCINLINE:<{
+    c4 PUSH
+    CTOS
+    LDMSGADDR
+    64 LDU
+    LDREF
+    LDREF
+    16 LDU
+    16 LDU
+    LDMSGADDR
+    LDMSGADDR
+    1 LDU
+    DROP
+  }>
+  save_data PROCINLINE:<{
+    NEWC
+    s0 s9 XCHG2
+    STSLICER
+    s1 s7 XCHG
+    64 STU
+    s1 s5 XCHG
+    STREF
+    s1 s3 XCHG
+    STREF
+    16 STU
+    16 STU
+    SWAP
+    STSLICER
+    SWAP
+    STSLICER
+    1 STU
+    ENDC
+    c4 POP
+  }>
+  addr_eq PROCINLINE:<{
+    NEWC
+    ROT
+    STSLICER
+    ENDC
+    HASHCU
+    NEWC
+    ROT
+    STSLICER
+    ENDC
+    HASHCU
+    EQUAL
+  }>
+  throw_unless_owner PROCINLINE:<{
+    addr_eq INLINECALLDICT
+    401 THROWIFNOT
+  }>
+  build_royalty_cell PROCINLINE:<{
+    s0 s2 XCHG
+    NEWC
+    16 STU
+    16 STU
+    SWAP
+    STSLICER
+    ENDC
+  }>
+  send_royalty_params PROCINLINE:<{
+    2831876269 PUSHINT
+    NEWC
+    32 STU
+    s1 s4 XCHG
+    64 STU
+    s1 s2 XCHG
+    16 STU
+    16 STU
+    SWAP
+    STSLICER
+    ENDC
+    0 PUSHINT
+    16 PUSHINT
+    NEWC
+    6 STU
+    s0 s3 XCHG2
+    STSLICER
+    s2 PUSH
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    64 PUSHINT
+    SENDRAWMSG
+  }>
+  send_tons PROCINLINE:<{
+    DUP
+    1 LESSINT
+    IF:<{
+      2DROP
+    }>ELSE<{
+      0 PUSHINT
+      16 PUSHINT
+      NEWC
+      6 STU
+      s0 s3 XCHG2
+      STSLICER
+      SWAP
+      STGRAMS
+      107 STU
+      ENDC
+      1 PUSHINT
+      SENDRAWMSG
+    }>
+  }>
+  available_to_withdraw PROCINLINE:<{
+    BALANCE
+    UNPAIR
+    DROP
+    50000000 PUSHINT
+    SUB
+    DUP
+    0 LESSINT
+    IF:<{
+      DROP
+      0 PUSHINT
+    }>ELSE<{
+    }>
+  }>
+  recv_internal PROC:<{
+    s2 POP
+    OVER
+    SEMPTY
+    IFJMP:<{
+      2DROP
+    }>
+    CTOS
+    4 LDU
+    SWAP
+    1 PUSHINT
+    AND
+    IFJMP:<{
+      2DROP
+    }>
+    LDMSGADDR
+    DROP
+    load_data INLINECALLDICT
+    s0 s10 XCHG
+    32 LDU
+    64 LDU
+    s2 PUSH
+    1765620048 PUSHINT
+    EQUAL
+    IFJMP:<{
+      s1 s3 XCHG
+      3 BLKDROP
+      4 4 BLKDROP2
+      s5 POP
+      s3 s4 XCHG
+      send_royalty_params INLINECALLDICT
+    }>
+    NIP
+    OVER
+    1331121746 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s9 s8 XCHG2
+      throw_unless_owner INLINECALLDICT
+      s0 s6 XCHG
+      LDMSGADDR
+      DROP
+      s0 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s3 s0 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1414681433 PUSHINT
+    EQUAL
+    IFJMP:<{
+      2 1 BLKDROP2
+      s8 s7 XCPU
+      throw_unless_owner INLINECALLDICT
+      s0 s7 XCHG
+      LDMSGADDR
+      DROP
+      s6 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s0 s3 XCHG3
+      s0 s2 XCHG
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1129270868 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s6 POP
+      s8 s7 XCPU
+      throw_unless_owner INLINECALLDICT
+      s0 s4 XCHG
+      LDREF
+      DROP
+      s6 s8 XCHG
+      s5 s7 XCHG
+      s0 s6 XCHG
+      s3 s5 XCHG
+      s4 s3 s0 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1346458963 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s10 POP
+      s8 s7 XCPU
+      throw_unless_owner INLINECALLDICT
+      s0 s8 XCHG
+      1 LDU
+      DROP
+      s6 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s3 s0 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1464095816 PUSHINT
+    EQUAL
+    IFJMP:<{
+      s11 POP
+      8 BLKDROP
+      throw_unless_owner INLINECALLDICT
+      LDMSGADDR
+      LDGRAMS
+      DROP
+      available_to_withdraw INLINECALLDICT
+      OVER
+      0 GTINT
+      405 THROWIFNOT
+      s1 s(-1) PUXC
+      LEQ
+      405 THROWIFNOT
+      send_tons INLINECALLDICT
+    }>
+    SWAP
+    1296649812 PUSHINT
+    EQUAL
+    IFJMP:<{
+      s9 s8 XCPU
+      throw_unless_owner INLINECALLDICT
+      s9 PUSH
+      0 EQINT
+      403 THROWIFNOT
+      s0 s8 XCHG
+      64 LDU
+      DROP
+      s0 s6 PUXC
+      GEQ
+      IF:<{
+        s0 s5 XCHG
+        INC
+        s6 s8 XCHG
+        s0 s7 XCHG
+        s4 s6 XCHG
+        s3 s5 XCHG
+        s4 s0 s3 XCHG3
+        s0 s2 XCHG
+        save_data INLINECALLDICT
+      }>ELSE<{
+        9 BLKDROP
+      }>
+    }>
+    11 BLKDROP
+    402 THROW
+  }>
+  royalty_params PROC:<{
+    load_data INLINECALLDICT
+    2DROP
+    4 3 BLKDROP2
+  }>
+  get_collection_data_ext PROC:<{
+    load_data INLINECALLDICT
+    3 2 BLKDROP2
+    s5 s(-1) PUXC
+  }>
+  get_collection_data PROC:<{
+    load_data INLINECALLDICT
+    6 BLKDROP
+    s0 s2 XCHG
+    0 PUSHINT
+    SDSKIPFIRST
+    s1 s2 XCHG
+  }>
+}END>c

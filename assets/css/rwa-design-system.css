@@ -1,0 +1,1238 @@
+/* ===================================================================
+   /var/www/html/public/rwa/assets/css/rwa-design-system.css
+   AdoptGold RWA Design System
+   Default: Neon Purple Glassmorphism Web3 UI
+   =================================================================== */
+
+/* =========================
+   1. ROOT TOKENS
+   ========================= */
+:root{
+  --rwa-bg-0:#06060a;
+  --rwa-bg-1:#0a0a12;
+  --rwa-bg-2:#0f0d18;
+  --rwa-bg-3:#151125;
+  --rwa-panel:#12111c;
+  --rwa-panel-2:#181624;
+  --rwa-panel-3:#1f1a2e;
+
+  --rwa-text:#f4f2ff;
+  --rwa-text-2:#d7cff8;
+  --rwa-text-3:#9d95c8;
+  --rwa-text-4:#746c98;
+
+  --rwa-purple:#7c3aed;
+  --rwa-purple-2:#9333ea;
+  --rwa-purple-3:#a855f7;
+  --rwa-purple-4:#c084fc;
+  --rwa-purple-5:#ddd6fe;
+
+  --rwa-green:#22c55e;
+  --rwa-green-2:#34d399;
+  --rwa-green-3:#a7f3d0;
+
+  --rwa-gold:#eab308;
+  --rwa-gold-2:#facc15;
+  --rwa-gold-3:#fde68a;
+
+  --rwa-red:#ef4444;
+  --rwa-red-2:#f87171;
+  --rwa-orange:#f59e0b;
+  --rwa-blue:#38bdf8;
+
+  --rwa-border:rgba(168,85,247,.22);
+  --rwa-border-strong:rgba(192,132,252,.38);
+  --rwa-border-soft:rgba(255,255,255,.08);
+
+  --rwa-glass:rgba(19,16,31,.78);
+  --rwa-glass-2:rgba(23,19,38,.72);
+  --rwa-glass-3:rgba(255,255,255,.03);
+
+  --rwa-shadow-1:0 8px 24px rgba(0,0,0,.28);
+  --rwa-shadow-2:0 16px 48px rgba(0,0,0,.36);
+  --rwa-shadow-3:0 0 18px rgba(168,85,247,.18);
+  --rwa-shadow-4:0 0 28px rgba(168,85,247,.26);
+  --rwa-inset:inset 0 1px 0 rgba(255,255,255,.04);
+
+  --rwa-radius-xs:8px;
+  --rwa-radius-sm:12px;
+  --rwa-radius-md:16px;
+  --rwa-radius-lg:20px;
+  --rwa-radius-xl:26px;
+  --rwa-radius-pill:999px;
+
+  --rwa-gap-1:8px;
+  --rwa-gap-2:12px;
+  --rwa-gap-3:16px;
+  --rwa-gap-4:20px;
+  --rwa-gap-5:24px;
+  --rwa-gap-6:32px;
+
+  --rwa-font-base:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --rwa-font-mono:"JetBrains Mono","SFMono-Regular",Consolas,Monaco,monospace;
+
+  --rwa-topbar-height:72px;
+  --rwa-bottom-nav-height:78px;
+
+  --rwa-content-max:1440px;
+  --rwa-page-pad-x:18px;
+  --rwa-page-pad-y:18px;
+}
+
+/* =========================
+   2. RESET
+   ========================= */
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+}
+html{
+  -webkit-text-size-adjust:100%;
+  scroll-behavior:smooth;
+}
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+}
+body{
+  font-family:var(--rwa-font-base);
+  color:var(--rwa-text);
+  background:
+    radial-gradient(1100px 680px at 8% 0%, rgba(124,58,237,.17), transparent 58%),
+    radial-gradient(900px 520px at 100% 0%, rgba(192,132,252,.08), transparent 52%),
+    radial-gradient(700px 460px at 50% 100%, rgba(34,197,94,.05), transparent 60%),
+    linear-gradient(180deg,var(--rwa-bg-1) 0%, var(--rwa-bg-2) 45%, var(--rwa-bg-0) 100%);
+  font-size:16px;
+  line-height:1.5;
+}
+img{
+  max-width:100%;
+  height:auto;
+  display:block;
+}
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+a{
+  color:inherit;
+  text-decoration:none;
+}
+ul,ol{
+  margin:0;
+  padding:0;
+}
+h1,h2,h3,h4,h5,h6,p{
+  margin:0;
+}
+
+/* =========================
+   3. PAGE BACKGROUND LAYER
+   ========================= */
+.rwa-app{
+  min-height:100vh;
+  position:relative;
+}
+.rwa-app::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.04) 0, transparent 25%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,.03) 0, transparent 22%),
+    radial-gradient(circle at 65% 70%, rgba(255,255,255,.025) 0, transparent 20%);
+  mix-blend-mode:screen;
+  opacity:.6;
+}
+
+/* =========================
+   4. STANDARD SHELL
+   ========================= */
+.rwa-shell{
+  width:100%;
+  max-width:var(--rwa-content-max);
+  margin:0 auto;
+  padding:
+    var(--rwa-page-pad-y)
+    var(--rwa-page-pad-x)
+    calc(var(--rwa-bottom-nav-height) + 20px);
+}
+
+.rwa-shell-inner{
+  display:flex;
+  flex-direction:column;
+  gap:var(--rwa-gap-4);
+}
+
+/* =========================
+   5. TOPBAR + BOTTOM NAV SAFE SPACING
+   ========================= */
+.rwa-after-login{
+  padding-top:0;
+}
+.rwa-after-login .rwa-page-main{
+  display:flex;
+  flex-direction:column;
+  gap:var(--rwa-gap-4);
+}
+
+.rwa-page-main{
+  width:100%;
+}
+
+.rwa-module-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:var(--rwa-gap-4);
+  min-height:calc(100vh - var(--rwa-topbar-height) - var(--rwa-bottom-nav-height) - 36px);
+}
+
+/* =========================
+   6. TYPOGRAPHY
+   ========================= */
+.rwa-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border:1px solid var(--rwa-border);
+  background:rgba(168,85,247,.10);
+  color:var(--rwa-purple-5);
+  border-radius:var(--rwa-radius-pill);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.rwa-title-1{
+  font-size:clamp(34px, 5vw, 64px);
+  line-height:.95;
+  letter-spacing:-.04em;
+  font-weight:800;
+  color:var(--rwa-text);
+}
+.rwa-title-2{
+  font-size:clamp(24px, 3vw, 40px);
+  line-height:1.05;
+  letter-spacing:-.03em;
+  font-weight:800;
+}
+.rwa-title-3{
+  font-size:22px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+.rwa-title-4{
+  font-size:18px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+.rwa-subtitle{
+  color:var(--rwa-text-2);
+  font-size:17px;
+  line-height:1.75;
+}
+.rwa-text-dim{
+  color:var(--rwa-text-3);
+}
+.rwa-text-soft{
+  color:var(--rwa-text-4);
+}
+.rwa-mono{
+  font-family:var(--rwa-font-mono);
+}
+.rwa-uppercase{
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+/* =========================
+   7. GLASS PANELS
+   ========================= */
+.rwa-panel{
+  background:linear-gradient(180deg, rgba(24,19,40,.84), rgba(15,13,25,.88));
+  border:1px solid var(--rwa-border);
+  border-radius:var(--rwa-radius-lg);
+  box-shadow:var(--rwa-shadow-1), var(--rwa-shadow-3), var(--rwa-inset);
+  backdrop-filter:blur(10px);
+}
+
+.rwa-panel-soft{
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  border:1px solid var(--rwa-border-soft);
+  border-radius:var(--rwa-radius-lg);
+  box-shadow:var(--rwa-shadow-1), var(--rwa-inset);
+  backdrop-filter:blur(8px);
+}
+
+.rwa-panel-strong{
+  background:linear-gradient(180deg, rgba(28,21,48,.88), rgba(18,15,32,.92));
+  border:1px solid var(--rwa-border-strong);
+  border-radius:var(--rwa-radius-lg);
+  box-shadow:var(--rwa-shadow-2), var(--rwa-shadow-4), var(--rwa-inset);
+  backdrop-filter:blur(12px);
+}
+
+.rwa-panel-pad-sm{padding:14px}
+.rwa-panel-pad-md{padding:18px}
+.rwa-panel-pad-lg{padding:24px}
+.rwa-panel-pad-xl{padding:30px}
+
+/* =========================
+   8. STANDARD CARDS
+   ========================= */
+.rwa-card{
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
+  border:1px solid var(--rwa-border);
+  border-radius:var(--rwa-radius-md);
+  box-shadow:var(--rwa-shadow-1), var(--rwa-shadow-3), var(--rwa-inset);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:160px;
+}
+
+.rwa-card-soft{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--rwa-radius-md);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.rwa-card-flat{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--rwa-radius-md);
+  padding:14px;
+}
+
+.rwa-card-hover:hover{
+  transform:translateY(-1px);
+  border-color:var(--rwa-border-strong);
+  transition:.18s ease;
+}
+
+/* =========================
+   9. EQUAL HEIGHT GRID SYSTEM
+   ========================= */
+.rwa-grid{
+  display:grid;
+  gap:var(--rwa-gap-4);
+  align-items:stretch;
+}
+
+.rwa-grid-2{
+  grid-template-columns:repeat(2, minmax(0,1fr));
+}
+.rwa-grid-3{
+  grid-template-columns:repeat(3, minmax(0,1fr));
+}
+.rwa-grid-4{
+  grid-template-columns:repeat(4, minmax(0,1fr));
+}
+
+.rwa-col{
+  display:flex;
+  flex-direction:column;
+  gap:var(--rwa-gap-4);
+  height:100%;
+  min-height:100%;
+}
+
+.rwa-col-fill{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:var(--rwa-gap-4);
+}
+
+.rwa-col-fill > .rwa-card,
+.rwa-col-fill > .rwa-panel,
+.rwa-col-fill > .rwa-panel-soft,
+.rwa-col-fill > .rwa-panel-strong{
+  flex:1;
+}
+
+.rwa-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--rwa-gap-3);
+}
+.rwa-row > *{
+  min-width:0;
+}
+
+/* =========================
+   10. HERO BLOCKS
+   ========================= */
+.rwa-hero{
+  display:grid;
+  grid-template-columns:1.25fr .75fr;
+  gap:var(--rwa-gap-4);
+}
+.rwa-hero-main,
+.rwa-hero-side{
+  min-height:100%;
+}
+.rwa-hero-main{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.rwa-hero-side{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* =========================
+   11. TELEMETRY STRIPS
+   ========================= */
+.rwa-telemetry-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:var(--rwa-gap-4);
+}
+.rwa-telemetry-grid-3{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:var(--rwa-gap-4);
+}
+
+.rwa-telemetry-card{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.016));
+  border:1px solid var(--rwa-border);
+  border-radius:var(--rwa-radius-lg);
+  padding:18px;
+  min-height:130px;
+  box-shadow:var(--rwa-shadow-1), var(--rwa-shadow-3), var(--rwa-inset);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.rwa-telemetry-card::after{
+  content:"";
+  position:absolute;
+  right:-40px;
+  bottom:-40px;
+  width:170px;
+  height:170px;
+  background:radial-gradient(circle, rgba(168,85,247,.14), transparent 64%);
+  pointer-events:none;
+}
+.rwa-telemetry-card.gold::after{
+  background:radial-gradient(circle, rgba(234,179,8,.14), transparent 64%);
+}
+.rwa-telemetry-card.green::after{
+  background:radial-gradient(circle, rgba(34,197,94,.12), transparent 64%);
+}
+
+.rwa-telemetry-label{
+  color:var(--rwa-text-3);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.rwa-telemetry-value{
+  margin-top:8px;
+  color:var(--rwa-purple-5);
+  font-family:var(--rwa-font-mono);
+  font-size:clamp(28px, 4vw, 46px);
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.03em;
+}
+.rwa-telemetry-card.gold .rwa-telemetry-value{
+  color:var(--rwa-gold-3);
+}
+.rwa-telemetry-card.green .rwa-telemetry-value{
+  color:var(--rwa-green-3);
+}
+.rwa-telemetry-sub{
+  margin-top:8px;
+  font-size:13px;
+  color:var(--rwa-text-4);
+}
+
+/* =========================
+   12. PILLS / BADGES / STATUS
+   ========================= */
+.rwa-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:32px;
+  padding:6px 12px;
+  border-radius:var(--rwa-radius-pill);
+  border:1px solid var(--rwa-border);
+  background:rgba(255,255,255,.03);
+  color:var(--rwa-text-2);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.rwa-pill.ready{
+  color:var(--rwa-green-3);
+  border-color:rgba(34,197,94,.34);
+}
+.rwa-pill.locked{
+  color:#ffd7f0;
+  border-color:rgba(236,72,153,.34);
+}
+.rwa-pill.warn{
+  color:#ffe2a6;
+  border-color:rgba(245,158,11,.34);
+}
+.rwa-pill.error{
+  color:#ffc1c1;
+  border-color:rgba(239,68,68,.34);
+}
+.rwa-pill.gold{
+  color:var(--rwa-gold-3);
+  border-color:rgba(234,179,8,.34);
+}
+.rwa-led{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--rwa-green);
+  box-shadow:0 0 10px rgba(34,197,94,.75);
+}
+.rwa-led.warn{background:var(--rwa-orange);box-shadow:0 0 10px rgba(245,158,11,.75)}
+.rwa-led.error{background:var(--rwa-red);box-shadow:0 0 10px rgba(239,68,68,.75)}
+.rwa-led.purple{background:var(--rwa-purple-3);box-shadow:0 0 10px rgba(168,85,247,.8)}
+
+/* =========================
+   13. BUTTONS
+   ========================= */
+.rwa-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:11px 16px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);
+  color:var(--rwa-text);
+  font-size:14px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.rwa-btn:hover{
+  transform:translateY(-1px);
+  border-color:var(--rwa-border-strong);
+}
+.rwa-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+.rwa-btn-primary{
+  background:linear-gradient(135deg, var(--rwa-purple-4), var(--rwa-purple-2));
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 0 16px rgba(168,85,247,.36);
+}
+.rwa-btn-secondary{
+  background:rgba(255,255,255,.04);
+}
+.rwa-btn-green{
+  background:linear-gradient(135deg, var(--rwa-green-3), var(--rwa-green));
+  color:#06150e;
+  border-color:transparent;
+}
+.rwa-btn-gold{
+  background:linear-gradient(135deg, var(--rwa-gold-3), var(--rwa-gold));
+  color:#1a1202;
+  border-color:transparent;
+}
+.rwa-btn-danger{
+  background:linear-gradient(135deg, var(--rwa-red-2), var(--rwa-red));
+  color:#fff;
+  border-color:transparent;
+}
+.rwa-btn-block{
+  width:100%;
+}
+.rwa-btn-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+/* =========================
+   14. FORMS
+   ========================= */
+.rwa-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.rwa-form-grid-2{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:14px;
+}
+.rwa-form-grid-3{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:14px;
+}
+.rwa-field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.rwa-label{
+  color:var(--rwa-text-2);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.rwa-help{
+  color:var(--rwa-text-4);
+  font-size:12px;
+  line-height:1.6;
+}
+.rwa-input,
+.rwa-select,
+.rwa-textarea{
+  width:100%;
+  min-height:46px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.22);
+  color:var(--rwa-text);
+  outline:none;
+  transition:border-color .18s ease, box-shadow .18s ease;
+}
+.rwa-textarea{
+  min-height:120px;
+  resize:vertical;
+}
+.rwa-input::placeholder,
+.rwa-textarea::placeholder{
+  color:var(--rwa-text-4);
+}
+.rwa-input:focus,
+.rwa-select:focus,
+.rwa-textarea:focus{
+  border-color:rgba(192,132,252,.42);
+  box-shadow:0 0 0 4px rgba(168,85,247,.10);
+}
+.rwa-input-readonly{
+  opacity:.82;
+}
+.rwa-input-lg{
+  min-height:58px;
+  font-size:22px;
+  font-family:var(--rwa-font-mono);
+  letter-spacing:.14em;
+  text-align:center;
+}
+.rwa-check-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  color:var(--rwa-text-2);
+  font-size:13px;
+}
+
+/* =========================
+   15. PROFILE / STATUS BLOCKS
+   ========================= */
+.rwa-status-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:12px;
+}
+.rwa-status-card{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:14px;
+}
+.rwa-status-k{
+  font-size:12px;
+  color:var(--rwa-text-3);
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+.rwa-status-v{
+  margin-top:8px;
+  font-size:22px;
+  font-weight:800;
+  color:var(--rwa-purple-5);
+}
+
+/* =========================
+   16. META LISTS
+   ========================= */
+.rwa-meta{
+  display:grid;
+  gap:10px;
+}
+.rwa-meta-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.rwa-meta-row:last-child{
+  border-bottom:0;
+}
+.rwa-meta-k{
+  color:var(--rwa-text-3);
+  font-size:13px;
+}
+.rwa-meta-v{
+  color:var(--rwa-text);
+  font-size:13px;
+  text-align:right;
+  word-break:break-word;
+}
+
+/* =========================
+   17. TOKEN CARDS
+   ========================= */
+.rwa-token-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.rwa-token-card{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:14px;
+  align-items:center;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;
+  padding:14px;
+}
+.rwa-token-icon{
+  width:56px;
+  height:56px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,#211d34 0%, #151225 100%);
+  border:1px solid rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.rwa-token-icon img{
+  width:36px;
+  height:36px;
+  object-fit:contain;
+}
+.rwa-token-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.rwa-token-name{
+  font-size:18px;
+  font-weight:800;
+  line-height:1.1;
+}
+.rwa-token-desc{
+  margin-top:4px;
+  font-size:12px;
+  color:var(--rwa-text-4);
+}
+.rwa-token-balance{
+  margin-top:10px;
+  font-family:var(--rwa-font-mono);
+  font-size:28px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.03em;
+}
+.rwa-token-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+
+/* =========================
+   18. WALLET BLOCKS
+   ========================= */
+.rwa-wallet-summary{
+  display:grid;
+  gap:var(--rwa-gap-4);
+}
+.rwa-wallet-address{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:12px;
+  font-family:var(--rwa-font-mono);
+  font-size:13px;
+  line-height:1.6;
+  word-break:break-all;
+}
+.rwa-qr-card{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-height:260px;
+}
+.rwa-qr-box{
+  width:180px;
+  height:180px;
+  border-radius:18px;
+  border:1px dashed rgba(255,255,255,.16);
+  background:rgba(255,255,255,.02);
+  display:grid;
+  place-items:center;
+  color:var(--rwa-text-4);
+  font-size:13px;
+}
+
+/* =========================
+   19. MINING UI
+   ========================= */
+.rwa-mining-hero{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:16px;
+}
+.rwa-mining-meter{
+  display:grid;
+  gap:12px;
+}
+.rwa-progress{
+  width:100%;
+  height:12px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.06);
+}
+.rwa-progress > span{
+  display:block;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, var(--rwa-purple-3), var(--rwa-green));
+  border-radius:999px;
+}
+.rwa-mining-value{
+  font-family:var(--rwa-font-mono);
+  font-size:34px;
+  font-weight:800;
+  color:var(--rwa-green-3);
+}
+
+/* =========================
+   20. CERT / NFT / VAULT CARDS
+   ========================= */
+.rwa-cert-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:16px;
+}
+.rwa-cert-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
+  border:1px solid var(--rwa-border);
+  border-radius:20px;
+  padding:18px;
+  min-height:240px;
+}
+.rwa-cert-card::after{
+  content:"";
+  position:absolute;
+  right:-20px;
+  bottom:-20px;
+  width:140px;
+  height:140px;
+  background:radial-gradient(circle, rgba(168,85,247,.12), transparent 65%);
+  pointer-events:none;
+}
+.rwa-cert-card.gold::after{
+  background:radial-gradient(circle, rgba(234,179,8,.16), transparent 65%);
+}
+.rwa-cert-card.blue::after{
+  background:radial-gradient(circle, rgba(56,189,248,.16), transparent 65%);
+}
+.rwa-cert-card.green::after{
+  background:radial-gradient(circle, rgba(34,197,94,.14), transparent 65%);
+}
+
+/* =========================
+   21. TABLES
+   ========================= */
+.rwa-table-wrap{
+  width:100%;
+  overflow:auto;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02);
+}
+.rwa-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:720px;
+}
+.rwa-table th,
+.rwa-table td{
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:left;
+  font-size:13px;
+}
+.rwa-table th{
+  color:var(--rwa-text-3);
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  font-weight:700;
+  background:rgba(255,255,255,.025);
+}
+.rwa-table td{
+  color:var(--rwa-text-2);
+}
+.rwa-table tr:hover td{
+  background:rgba(255,255,255,.02);
+}
+
+/* =========================
+   22. SEARCH / TOOLBAR
+   ========================= */
+.rwa-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+}
+.rwa-toolbar-left,
+.rwa-toolbar-right{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.rwa-search{
+  display:flex;
+  gap:10px;
+  width:100%;
+}
+.rwa-search .rwa-input{
+  flex:1;
+}
+
+/* =========================
+   23. TABS
+   ========================= */
+.rwa-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.rwa-tab{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:var(--rwa-text-2);
+  font-size:13px;
+  font-weight:700;
+}
+.rwa-tab.active{
+  background:linear-gradient(135deg, rgba(168,85,247,.26), rgba(124,58,237,.22));
+  border-color:rgba(192,132,252,.34);
+  color:#fff;
+}
+
+/* =========================
+   24. NOTICE / ALERT
+   ========================= */
+.rwa-alert{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:var(--rwa-text-2);
+}
+.rwa-alert.success{
+  border-color:rgba(34,197,94,.25);
+  background:rgba(34,197,94,.08);
+}
+.rwa-alert.warn{
+  border-color:rgba(245,158,11,.25);
+  background:rgba(245,158,11,.08);
+}
+.rwa-alert.error{
+  border-color:rgba(239,68,68,.25);
+  background:rgba(239,68,68,.08);
+}
+
+/* =========================
+   25. MODALS / DRAWERS
+   ========================= */
+.rwa-modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(4px);
+  z-index:9998;
+}
+.rwa-modal{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(92vw, 720px);
+  max-height:88vh;
+  overflow:auto;
+  z-index:9999;
+  background:linear-gradient(180deg, rgba(24,19,40,.94), rgba(15,13,25,.96));
+  border:1px solid var(--rwa-border-strong);
+  border-radius:22px;
+  box-shadow:var(--rwa-shadow-2), var(--rwa-shadow-4), var(--rwa-inset);
+  padding:20px;
+}
+.rwa-drawer{
+  position:fixed;
+  right:0;
+  top:0;
+  width:min(94vw, 420px);
+  height:100vh;
+  z-index:9999;
+  background:linear-gradient(180deg, rgba(24,19,40,.98), rgba(15,13,25,.98));
+  border-left:1px solid var(--rwa-border);
+  box-shadow:-12px 0 40px rgba(0,0,0,.42);
+  padding:18px;
+  overflow:auto;
+}
+
+/* =========================
+   26. LISTS / LOGS
+   ========================= */
+.rwa-log{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.rwa-log-item{
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02);
+  border-radius:14px;
+  padding:12px;
+}
+.rwa-log-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.rwa-log-title{
+  font-weight:700;
+  color:var(--rwa-text);
+}
+.rwa-log-meta{
+  color:var(--rwa-text-4);
+  font-size:12px;
+}
+
+/* =========================
+   27. EMPTY STATES
+   ========================= */
+.rwa-empty{
+  min-height:180px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:10px;
+  color:var(--rwa-text-4);
+  border:1px dashed rgba(255,255,255,.12);
+  border-radius:18px;
+  background:rgba(255,255,255,.02);
+}
+
+/* =========================
+   28. TOPBAR / BOTTOM NAV WRAPPERS
+   ========================= */
+.rwa-topbar-shell{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  width:100%;
+}
+.rwa-topbar-left,
+.rwa-topbar-right{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.rwa-bottom-nav-shell{
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  gap:8px;
+  width:100%;
+}
+.rwa-bottom-nav-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-width:64px;
+  padding:8px;
+  color:var(--rwa-text-3);
+  font-size:11px;
+}
+.rwa-bottom-nav-item.active{
+  color:var(--rwa-purple-5);
+}
+.rwa-bottom-nav-icon{
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+}
+
+/* =========================
+   29. GLOBAL FOOTER
+   ========================= */
+.rwa-footer{
+  margin-top:24px;
+  padding:18px 10px;
+  text-align:center;
+  font-size:12px;
+  color:var(--rwa-text-4);
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+/* =========================
+   30. UTILITY
+   ========================= */
+.rwa-hidden{display:none !important}
+.rwa-block{display:block !important}
+.rwa-flex{display:flex !important}
+.rwa-inline-flex{display:inline-flex !important}
+.rwa-center{display:flex;align-items:center;justify-content:center}
+.rwa-between{display:flex;align-items:center;justify-content:space-between}
+.rwa-gap-8{gap:8px}
+.rwa-gap-10{gap:10px}
+.rwa-gap-12{gap:12px}
+.rwa-gap-16{gap:16px}
+.rwa-gap-20{gap:20px}
+.rwa-w-full{width:100%}
+.rwa-h-full{height:100%}
+.rwa-min-h-full{min-height:100%}
+.rwa-text-center{text-align:center}
+.rwa-text-right{text-align:right}
+.rwa-mt-8{margin-top:8px}
+.rwa-mt-12{margin-top:12px}
+.rwa-mt-16{margin-top:16px}
+.rwa-mt-20{margin-top:20px}
+.rwa-mt-24{margin-top:24px}
+.rwa-p-0{padding:0}
+.rwa-p-12{padding:12px}
+.rwa-p-16{padding:16px}
+.rwa-p-20{padding:20px}
+.rwa-round-md{border-radius:16px}
+.rwa-round-lg{border-radius:20px}
+.rwa-overflow-auto{overflow:auto}
+.rwa-break-all{word-break:break-all}
+
+/* =========================
+   31. RESPONSIVE
+   ========================= */
+@media (max-width:1280px){
+  .rwa-grid-4{grid-template-columns:repeat(2, minmax(0,1fr))}
+}
+@media (max-width:1100px){
+  .rwa-grid-3,
+  .rwa-hero,
+  .rwa-cert-grid,
+  .rwa-mining-hero,
+  .rwa-form-grid-3{
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width:920px){
+  .rwa-grid-2,
+  .rwa-form-grid-2,
+  .rwa-status-grid,
+  .rwa-telemetry-grid,
+  .rwa-telemetry-grid-3{
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width:720px){
+  :root{
+    --rwa-page-pad-x:14px;
+    --rwa-page-pad-y:14px;
+    --rwa-bottom-nav-height:84px;
+  }
+  .rwa-title-1{font-size:36px}
+  .rwa-title-2{font-size:28px}
+  .rwa-telemetry-value{font-size:32px}
+  .rwa-token-balance{font-size:24px}
+  .rwa-toolbar{flex-direction:column;align-items:stretch}
+  .rwa-toolbar-left,
+  .rwa-toolbar-right,
+  .rwa-search{
+    width:100%;
+  }
+  .rwa-topbar-shell{
+    flex-direction:column;
+    align-items:stretch;
+  }
+}
+@media (max-width:560px){
+  .rwa-shell{padding-bottom:calc(var(--rwa-bottom-nav-height) + 18px)}
+  .rwa-card,
+  .rwa-panel,
+  .rwa-panel-soft,
+  .rwa-panel-strong{
+    border-radius:16px;
+  }
+  .rwa-token-card{
+    grid-template-columns:1fr;
+  }
+  .rwa-token-top{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "ok": true,
+    "healthy": true,
+    "uid": "RCO2C-EMA-20260331-D3F0BCFC",
+    "image_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/nft/image.png",
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/nft/image.png",
+    "meta_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/meta/metadata.json",
+    "meta_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/meta/metadata.json",
+    "verify_json_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/verify/verify.json",
+    "verify_json_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-D3F0BCFC/verify/verify.json",
+    "verify_page_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-D3F0BCFC",
+    "artifact_ready": true,
+    "nft_healthy": true,
+    "image_authority": "_image-bundle.php",
+    "compose_engine": "imagemagick",
+    "used_fallback_placeholder": false,
+    "final_sha1": "55a09ca26dc6025efc557a2de8f7315edfadba3b",
+    "final_size": 1650400
+}

@@ -1,0 +1,64 @@
+:root{
+  --mca-bg:#050607;
+  --mca-panel:#09110f;
+  --mca-text:#d7ffe9;
+  --mca-muted:#97bba9;
+  --mca-line:rgba(85,255,170,.18);
+  --mca-line-2:rgba(85,255,170,.28);
+  --mca-glow:0 0 0 1px rgba(85,255,170,.12),0 0 24px rgba(55,155,110,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:radial-gradient(circle at top,#07110f 0%,#050607 55%);color:var(--mca-text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+body{min-height:100vh}
+.mca-page{max-width:1540px;margin:0 auto;padding:18px 16px 100px}
+.mca-hero,.mca-panel{background:linear-gradient(180deg,rgba(10,24,20,.92),rgba(6,12,10,.96));border:1px solid var(--mca-line);border-radius:16px;box-shadow:var(--mca-glow);margin-bottom:16px}
+.mca-hero{padding:18px}
+.mca-hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.mca-kicker{font-size:12px;letter-spacing:.16em;color:#7de0ab;margin-bottom:6px}
+.mca-title{margin:0;font-size:32px;line-height:1.1;color:#fff1c9}
+.mca-subtitle{margin-top:8px;color:var(--mca-muted);font-size:13px;max-width:860px}
+.mca-who{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.mca-chip{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;border:1px solid var(--mca-line-2);background:rgba(9,22,18,.88);color:#d7ffe9;font-size:12px}
+.mca-mini{font-size:12px;color:var(--mca-muted);word-break:break-all}
+.mca-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.mca-summary-card{border:1px solid var(--mca-line);border-radius:16px;background:linear-gradient(180deg,rgba(10,24,20,.92),rgba(6,12,10,.96));box-shadow:var(--mca-glow);padding:14px}
+.mca-summary-label{font-size:12px;color:#9fcbaf;margin-bottom:8px}
+.mca-summary-value{font-size:30px;font-weight:700;color:#fff1c9}
+.mca-panel{padding:16px}
+.mca-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.mca-section-title{margin:0;font-size:22px;color:#fff1c9}
+.mca-filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mca-field{display:flex;flex-direction:column;gap:7px}
+.mca-field span{font-size:12px;color:#9fcbaf}
+.mca-field input,.mca-field select{
+  width:100%;min-height:42px;border-radius:12px;border:1px solid var(--mca-line);
+  background:#06100d;color:var(--mca-text);padding:10px 12px;font:inherit;outline:none
+}
+.mca-field input:focus,.mca-field select:focus{border-color:rgba(85,255,170,.35);box-shadow:0 0 0 3px rgba(85,255,170,.08)}
+.mca-actions{display:flex;align-items:flex-end;gap:10px}
+.mca-btn{
+  min-height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--mca-line);
+  background:#0b1714;color:var(--mca-text);font:inherit;cursor:pointer
+}
+.mca-btn:hover{border-color:rgba(85,255,170,.34)}
+.mca-btn-primary{background:linear-gradient(180deg,#10231d,#0a1713);border-color:rgba(85,255,170,.32);box-shadow:0 0 18px rgba(55,155,110,.14)}
+.mca-statusbar{margin-top:12px;font-size:12px;color:#a4cdb8}
+.mca-table-wrap{overflow:auto;border-radius:14px;border:1px solid rgba(85,255,170,.12)}
+.mca-table{width:100%;border-collapse:collapse;min-width:1100px}
+.mca-table th,.mca-table td{padding:11px 12px;border-bottom:1px solid rgba(85,255,170,.08);vertical-align:top;font-size:12px}
+.mca-table th{position:sticky;top:0;background:#0c1714;color:#b7e2c8;text-align:left;z-index:1}
+.mca-empty{text-align:center;color:#9cbfae;padding:24px!important}
+.mca-link{color:#dbe6ff;text-decoration:none;border-bottom:1px dotted rgba(219,230,255,.52)}
+pre.mca-context{margin:0;white-space:pre-wrap;word-break:break-word;color:#d8f6ff;font-size:11px;line-height:1.45}
+@media (max-width: 1180px){
+  .mca-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mca-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 760px){
+  .mca-hero-head{flex-direction:column}
+  .mca-who{align-items:flex-start}
+  .mca-summary-grid,.mca-filter-grid{grid-template-columns:1fr}
+  .mca-actions{grid-column:1 / -1}
+  .mca-title{font-size:24px}
+  .mca-section-title{font-size:18px}
+}

@@ -1,0 +1,182 @@
+#include "imports/stdlib.fc";
+
+;; /var/www/html/public/rwa/ton/contracts/v8_mint_router.fc
+;; Version: v8.0.0-20260330-public-mint-router
+;;
+;; Purpose:
+;; - public user mint entry
+;; - treasury split
+;; - forwards mint request to V8 NFT collection
+;; - admin pause + sweep retained
+;;
+;; Storage:
+;; owner
+;; collection
+;; treasury
+;; mint_paused
+;; treasury_contribution
+;; public_min_attach
+;; collection_forward_value
+
+const int OP_PUBLIC_MINT = 0x504d4e54;      ;; PMNT
+const int OP_SET_OWNER = 0x4f574e52;        ;; OWNR
+const int OP_SET_COLLECTION = 0x434f4c4c;   ;; COLL
+const int OP_SET_TREASURY = 0x54525359;     ;; TRSY
+const int OP_SET_MINT_PAUSED = 0x50415553;  ;; PAUS
+const int OP_WITHDRAW = 0x57445448;         ;; WDTH
+
+const int OP_ROUTER_MINT = 0x564d494e;      ;; VMIN to collection
+
+const int ERR_NOT_OWNER = 401;
+const int ERR_BAD_OPCODE = 402;
+const int ERR_MINT_PAUSED = 403;
+const int ERR_BAD_AMOUNT = 405;
+const int ERR_BAD_PUBLIC_MINT = 406;
+
+const int MIN_STORAGE_RESERVE = 50000000;   ;; 0.05 TON
+const int MIN_WITHDRAW_KEEP = 50000000;
+
+(slice, slice, slice, int, int, int, int) load_data() inline {
+    var ds = get_data().begin_parse();
+    slice owner = ds~load_msg_addr();
+    slice collection = ds~load_msg_addr();
+    slice treasury = ds~load_msg_addr();
+    int paused = ds~load_uint(1);
+    int treasury_contribution = ds~load_coins();
+    int public_min_attach = ds~load_coins();
+    int collection_forward_value = ds~load_coins();
+    return (owner, collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value);
+}
+
+() save_data(slice owner, slice collection, slice treasury, int paused, int treasury_contribution, int public_min_attach, int collection_forward_value) impure inline {
+    set_data(begin_cell()
+        .store_slice(owner)
+        .store_slice(collection)
+        .store_slice(treasury)
+        .store_uint(paused, 1)
+        .store_coins(treasury_contribution)
+        .store_coins(public_min_attach)
+        .store_coins(collection_forward_value)
+    .end_cell());
+}
+
+int eq_addr(slice a, slice b) inline {
+    return cell_hash(begin_cell().store_slice(a).end_cell()) ==
+           cell_hash(begin_cell().store_slice(b).end_cell());
+}
+
+() require_owner(slice sender, slice owner) impure inline {
+    throw_unless(ERR_NOT_OWNER, eq_addr(sender, owner));
+}
+
+() send_simple(slice to, int amount, cell body) impure inline {
+    var msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+        .store_uint(1, 1)
+        .store_ref(body)
+    .end_cell();
+    send_raw_message(msg, 1);
+}
+
+() send_tons(slice to, int amount) impure inline {
+    if (amount <= 0) { return (); }
+    var msg = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)
+    .end_cell();
+    send_raw_message(msg, 1);
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    var cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice sender = cs~load_msg_addr();
+
+    var (owner, collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value) = load_data();
+
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+
+    int op = in_msg_body~load_uint(32);
+    int qid = in_msg_body~load_uint(64);
+
+    if (op == OP_SET_OWNER) {
+        require_owner(sender, owner);
+        slice new_owner = in_msg_body~load_msg_addr();
+        save_data(new_owner, collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value);
+        return ();
+    }
+
+    if (op == OP_SET_COLLECTION) {
+        require_owner(sender, owner);
+        slice new_collection = in_msg_body~load_msg_addr();
+        save_data(owner, new_collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value);
+        return ();
+    }
+
+    if (op == OP_SET_TREASURY) {
+        require_owner(sender, owner);
+        slice new_treasury = in_msg_body~load_msg_addr();
+        save_data(owner, collection, new_treasury, paused, treasury_contribution, public_min_attach, collection_forward_value);
+        return ();
+    }
+
+    if (op == OP_SET_MINT_PAUSED) {
+        require_owner(sender, owner);
+        int p = in_msg_body~load_uint(1);
+        save_data(owner, collection, treasury, p, treasury_contribution, public_min_attach, collection_forward_value);
+        return ();
+    }
+
+    if (op == OP_WITHDRAW) {
+        require_owner(sender, owner);
+        slice to = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_coins();
+
+        [int bal, cell extra_balance] = get_balance();
+        extra_balance = extra_balance;
+        int free = bal - MIN_WITHDRAW_KEEP;
+        throw_unless(ERR_BAD_AMOUNT, amount <= free);
+
+        send_tons(to, amount);
+        return ();
+    }
+
+    if (op == OP_PUBLIC_MINT) {
+        throw_unless(ERR_MINT_PAUSED, paused == 0);
+        throw_unless(ERR_BAD_PUBLIC_MINT, msg_value >= public_min_attach);
+
+        raw_reserve(MIN_STORAGE_RESERVE, 2);
+
+        slice item_owner = in_msg_body~load_msg_addr();
+        cell item_content = in_msg_body~load_ref();
+
+        cell body = begin_cell()
+            .store_uint(OP_ROUTER_MINT, 32)
+            .store_uint(qid, 64)
+            .store_slice(item_owner)
+            .store_ref(item_content)
+        .end_cell();
+
+        send_simple(collection, collection_forward_value, body);
+        send_tons(treasury, treasury_contribution);
+        return ();
+    }
+
+    throw(ERR_BAD_OPCODE);
+}
+
+(slice, slice, int, int, int, int) get_router_config() method_id {
+    var (owner, collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value) = load_data();
+    owner = owner;
+    return (collection, treasury, paused, treasury_contribution, public_min_attach, collection_forward_value);
+}

@@ -1,0 +1,228 @@
+/*!
+ * Reload Card EMX — FINAL UI FIX
+ * version: UI-FIX-7.7
+ */
+
+[data-reload-emx-module]{
+  --rx-bg:#07090d;
+  --rx-panel:#0d1117;
+  --rx-line:rgba(255,255,255,.08);
+  --rx-text:#f5f7fb;
+  --rx-muted:rgba(245,247,251,.65);
+  --rx-gold:#f6d768;
+  --rx-green:#5dffb3;
+  --rx-blue:#7bc7ff;
+  --rx-red:#ff8e8e;
+}
+
+[data-reload-emx-module] *{
+  box-sizing:border-box;
+}
+
+/* ---------------- MODAL ---------------- */
+
+.storage-reload-modal{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+}
+
+.storage-reload-modal__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(4px);
+}
+
+/* ✅ FIXED: SCROLL ENABLED */
+.storage-reload-modal__dialog{
+  position:relative;
+  width:min(1200px, calc(100vw - 32px));
+  max-height:calc(100vh - 32px);
+  margin:16px auto;
+  border-radius:24px;
+  background:#07090d;
+  border:1px solid rgba(246,215,104,.18);
+  box-shadow:0 20px 80px rgba(0,0,0,.5);
+  padding:20px;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.storage-reload-modal__close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  background:#0f131b;
+  border:1px solid var(--rx-line);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+body.modal-open{
+  overflow:hidden;
+}
+
+/* ---------------- LAYOUT ---------------- */
+
+.reload-emx-shell{
+  display:grid;
+  grid-template-rows:auto 1fr;
+  gap:16px;
+  height:100%;
+}
+
+/* HEADER */
+.reload-emx-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+.reload-emx-title{
+  margin:0;
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--rx-gold);
+}
+
+.reload-emx-subtitle{
+  margin-top:6px;
+  color:var(--rx-muted);
+}
+
+/* STATUS */
+.reload-emx-status{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--rx-line);
+  font-weight:700;
+}
+
+.reload-emx-status.is-success{
+  color:var(--rx-green);
+  border-color:rgba(93,255,179,.3);
+}
+
+/* GRID */
+.reload-emx-grid-simple{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+/* CARDS */
+.reload-emx-card{
+  background:#0d1117;
+  border:1px solid var(--rx-line);
+  border-radius:20px;
+  padding:20px;
+}
+
+.reload-emx-card-title{
+  margin-bottom:14px;
+  font-weight:800;
+  color:var(--rx-gold);
+}
+
+/* ---------------- FORM ---------------- */
+
+.reload-emx-field{
+  margin-bottom:14px;
+}
+
+.reload-emx-label{
+  font-size:.85rem;
+  color:var(--rx-muted);
+  margin-bottom:6px;
+}
+
+.reload-emx-input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--rx-line);
+  background:#07101c;
+  color:#fff;
+}
+
+/* ---------------- BUTTONS ---------------- */
+
+.reload-emx-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.reload-emx-btn{
+  border-radius:14px;
+  padding:12px 16px;
+  font-weight:800;
+  border:1px solid var(--rx-line);
+  background:#111723;
+  color:#fff;
+  cursor:pointer;
+}
+
+.reload-emx-btn.is-primary{
+  background:rgba(246,215,104,.15);
+}
+
+.reload-emx-btn.is-success{
+  background:rgba(93,255,179,.15);
+}
+
+.reload-emx-btn.is-blue{
+  background:rgba(123,199,255,.15);
+}
+
+/* ---------------- RIGHT PANEL ---------------- */
+
+.reload-emx-detail{
+  margin-bottom:12px;
+}
+
+.reload-emx-detail-key{
+  font-size:.75rem;
+  color:var(--rx-muted);
+}
+
+.reload-emx-detail-val{
+  word-break:break-all;
+}
+
+/* QR */
+.reload-emx-qr-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:16px;
+  border-radius:18px;
+  border:1px dashed rgba(246,215,104,.25);
+}
+
+.reload-emx-qr{
+  width:260px;
+  background:#fff;
+  border-radius:10px;
+}
+
+/* ---------------- MOBILE ---------------- */
+
+@media (max-width: 900px){
+
+  .reload-emx-grid-simple{
+    grid-template-columns:1fr;
+  }
+
+  .storage-reload-modal__dialog{
+    width:min(100vw - 16px, 1200px);
+    max-height:calc(100vh - 16px);
+    padding:14px;
+  }
+
+}

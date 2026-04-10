@@ -1,0 +1,191 @@
+<?php
+declare(strict_types=1);
+
+/*
+|--------------------------------------------------------------------------
+| POAdo RWA Vault
+| Gold Packet History Page
+|--------------------------------------------------------------------------
+|
+| File
+| /rwa/vault/history.php
+|
+| Purpose
+| Show user Gold Packet reward history
+|
+*/
+
+require_once $_SERVER['DOCUMENT_ROOT'].'/rwa/inc/rwa-session.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/dashboard/inc/session-user.php';
+
+$wallet = get_wallet_session();
+if (!$wallet) {
+    header("Location: /rwa/index.php");
+    exit;
+}
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gold Packet Vault</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+
+body{
+background:#000;
+color:#e8d9a5;
+font-family:system-ui;
+margin:0;
+}
+
+.wrap{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+.title{
+font-size:22px;
+color:#d4af37;
+margin-bottom:10px;
+}
+
+.summary{
+background:#111;
+border:1px solid #6f5b1d;
+padding:14px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+}
+
+.table th{
+color:#d4af37;
+border-bottom:1px solid #6f5b1d;
+padding:8px;
+font-size:13px;
+}
+
+.table td{
+padding:8px;
+border-bottom:1px solid #222;
+font-size:13px;
+}
+
+.status-pending{
+color:#f0c85a;
+}
+
+.status-paid{
+color:#6cff6c;
+}
+
+.status-void{
+color:#ff6c6c;
+}
+
+.loadmore{
+margin-top:15px;
+padding:8px 14px;
+border:1px solid #6f5b1d;
+background:#111;
+color:#e8d9a5;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="title">
+Gold Packet Vault Rewards
+</div>
+
+<div class="summary" id="summary">
+Loading...
+</div>
+
+<table class="table">
+<thead>
+<tr>
+<th>Date</th>
+<th>Cert Count</th>
+<th>TON Reward</th>
+<th>Status</th>
+<th>Tx</th>
+</tr>
+</thead>
+
+<tbody id="rows"></tbody>
+
+</table>
+
+<button class="loadmore" id="loadmore">Load More</button>
+
+</div>
+
+<script>
+
+let page = 1;
+
+async function loadHistory(){
+
+let res = await fetch('/rwa/cert/api/my-gold-packet-history.php?page='+page);
+
+let j = await res.json();
+
+if(!j.ok)return;
+
+if(page === 1){
+
+document.getElementById("summary").innerHTML =
+"Total Records: "+j.summary.total_rows+
+"<br>Total TON: "+j.summary.allocated_total_ton;
+
+}
+
+let tbody = document.getElementById("rows");
+
+j.items.forEach(r=>{
+
+let tr = document.createElement("tr");
+
+tr.innerHTML = `
+<td>${r.distribution_date}</td>
+<td>${r.cert_count}</td>
+<td>${r.allocated_ton}</td>
+<td class="status-${r.status}">${r.status}</td>
+<td>${r.payout_tx_hash ? r.payout_tx_hash.slice(0,12)+'...' : '-'}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+if(!j.pagination.has_next){
+document.getElementById("loadmore").style.display="none";
+}
+
+page++;
+
+}
+
+document.getElementById("loadmore").onclick = loadHistory;
+
+loadHistory();
+
+</script>
+
+</body>
+</html>

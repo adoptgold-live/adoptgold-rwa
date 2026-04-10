@@ -1,0 +1,64 @@
+{
+    "cert_uid": "RCO2C-EMA-20260331-F6A69956",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RCO2C-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "minted",
+    "issued_at": "2026-03-31 13:54:58",
+    "minted_at": "2026-03-31 13:55:35",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-F6A69956",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-F6A69956",
+    "relative_root": "RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-F6A69956",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RCO2C-EMA-20260331-F6A69956.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "GENESIS",
+        "rwa_type": "green",
+        "price_wems": "1000",
+        "fingerprint_hash": "7A9528F712C574A602BCCBE2C550281DDD6CC7131BCD4AEF3492824AF5DD56E8",
+        "router_tx_hash": "YGnvcrgmDG4br3gdMFYcBE51oWbkLKWfTSczLIg0WCw=",
+        "nft_item_address": "0:89B15DDB41A711C831728E203FE6343A39BD1C106F53A011979A0B77929A9C73",
+        "nft_minted": 1,
+        "source_meta_keys": [
+            "vault",
+            "nft_health",
+            "mint",
+            "lifecycle",
+            "nft_prepare",
+            "mint_request",
+            "nft",
+            "nft_layout",
+            "mint_result",
+            "owner_wallet_raw"
+        ]
+    }
+}

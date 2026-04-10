@@ -1,0 +1,262 @@
+"Asm.fif" include
+// automatically generated from `contracts/ClaimProofEMX.fc` incl:`contracts/stdlib.fc` 
+PROGRAM{
+  DECLPROC same_addr
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC build_proof_core
+  DECLPROC send_ton
+  DECLPROC load_msg_bounced
+  DECLPROC load_msg_sender
+  DECLPROC recv_internal
+  103798 DECLMETHOD get_config
+  90121 DECLMETHOD get_constants
+  91507 DECLMETHOD get_last_claim_hash
+  same_addr PROCINLINE:<{
+    //  a b
+    SWAP	//  b a
+    HASHSU	//  b _2
+    SWAP	//  _2 b
+    HASHSU	//  _2 _3
+    EQUAL	//  _4
+  }>
+  load_data PROCINLINE:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  ds
+    LDMSGADDR	//  admin ds
+    LDMSGADDR	//  admin treasury ds
+    1 LDU	//  admin treasury enabled ds
+    DUP	//  admin treasury enabled ds ds
+    SREFS	//  admin treasury enabled ds _14
+    0 GTINT	//  admin treasury enabled ds _16
+    112 THROWIFNOT
+    LDREF	//  admin treasury enabled _41 _40
+    DROP	//  admin treasury enabled core_ref
+    CTOS	//  admin treasury enabled cs
+    256 LDU	//  admin treasury enabled signer_pubkey cs
+    LDGRAMS	//  admin treasury enabled signer_pubkey min_attached cs
+    256 LDU	//  admin treasury enabled signer_pubkey min_attached _47 _46
+    DROP	//  admin treasury enabled signer_pubkey min_attached last_claim_hash
+  }>
+  save_data PROCINLINE:<{
+    //  admin treasury enabled signer_pubkey min_attached last_claim_hash
+    s0 s2 XCHG
+    NEWC	//  admin treasury enabled last_claim_hash min_attached signer_pubkey _7
+    256 STU	//  admin treasury enabled last_claim_hash min_attached _9
+    SWAP	//  admin treasury enabled last_claim_hash _9 min_attached
+    STGRAMS	//  admin treasury enabled last_claim_hash _10
+    256 STU	//  admin treasury enabled _12
+    ENDC	//  admin treasury enabled core_ref
+    NEWC	//  admin treasury enabled core_ref _14
+    s0 s4 XCHG2	//  core_ref treasury enabled _14 admin
+    STSLICER	//  core_ref treasury enabled _15
+    ROT	//  core_ref enabled _15 treasury
+    STSLICER	//  core_ref enabled _16
+    1 STU	//  core_ref _18
+    STREF	//  _19
+    ENDC	//  _20
+    c4 POP
+  }>
+  build_proof_core PROCINLINE:<{
+    //  op query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash
+    s0 s6 XCHG
+    NEWC	//  claim_ref_hash query_id claim_nonce recipient_owner amount_units valid_until op _7
+    32 STU	//  claim_ref_hash query_id claim_nonce recipient_owner amount_units valid_until _9
+    s1 s5 XCHG	//  claim_ref_hash valid_until claim_nonce recipient_owner amount_units query_id _9
+    64 STU	//  claim_ref_hash valid_until claim_nonce recipient_owner amount_units _11
+    s1 s3 XCHG	//  claim_ref_hash valid_until amount_units recipient_owner claim_nonce _11
+    64 STU	//  claim_ref_hash valid_until amount_units recipient_owner _13
+    SWAP	//  claim_ref_hash valid_until amount_units _13 recipient_owner
+    STSLICER	//  claim_ref_hash valid_until amount_units _14
+    128 STU	//  claim_ref_hash valid_until _16
+    32 STU	//  claim_ref_hash _18
+    256 STU	//  _20
+    ENDC	//  _21
+  }>
+  send_ton PROCINLINE:<{
+    //  to value
+    DUP	//  to value value
+    1 LESSINT	//  to value _3
+    IF:<{	//  to value
+      2DROP	// 
+    }>ELSE<{	//  to value
+      0 PUSHINT	//  to value _5=0
+      24 PUSHINT	//  to value _5=0 _6=24
+      NEWC	//  to value _5=0 _6=24 _7
+      6 STU	//  to value _5=0 _9
+      s0 s3 XCHG2	//  _5=0 value _9 to
+      STSLICER	//  _5=0 value _10
+      SWAP	//  _5=0 _10 value
+      STGRAMS	//  _5=0 _11
+      107 STU	//  _25
+      ENDC	//  msg
+      1 PUSHINT	//  msg _27=1
+      SENDRAWMSG
+    }>
+  }>
+  load_msg_bounced PROCINLINE:<{
+    //  in_msg_full
+    CTOS	//  s
+    4 LDU	//  _10 _9
+    DROP	//  flags
+    1 PUSHINT	//  flags _7=1
+    AND	//  _8
+  }>
+  load_msg_sender PROCINLINE:<{
+    //  in_msg_full
+    CTOS	//  s
+    4 LDU	//  _9 _8
+    NIP	//  s
+    LDMSGADDR	//  _11 _10
+    DROP	//  _6
+  }>
+  recv_internal PROC:<{
+    c2 SAVE
+    SAMEALTSAVE	//  msg_value in_msg_full in_msg_body
+    OVER	//  msg_value in_msg_full in_msg_body in_msg_full
+    load_msg_bounced INLINECALLDICT	//  msg_value in_msg_full in_msg_body _3
+    IFJMP:<{	//  msg_value in_msg_full in_msg_body
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg_full in_msg_body
+    DUP	//  msg_value in_msg_full in_msg_body in_msg_body
+    SEMPTY	//  msg_value in_msg_full in_msg_body _4
+    IFJMP:<{	//  msg_value in_msg_full in_msg_body
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg_full in_msg_body
+    load_data INLINECALLDICT	//  msg_value in_msg_full in_msg_body admin treasury enabled signer_pubkey min_attached last_claim_hash
+    s0 s7 XCHG	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached in_msg_full
+    load_msg_sender INLINECALLDICT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached sender
+    s0 s6 XCHG	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached in_msg_body
+    32 LDU	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body
+    OVER
+    1397050946 PUSHINT	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body op _18=1397050946
+    EQUAL	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body _19
+    s2 PUSH
+    1398231124 PUSHINT	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body _19 op _20=1398231124
+    EQUAL	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body _19 _21
+    OR	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body _22
+    IF:<{	//  msg_value last_claim_hash sender admin treasury enabled signer_pubkey min_attached op in_msg_body
+      s7 s6 XCPU	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op sender admin
+      same_addr INLINECALLDICT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op _24
+      101 THROWIFNOT
+      DUP
+      1397050946 PUSHINT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op op _26=1397050946
+      EQUAL	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op _27
+      IFJMP:<{	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op
+        DROP
+        s2 POP
+        s6 POP	//  signer_pubkey last_claim_hash in_msg_body admin treasury min_attached
+        s0 s3 XCHG	//  signer_pubkey last_claim_hash min_attached admin treasury in_msg_body
+        64 LDU	//  signer_pubkey last_claim_hash min_attached admin treasury _137 _136
+        NIP	//  signer_pubkey last_claim_hash min_attached admin treasury in_msg_body
+        1 LDU	//  signer_pubkey last_claim_hash min_attached admin treasury _139 _138
+        DROP	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled
+        DUP	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled next_enabled
+        0 EQINT	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled _37
+        OVER	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled _37 next_enabled
+        1 EQINT	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled _37 _39
+        OR	//  signer_pubkey last_claim_hash min_attached admin treasury next_enabled _40
+        108 THROWIFNOT
+        s5 s3 s3 XCHG3
+        s0 s4 XCHG	//  admin treasury next_enabled signer_pubkey min_attached last_claim_hash
+        save_data INLINECALLDICT
+        RETALT
+      }>	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op
+      DUP
+      1398231124 PUSHINT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op op _43=1398231124
+      EQUAL	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op _44
+      IFJMP:<{	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op
+        s4 s5 XCHG
+        5 BLKDROP
+        s2 POP	//  msg_value treasury in_msg_body
+        64 LDU	//  msg_value treasury _141 _140
+        NIP	//  msg_value treasury in_msg_body
+        LDGRAMS	//  msg_value treasury _143 _142
+        DROP	//  msg_value treasury amount
+        DUP	//  msg_value treasury amount amount
+        0 GTINT	//  msg_value treasury amount _53
+        110 THROWIFNOT
+        BALANCE	//  msg_value treasury amount _57
+        UNPAIR	//  msg_value treasury amount _144 _145
+        DROP	//  msg_value treasury amount balance_now
+        s0 s3 XCHG2	//  amount treasury balance_now msg_value
+        SUB	//  amount treasury balance_before
+        30000000 PUSHINT	//  amount treasury balance_before _62=30000000
+        SUB	//  amount treasury allowed
+        s2 PUSH	//  amount treasury allowed amount
+        GEQ	//  amount treasury _65
+        113 THROWIFNOT
+        SWAP	//  treasury amount
+        send_ton INLINECALLDICT
+        RETALT
+      }>	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op
+    }>ELSE<{
+      s7 POP	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op
+    }>
+    s3 PUSH	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op enabled
+    1 EQINT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op _70
+    100 THROWIFNOT
+    DUP
+    1129334093 PUSHINT	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op op _73=1129334093
+    EQUAL	//  msg_value last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached op _74
+    102 THROWIFNOT
+    s8 s1 XCPU	//  op last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached msg_value min_attached
+    GEQ	//  op last_claim_hash in_msg_body admin treasury enabled signer_pubkey min_attached _77
+    103 THROWIFNOT
+    s0 s5 XCHG	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey in_msg_body
+    64 LDU	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id in_msg_body
+    64 LDU	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce in_msg_body
+    LDMSGADDR	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner in_msg_body
+    128 LDU	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units in_msg_body
+    32 LDU	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until in_msg_body
+    256 LDU	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash in_msg_body
+    LDREF	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash _159 _158
+    DROP	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref
+    s3 PUSH	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref amount_units
+    0 GTINT	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref _107
+    111 THROWIFNOT
+    NOW	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref _110
+    s3 PUSH	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref _110 valid_until
+    LEQ	//  op last_claim_hash min_attached admin treasury enabled signer_pubkey query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash sig_ref _111
+    104 THROWIFNOT
+    s1 s13 XCHG
+    s6 s13 XCHG2
+    s1 s5 XCHG
+    s1 s4 XCHG
+    s3 s3 s0 XCHG3	//  sig_ref last_claim_hash min_attached admin treasury enabled signer_pubkey op query_id claim_nonce recipient_owner amount_units valid_until claim_ref_hash
+    build_proof_core INLINECALLDICT	//  sig_ref last_claim_hash min_attached admin treasury enabled signer_pubkey core
+    HASHCU	//  sig_ref last_claim_hash min_attached admin treasury enabled signer_pubkey proof_hash
+    s0 s6 PUXC	//  sig_ref proof_hash min_attached admin treasury enabled signer_pubkey proof_hash last_claim_hash
+    NEQ	//  sig_ref proof_hash min_attached admin treasury enabled signer_pubkey _118
+    106 THROWIFNOT
+    s0 s6 XCHG	//  signer_pubkey proof_hash min_attached admin treasury enabled sig_ref
+    CTOS	//  signer_pubkey proof_hash min_attached admin treasury enabled sig_slice
+    s5 s6 s(-1) PU2XC	//  signer_pubkey proof_hash min_attached admin treasury enabled proof_hash sig_slice signer_pubkey
+    CHKSIGNU	//  signer_pubkey proof_hash min_attached admin treasury enabled _123
+    105 THROWIFNOT
+    OVER
+    s3 s5 XCHG
+    s6 s3 s4 XCHG3
+    SWAP	//  treasury admin treasury enabled signer_pubkey min_attached proof_hash
+    save_data INLINECALLDICT
+    100000000 PUSHINT	//  treasury _126=100000000
+    send_ton INLINECALLDICT
+  }>
+  get_config PROC:<{
+    // 
+    load_data INLINECALLDICT	//  _1 _2 _3 _4 _5 _6
+  }>
+  get_constants PROC:<{
+    // 
+    100000000 PUSHINT	//  _0=100000000
+    30000000 PUSHINT	//  _0=100000000 _1=30000000
+    DUP	//  _0=100000000 _1=30000000 _2=30000000
+  }>
+  get_last_claim_hash PROC:<{
+    // 
+    load_data INLINECALLDICT	//  _7 _8 _9 _10 _11 _12
+    5 1 BLKDROP2	//  last_claim_hash
+  }>
+}END>c
+2 boc+>B "build-native/ClaimProofEMX.boc" B>file

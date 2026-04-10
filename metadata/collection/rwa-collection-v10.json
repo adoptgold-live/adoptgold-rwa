@@ -1,0 +1,24 @@
+{
+  "name": "AdoptGold RWA Cert Collection",
+  "description": "Official AdoptGold RWA NFT Collection. This collection represents certified responsibility-rights assets issued under the RWA Standard Organisation framework, including Genesis and Secondary certificates deployed on TON.",
+  "image": "https://adoptgold.app/rwa/metadata/collection/rwa-collection.png",
+  "external_url": "https://adoptgold.app/rwa/cert/",
+  "marketplace": "https://getgems.io/adoptgold",
+  "seller_fee_basis_points": 2500,
+  "fee_recipient": "UQBdYfGArtoCUmBs5TjYQtfPFfQuGC2Ydbj2pQr3zIlNrDta",
+  "royalty": {
+    "factor": 2500,
+    "base": 10000,
+    "address": "UQBdYfGArtoCUmBs5TjYQtfPFfQuGC2Ydbj2pQr3zIlNrDta"
+  },
+  "attributes": [
+    { "trait_type": "Project", "value": "AdoptGold" },
+    { "trait_type": "Module", "value": "RWA Cert" },
+    { "trait_type": "Chain", "value": "TON" },
+    { "trait_type": "Mint Model", "value": "Public Mint" },
+    { "trait_type": "Royalty", "value": "25%" },
+    { "trait_type": "Treasury Contribution", "value": "0.33 TON" },
+    { "trait_type": "Issuer", "value": "Blockchain Group RWA FZCO (DMCC, Dubai, UAE)" },
+    { "trait_type": "Framework", "value": "RWA Standard Organisation" }
+  ]
+}

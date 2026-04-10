@@ -1,0 +1,59 @@
+{
+    "cert_uid": "RK92-EMA-20260327-REAL0001",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RK92-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "minted",
+    "issued_at": "2026-03-27 16:08:28",
+    "minted_at": "2026-03-27 16:28:27",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/03/U13/RK92-EMA-20260327-REAL0001",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/03/U13/RK92-EMA-20260327-REAL0001",
+    "relative_root": "RWA_CERT/GENESIS/RK92-EMA/TON/2026/03/U13/RK92-EMA-20260327-REAL0001",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RK92-EMA-20260327-REAL0001.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "GENESIS",
+        "rwa_type": "gold",
+        "price_wems": "",
+        "fingerprint_hash": "0ad2c6c5ef7583c97b7eb84cda3d0e237021752e1ad68301df40ee9ebabe42ef",
+        "router_tx_hash": "",
+        "nft_item_address": "EQDWj2w_8Q3-r_ZFaJwr3ieyRJFOJMfzFgD6kF2uIqJMX--U",
+        "nft_minted": 1,
+        "source_meta_keys": [
+            "name",
+            "description",
+            "image",
+            "external_url",
+            "owner_wallet_friendly"
+        ]
+    }
+}

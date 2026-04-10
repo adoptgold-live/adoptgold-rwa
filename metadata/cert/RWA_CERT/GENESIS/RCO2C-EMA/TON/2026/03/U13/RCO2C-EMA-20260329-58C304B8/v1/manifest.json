@@ -1,0 +1,68 @@
+{
+    "cert_uid": "RCO2C-EMA-20260329-58C304B8",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RCO2C-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "minted",
+    "issued_at": "2026-03-29 12:04:41",
+    "minted_at": "2026-03-31 10:35:49",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260329-58C304B8",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260329-58C304B8",
+    "relative_root": "RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260329-58C304B8",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RCO2C-EMA-20260329-58C304B8.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "genesis",
+        "rwa_type": "green",
+        "price_wems": "",
+        "fingerprint_hash": "ae2dceff96e1fcda0e9231975f0fa249d80b681a142021b5202129ba2a5c2925",
+        "router_tx_hash": "0xulso3//l4zighjbe7shtoz/e2jnkvu6vbazd6bx9gkq=",
+        "nft_item_address": "0:EE5D649AEF4FA035A8CE3DBDBA934E78BE34CC8724C35C5C0A22F7F44BAC3BEC",
+        "nft_minted": 1,
+        "source_meta_keys": [
+            "lifecycle",
+            "payment",
+            "mint",
+            "preview",
+            "auto_mint",
+            "vault",
+            "nft",
+            "nft_layout",
+            "owner_wallet_raw",
+            "owner_wallet_target",
+            "nft_prepare",
+            "mint_request",
+            "nft_health",
+            "mint_result"
+        ]
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "healthy": true,
+  "cert_uid": "RK92-EMA-20260406-REAL0002",
+  "image_authority": "_image-bundle.php",
+  "compose_engine": "imagemagick",
+  "used_fallback_placeholder": false,
+  "verify_json_path": "/var/www/html/public/rwa/metadata/cert/bootstrap/RK92-EMA-20260406-REAL0002/verify/verify.json",
+  "image_path": "/var/www/html/public/rwa/metadata/cert/bootstrap/RK92-EMA-20260406-REAL0002/nft/image.png",
+  "metadata_path": "/var/www/html/public/rwa/metadata/cert/bootstrap/RK92-EMA-20260406-REAL0002/meta/metadata.json",
+  "verify_page_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RK92-EMA-20260406-REAL0002",
+  "verify_json_url": "https://adoptgold.app/rwa/metadata/cert/bootstrap/RK92-EMA-20260406-REAL0002/verify/verify.json",
+  "image_url": "https://adoptgold.app/rwa/metadata/cert/bootstrap/RK92-EMA-20260406-REAL0002/nft/image.png",
+  "template_sha1": "dummy-template-sha1",
+  "qr_sha1": "dummy-qr-sha1",
+  "final_sha1": "3838d4f97a6d8ea9032c235a98030cb03b5b0325"
+}

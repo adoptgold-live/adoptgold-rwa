@@ -1,0 +1,143 @@
+:root{
+  --mchh-bg:#050607;
+  --mchh-cat > /var/www/html/public/rwa/api/storage/balances.php <<'EOF'
+<?php
+declare(strict_types=1);
+
+/**
+ * /var/www/html/public/rwa/api/storage/balances.php
+ *
+ * Read endpoint for canonical Storage balance snapshot.
+ */
+
+require_once __DIR__ . '/_balance-resolver.php';
+
+function storage_balances_json(array $payload, int $status = 200): never
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+function storage_balances_ok(array $data = []): never
+{
+    storage_balances_json(['ok' => true, 'ts' => gmdate('c')] + $data, 200);
+}
+
+function storage_balances_fail(string $code, string $message, int $status = 400, array $extra = []): never
+{
+    storage_balances_json(['ok' => false, 'ts' => gmdate('c'), 'code' => $code, 'message' => $message] + $extra, $status);
+}
+
+try {
+    $user = storage_balance_session_user();
+    $pdo = storage_balance_pdo();
+
+    $flowType = strtolower(trim((string)($_GET['flow_type'] ?? '')));
+    $userId = (int)$user['id'];
+
+    if ($flowType !== '') {
+        $row = storage_balance_snapshot_row($pdo, $userId, $flowType);
+        storage_balances_ok([
+            'user_id' => $userId,
+            'wallet_address' => (string)($user['wallet_address'] ?? ''),
+            'item' => $row,
+        ]);
+    }
+
+    $items = storage_balance_snapshot($pdo, $userId);
+
+    storage_balances_ok([
+        'user_id' => $userId,
+        'wallet_address' => (string)($user['wallet_address'] ?? ''),
+        'items' => $items,
+        'count' => count($items),
+    ]);
+} catch (InvalidArgumentException $e) {
+    storage_balances_fail('BAD_FLOW_TYPE', $e->getMessage(), 422);
+} catch (RuntimeException $e) {
+    if ($e->getMessage() === 'AUTH_REQUIRED') {
+        storage_balances_fail('AUTH_REQUIRED', 'Authentication required.', 401);
+    }
+    storage_balances_fail('BALANCE_RESOLVER_ERROR', $e->getMessage(), 500);
+} catch (Throwable $e) {
+    storage_balances_fail('UNEXPECTED_ERROR', $e->getMessage(), 500);
+}
+EOF:#09110f;
+  --mchh-text:#d7ffe9;
+  --mchh-muted:#97bba9;
+  --mchh-line:rgba(85,255,170,.18);
+  --mchh-line-2:rgba(85,255,170,.28);
+  --mchh-glow:0 0 0 1px rgba(85,255,170,.12),0 0 24px rgba(55,155,110,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:radial-gradient(circle at top,#07110f 0%,#050607 55%);color:var(--mchh-text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+body{min-height:100vh}
+.mchh-page{max-width:1540px;margin:0 auto;padding:18px 16px 100px}
+.mchh-hero,.mchh-panel,.mchh-card{
+  background:linear-gradient(180deg,rgba(10,24,20,.92),rgba(6,12,10,.96));
+  border:1px solid var(--mchh-line);
+  border-radius:16px;
+  box-shadow:var(--mchh-glow);
+}
+.mchh-hero,.mchh-panel{margin-bottom:16px;padding:16px}
+.mchh-hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.mchh-kicker{font-size:12px;letter-spacing:.16em;color:#7de0ab;margin-bottom:6px}
+.mchh-title{margin:0;font-size:32px;line-height:1.1;color:#fff1c9}
+.mchh-subtitle{margin-top:8px;color:var(--mchh-muted);font-size:13px;max-width:900px}
+.mchh-who{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.mchh-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 10px;border-radius:999px;border:1px solid var(--mchh-line-2);
+  background:rgba(9,22,18,.88);color:#d7ffe9;font-size:12px
+}
+.mchh-chip.small{padding:4px 8px;font-size:11px}
+.mchh-mini{font-size:12px;color:var(--mchh-muted);word-break:break-all}
+.mchh-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.mchh-card{padding:14px;min-height:210px}
+.mchh-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.mchh-card-title{font-size:18px;font-weight:700;color:#fff1c9}
+.mchh-card-desc{margin-top:12px;color:var(--mchh-muted);font-size:12px;line-height:1.55;min-height:72px}
+.mchh-card-path{margin-top:10px;color:#dbe6ff;font-size:11px;word-break:break-all}
+.mchh-card-actions{margin-top:14px}
+.mchh-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--mchh-line);
+  background:#0b1714;color:var(--mchh-text);font:inherit;cursor:pointer;text-decoration:none
+}
+.mchh-btn:hover{border-color:rgba(85,255,170,.34)}
+.mchh-btn-primary{background:linear-gradient(180deg,#10231d,#0a1713);border-color:rgba(85,255,170,.32);box-shadow:0 0 18px rgba(55,155,110,.14)}
+.mchh-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.mchh-section-title{margin:0;font-size:22px;color:#fff1c9}
+.mchh-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mchh-summary-card{border:1px solid rgba(85,255,170,.10);border-radius:14px;background:#0a1512;padding:12px}
+.mchh-summary-label{font-size:11px;color:#9fcbaf;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.mchh-summary-value{font-size:14px;color:#fff1c9;word-break:break-word}
+.mchh-layout{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.mchh-flow-list{display:flex;flex-direction:column;gap:10px}
+.mchh-flow-item{
+  padding:10px 12px;border-radius:12px;border:1px solid rgba(85,255,170,.10);
+  background:#0a1512;color:#d8f6ff
+}
+.mchh-code{
+  padding:14px;border-radius:14px;border:1px solid rgba(85,255,170,.10);
+  background:#091310;color:#d8f6ff;white-space:pre-wrap;line-height:1.65;font-size:12px
+}
+.mchh-notes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mchh-note{
+  padding:12px;border-radius:14px;border:1px solid rgba(85,255,170,.10);
+  background:#0a1512;color:var(--mchh-muted);font-size:12px;line-height:1.55
+}
+@media (max-width: 1280px){
+  .mchh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mchh-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mchh-layout{grid-template-columns:1fr}
+}
+@media (max-width: 760px){
+  .mchh-hero-head{flex-direction:column}
+  .mchh-who{align-items:flex-start}
+  .mchh-grid,.mchh-summary-grid,.mchh-notes{grid-template-columns:1fr}
+  .mchh-title{font-size:24px}
+  .mchh-section-title{font-size:18px}
+}

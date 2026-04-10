@@ -1,0 +1,95 @@
+{
+  "name": "RCO2C-EMA-20260331-ABCDEFGH",
+  "description": "Official AdoptGold RWA Certificate NFT. This certificate represents a certified responsibility-rights asset issued under the RWA Standard Organisation framework on TON.",
+  "image": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/nft.png",
+  "external_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-ABCDEFGH",
+  "animation_url": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/cert.pdf",
+  "attributes": [
+    {
+      "trait_type": "Cert UID",
+      "value": "RCO2C-EMA-20260331-ABCDEFGH"
+    },
+    {
+      "trait_type": "RWA Type",
+      "value": "Green"
+    },
+    {
+      "trait_type": "Family",
+      "value": "GENESIS"
+    },
+    {
+      "trait_type": "RWA Code",
+      "value": "RCO2C-EMA"
+    },
+    {
+      "trait_type": "Responsibility Unit",
+      "value": "10 kg CO2e Responsibility Unit"
+    },
+    {
+      "trait_type": "Chain",
+      "value": "TON"
+    },
+    {
+      "trait_type": "Project",
+      "value": "AdoptGold"
+    },
+    {
+      "trait_type": "Module",
+      "value": "RWA Cert"
+    },
+    {
+      "trait_type": "Framework",
+      "value": "RWA Standard Organisation"
+    },
+    {
+      "trait_type": "Issuer",
+      "value": "Blockchain Group RWA FZCO (DMCC, Dubai, UAE)"
+    },
+    {
+      "trait_type": "Owner Wallet",
+      "value": "UQExampleOwnerWalletAddressReplaceMe"
+    },
+    {
+      "trait_type": "Issued At",
+      "value": "2026-03-31T00:00:00Z"
+    },
+    {
+      "trait_type": "Payment Token",
+      "value": "wEMS"
+    },
+    {
+      "trait_type": "Payment Amount",
+      "value": "1000"
+    },
+    {
+      "trait_type": "Fingerprint Hash",
+      "value": "REPLACE_WITH_REAL_FINGERPRINT_HASH"
+    },
+    {
+      "trait_type": "Verify URL",
+      "value": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-ABCDEFGH"
+    }
+  ],
+  "properties": {
+    "category": "image",
+    "collection": "AdoptGold RWA Cert Collection",
+    "cert_uid": "RCO2C-EMA-20260331-ABCDEFGH",
+    "verify_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RCO2C-EMA-20260331-ABCDEFGH",
+    "pdf_url": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/cert.pdf",
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/nft.png",
+    "fingerprint_hash": "REPLACE_WITH_REAL_FINGERPRINT_HASH",
+    "owner_wallet": "UQExampleOwnerWalletAddressReplaceMe",
+    "mint_model": "Public Mint",
+    "royalty_bps": 2500,
+    "files": [
+      {
+        "uri": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/nft.png",
+        "type": "image/png"
+      },
+      {
+        "uri": "https://adoptgold.app/rwa/metadata/cert/RCO2C-EMA-20260331-ABCDEFGH/cert.pdf",
+        "type": "application/pdf"
+      }
+    ]
+  }
+}

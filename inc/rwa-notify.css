@@ -1,0 +1,30 @@
+.rwa-toast-container{
+position:fixed;
+top:60px;
+right:10px;
+z-index:2000;
+}
+
+.rwa-toast{
+background:#140a2a;
+border:1px solid #a855f7;
+color:#e9d5ff;
+
+padding:10px 14px;
+border-radius:8px;
+
+margin-bottom:10px;
+
+box-shadow:0 0 10px rgba(168,85,247,.5);
+
+font-size:12px;
+
+animation:toastFade 4s forwards;
+}
+
+@keyframes toastFade{
+0%{opacity:0; transform:translateY(-10px);}
+10%{opacity:1;}
+80%{opacity:1;}
+100%{opacity:0; transform:translateY(-10px);}
+}

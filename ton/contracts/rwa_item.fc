@@ -1,0 +1,128 @@
+#include "stdlib.fc";
+
+;;
+;; /var/www/html/public/rwa/ton/contracts/rwa_item.fc
+;;
+;; Simple RWA NFT item contract
+;; - state init stores: index + collection address
+;; - first internal message from collection initializes owner + content
+;; - supports basic transfer
+;; - getter: get_nft_data()
+;;
+
+const int OP_TRANSFER = 0x5fcc3d14;
+const int OP_OWNERSHIP_ASSIGNED = 0x05138d91;
+
+int equal_addr(slice a, slice b) inline {
+  return cell_hash(begin_cell().store_slice(a).end_cell()) == cell_hash(begin_cell().store_slice(b).end_cell());
+}
+
+(int, int, slice, slice, cell) load_data() inline {
+  var ds = get_data().begin_parse();
+  return (
+    ds~load_uint(1),       ;; initialized
+    ds~load_uint(64),      ;; index
+    ds~load_msg_addr(),    ;; collection
+    ds~load_msg_addr(),    ;; owner
+    ds~load_ref()          ;; individual content
+  );
+}
+
+() save_data(int initialized, int index, slice collection, slice owner, cell individual_content) impure inline {
+  set_data(
+    begin_cell()
+      .store_uint(initialized, 1)
+      .store_uint(index, 64)
+      .store_slice(collection)
+      .store_slice(owner)
+      .store_ref(individual_content)
+    .end_cell()
+  );
+}
+
+() send_simple_message(slice to_address, int amount, int op, int query_id, cell payload_ref) impure inline {
+  var msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(to_address)
+    .store_coins(amount)
+    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+    .store_uint(op, 32)
+    .store_uint(query_id, 64)
+    .store_ref(payload_ref)
+    .end_cell();
+
+  send_raw_message(msg, 1);
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  if (in_msg_body.slice_empty?()) {
+    return ();
+  }
+
+  var cs = in_msg_full.begin_parse();
+  int flags = cs~load_uint(4);
+  if (flags & 1) {
+    ;; ignore bounced
+    return ();
+  }
+
+  slice sender_address = cs~load_msg_addr();
+  var (initialized, index, collection_address, owner_address, individual_content) = load_data();
+
+  ;; first initialization message from collection
+  if (initialized == 0) {
+    throw_unless(100, equal_addr(sender_address, collection_address));
+    slice new_owner = in_msg_body~load_msg_addr();
+    cell new_content = in_msg_body~load_ref();
+    save_data(1, index, collection_address, new_owner, new_content);
+    return ();
+  }
+
+  int op = in_msg_body~load_uint(32);
+  int query_id = in_msg_body~load_uint(64);
+
+  if (op == OP_TRANSFER) {
+    throw_unless(101, equal_addr(sender_address, owner_address));
+
+    slice new_owner = in_msg_body~load_msg_addr();
+    slice response_destination = in_msg_body~load_msg_addr();
+
+    ;; custom_payload:(Maybe ^Cell)
+    int has_custom = in_msg_body~load_uint(1);
+    if (has_custom) {
+      in_msg_body~load_ref();
+    }
+
+    int forward_amount = in_msg_body~load_coins();
+
+    ;; forward_payload:(Either Cell ^Cell)
+    int either_ref = in_msg_body~load_uint(1);
+    cell forward_payload = begin_cell().end_cell();
+    if (either_ref) {
+      forward_payload = in_msg_body~load_ref();
+    }
+
+    save_data(1, index, collection_address, new_owner, individual_content);
+
+    if (~ equal_addr(response_destination, new_owner)) {
+      if (forward_amount > 0) {
+        send_simple_message(
+          new_owner,
+          forward_amount,
+          OP_OWNERSHIP_ASSIGNED,
+          query_id,
+          forward_payload
+        );
+      }
+    }
+
+    return ();
+  }
+
+  throw(0xffff);
+}
+
+(int, int, slice, slice, cell) get_nft_data() method_id {
+  var (initialized, index, collection_address, owner_address, individual_content) = load_data();
+  return (initialized, index, collection_address, owner_address, individual_content);
+}

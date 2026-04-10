@@ -1,0 +1,64 @@
+{
+    "cert_uid": "RCO2C-EMA-20260331-4D201560",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RCO2C-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-03-31 11:18:01",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560",
+    "relative_root": "RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/03/U13/RCO2C-EMA-20260331-4D201560",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RCO2C-EMA-20260331-4D201560.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "GENESIS",
+        "rwa_type": "green",
+        "price_wems": "1000",
+        "fingerprint_hash": "EB6BAC0BBC5907B8C0A21BF4B0CF4FB2766A6E6CC2B7E4EA8F74403F7C03D8AA",
+        "router_tx_hash": "TEST_TX_HASH",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "owner_wallet_raw",
+            "lifecycle",
+            "auto_mint",
+            "nft",
+            "vault",
+            "nft_layout",
+            "mint_verify",
+            "history",
+            "mint",
+            "mint_request"
+        ]
+    }
+}

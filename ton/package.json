@@ -1,0 +1,30 @@
+{
+  "name": "rwa-cert-ton-collection",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:native": "bash ./deploy.sh build",
+    "deploy:blueprint": "npx blueprint run deployCollection --mainnet",
+    "mint:blueprint": "npx blueprint run mintItem --mainnet"
+  },
+  "dependencies": {
+    "@ton/blueprint": "^0.34.0",
+    "@ton/core": "^0.63.1",
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^16.2.2",
+    "dotenv": "^16.6.1",
+    "ton": "^13.9.0",
+    "ton-core": "^0.53.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

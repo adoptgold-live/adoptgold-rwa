@@ -1,0 +1,29 @@
+{
+  "name": "claim-proof-emx",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "prepare": "echo skip-prepare",
+    "build:native": "bash scripts/native-build.sh",
+    "build": "blueprint build",
+    "deploy": "blueprint run deployClaimProofEMX --mainnet",
+    "enable": "blueprint run enableClaimProofEMX --mainnet -- --enabled=true",
+    "verify": "tsx scripts/verifyClaimProofEMX.ts",
+    "test:proof": "blueprint run sendClaimProofTest --mainnet",
+    "check:signer": "tsx scripts/checkSigner.ts",
+    "sweep": "blueprint run sweepTon --mainnet"
+  },
+  "dependencies": {
+    "@ton/blueprint": "0.23.0",
+    "@ton/core": "^0.62.0",
+    "@ton/crypto": "^3.2.0",
+    "@ton/ton": "^15.4.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

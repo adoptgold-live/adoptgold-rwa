@@ -1,0 +1,8 @@
+{
+  "name": "claim-distributor",
+  "version": "1.0.0",
+  "dependencies": {
+    "@ton/blueprint": "^0.44.0",
+    "ton-core": "^0.53.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "ok": true,
+    "healthy": true,
+    "uid": "RK92-EMA-20260406-REAL0002",
+    "image_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/nft/image.png",
+    "image_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/nft/image.png",
+    "meta_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/meta/metadata.json",
+    "meta_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/meta/metadata.json",
+    "verify_json_path": "/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/verify/verify.json",
+    "verify_json_url": "https://adoptgold.app/rwa/metadata/cert/RWA_CERT/GENESIS/RK92-EMA/TON/2026/04/U13/RK92-EMA-20260406-REAL0002/verify/verify.json",
+    "verify_page_url": "https://adoptgold.app/rwa/cert/verify.php?uid=RK92-EMA-20260406-REAL0002",
+    "artifact_ready": true,
+    "nft_healthy": true,
+    "image_authority": "_image-bundle.php",
+    "compose_engine": "imagemagick",
+    "used_fallback_placeholder": false,
+    "final_sha1": "bd83465a5919ba2b1cab01731f878b8faf7b2c3f",
+    "final_size": 1710427
+}

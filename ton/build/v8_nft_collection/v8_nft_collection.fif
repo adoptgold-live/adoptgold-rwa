@@ -1,0 +1,382 @@
+"Asm.fif" include
+// automatically generated from `contracts/v8_nft_collection.fc` incl:`contracts/imports/stdlib.fc` 
+PROGRAM{
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC eq_addr
+  DECLPROC require_owner
+  DECLPROC require_router_or_owner
+  DECLPROC build_item_data
+  DECLPROC build_item_state_init
+  DECLPROC calculate_item_address
+  DECLPROC deploy_item
+  DECLPROC send_tons
+  DECLPROC recv_internal
+  102491 DECLMETHOD get_collection_data
+  85719 DECLMETHOD royalty_params
+  92067 DECLMETHOD get_nft_address_by_index
+  87777 DECLMETHOD get_router_state
+  load_data PROCINLINE:<{
+    c4 PUSH
+    CTOS
+    LDMSGADDR
+    LDMSGADDR
+    64 LDU
+    LDREF
+    LDREF
+    16 LDU
+    16 LDU
+    LDMSGADDR
+    1 LDU
+    DROP
+  }>
+  save_data PROCINLINE:<{
+    NEWC
+    s0 s9 XCHG2
+    STSLICER
+    s0 s7 XCHG2
+    STSLICER
+    s1 s5 XCHG
+    64 STU
+    s1 s3 XCHG
+    STREF
+    STREF
+    16 STU
+    16 STU
+    SWAP
+    STSLICER
+    1 STU
+    ENDC
+    c4 POP
+  }>
+  eq_addr PROCINLINE:<{
+    NEWC
+    ROT
+    STSLICER
+    ENDC
+    HASHCU
+    NEWC
+    ROT
+    STSLICER
+    ENDC
+    HASHCU
+    EQUAL
+  }>
+  require_owner PROCINLINE:<{
+    eq_addr INLINECALLDICT
+    401 THROWIFNOT
+  }>
+  require_router_or_owner PROCINLINE:<{
+    s2 s1 PUXC
+    eq_addr INLINECALLDICT
+    -ROT
+    eq_addr INLINECALLDICT
+    OR
+    402 THROWIFNOT
+  }>
+  build_item_data PROCINLINE:<{
+    1 PUSHINT
+    NEWC
+    1 STU
+    s1 s4 XCHG
+    64 STU
+    ROT
+    STSLICER
+    SWAP
+    STSLICER
+    STREF
+    ENDC
+  }>
+  build_item_state_init PROCINLINE:<{
+    0 PUSHINT
+    DUP
+    NEWC
+    2 STU
+    s1 s3 XCHG
+    STOPTREF
+    STOPTREF
+    1 STU
+    ENDC
+  }>
+  calculate_item_address PROCINLINE:<{
+    HASHCU
+    4 PUSHINT
+    NEWC
+    3 STU
+    s1 s2 XCHG
+    8 STI
+    256 STU
+    ENDC
+    CTOS
+  }>
+  deploy_item PROCINLINE:<{
+    4 -ROLL
+    build_item_data INLINECALLDICT
+    build_item_state_init INLINECALLDICT
+    0 PUSHINT
+    OVER
+    calculate_item_address INLINECALLDICT
+    NEWC
+    ENDC
+    7 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s3 XCHG2
+    STSLICER
+    80000000 PUSHINT
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    s1 s2 XCHG
+    STREF
+    STREF
+    ENDC
+    1 PUSHINT
+    SENDRAWMSG
+  }>
+  send_tons PROCINLINE:<{
+    DUP
+    1 LESSINT
+    IF:<{
+      2DROP
+    }>ELSE<{
+      0 PUSHINT
+      16 PUSHINT
+      NEWC
+      6 STU
+      s0 s3 XCHG2
+      STSLICER
+      SWAP
+      STGRAMS
+      106 STU
+      ENDC
+      1 PUSHINT
+      SENDRAWMSG
+    }>
+  }>
+  recv_internal PROC:<{
+    s2 POP
+    CTOS
+    4 LDU
+    SWAP
+    1 PUSHINT
+    AND
+    IFJMP:<{
+      2DROP
+    }>
+    LDMSGADDR
+    DROP
+    load_data INLINECALLDICT
+    s10 PUSH
+    SEMPTY
+    IFJMP:<{
+      11 BLKDROP
+    }>
+    s0 s10 XCHG
+    32 LDU
+    64 LDU
+    NIP
+    OVER
+    1331121746 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s9 s8 XCHG2
+      require_owner INLINECALLDICT
+      s0 s6 XCHG
+      LDMSGADDR
+      DROP
+      s0 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s3 s0 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1381257811 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s7 POP
+      s8 s7 XCPU
+      require_owner INLINECALLDICT
+      s0 s5 XCHG
+      LDMSGADDR
+      DROP
+      s6 s8 XCHG
+      s0 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s0 s3 XCHG3
+      s0 s2 XCHG
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1129270868 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s5 POP
+      s8 s7 XCPU
+      require_owner INLINECALLDICT
+      s0 s3 XCHG
+      LDREF
+      DROP
+      s6 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s4 s5 s5 XCHG3
+      s3 s1 s3 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1346458963 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s10 POP
+      s8 s7 XCPU
+      require_owner INLINECALLDICT
+      s0 s8 XCHG
+      1 LDU
+      DROP
+      s6 s8 XCHG
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s4 s3 s0 XCHG3
+      save_data INLINECALLDICT
+    }>
+    OVER
+    1296649812 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s9 s8 XCPU
+      require_owner INLINECALLDICT
+      s9 PUSH
+      0 EQINT
+      403 THROWIFNOT
+      30000000 PUSHINT
+      2 PUSHINT
+      RAWRESERVE
+      s0 s8 XCHG
+      64 LDU
+      LDMSGADDR
+      LDREF
+      DROP
+      s2 s7 PUSH2
+      GEQ
+      405 THROWIFNOT
+      s2 s2 s7 PUSH3
+      EQUAL
+      IF:<{
+        s3 POP
+        s0 s7 XCHG
+        INC
+      }>ELSE<{
+        s8 POP
+        s0 s2 XCHG
+        INC
+        s2 s7 XCHG
+      }>
+      s7 s9 XCHG
+      s6 s8 XCHG
+      s5 s0 XCPU
+      s5 s9 XCHG
+      s0 s4 XCHG
+      s3 s9 XCHG
+      s0 s11 s12 XCHG3
+      save_data INLINECALLDICT
+      MYADDR
+      s4 s4 s3 XCHG3
+      deploy_item INLINECALLDICT
+    }>
+    OVER
+    1447905614 PUSHINT
+    EQUAL
+    IFJMP:<{
+      NIP
+      s9 s8 s7 XCPU2
+      require_router_or_owner INLINECALLDICT
+      s9 PUSH
+      0 EQINT
+      403 THROWIFNOT
+      30000000 PUSHINT
+      2 PUSHINT
+      RAWRESERVE
+      s0 s8 XCHG
+      LDMSGADDR
+      LDREF
+      DROP
+      s6 PUSH
+      INC
+      s7 s9 XCHG
+      s6 s8 XCHG
+      s5 s0 XCPU
+      s5 s9 XCHG
+      s0 s4 XCHG
+      s3 s9 XCHG
+      s0 s11 s12 XCHG3
+      save_data INLINECALLDICT
+      MYADDR
+      s1 s4 s3 XCHG3
+      deploy_item INLINECALLDICT
+    }>
+    s8 s11 XCHG2
+    8 BLKDROP
+    1464095816 PUSHINT
+    EQUAL
+    IFJMP:<{
+      require_owner INLINECALLDICT
+      LDMSGADDR
+      LDGRAMS
+      DROP
+      BALANCE
+      UNPAIR
+      DROP
+      30000000 PUSHINT
+      SUB
+      s1 s(-1) PUXC
+      LEQ
+      406 THROWIFNOT
+      send_tons INLINECALLDICT
+    }>
+    3 BLKDROP
+    404 THROW
+  }>
+  get_collection_data PROC:<{
+    load_data INLINECALLDICT
+    5 BLKDROP
+    s2 POP
+    s0 s2 XCHG
+  }>
+  royalty_params PROC:<{
+    load_data INLINECALLDICT
+    DROP
+    5 3 BLKDROP2
+  }>
+  get_nft_address_by_index PROC:<{
+    load_data INLINECALLDICT
+    s4 s8 XCHG
+    8 BLKDROP
+    MYADDR
+    PUSHNULL
+    NEWC
+    ENDC
+    s3 s4 XCHG
+    build_item_data INLINECALLDICT
+    build_item_state_init INLINECALLDICT
+    0 PUSHINT
+    SWAP
+    calculate_item_address INLINECALLDICT
+  }>
+  get_router_state PROC:<{
+    load_data INLINECALLDICT
+    s8 POP
+    6 BLKDROP
+    SWAP
+  }>
+}END>c

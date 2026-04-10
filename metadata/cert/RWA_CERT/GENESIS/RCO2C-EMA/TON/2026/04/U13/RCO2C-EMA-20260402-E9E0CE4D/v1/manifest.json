@@ -1,0 +1,64 @@
+{
+    "cert_uid": "RCO2C-EMA-20260402-E9E0CE4D",
+    "user_id": 13,
+    "user_bucket": "U13",
+    "rwa_category": "GENESIS",
+    "rwa_code": "RCO2C-EMA",
+    "chain": "TON",
+    "version": 1,
+    "status": "issued",
+    "issued_at": "2026-04-02 13:13:29",
+    "minted_at": "",
+    "local_root": "/var/www/html/public/rwa/metadata/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/04/U13/RCO2C-EMA-20260402-E9E0CE4D",
+    "drive_root": "gdrive:ADG/rwa/cert/RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/04/U13/RCO2C-EMA-20260402-E9E0CE4D",
+    "relative_root": "RWA_CERT/GENESIS/RCO2C-EMA/TON/2026/04/U13/RCO2C-EMA-20260402-E9E0CE4D",
+    "files": {
+        "pdf": {
+            "exists": false,
+            "path": "pdf/RCO2C-EMA-20260402-E9E0CE4D.pdf"
+        },
+        "metadata": {
+            "exists": false,
+            "path": "meta/metadata.json"
+        },
+        "verify": {
+            "exists": false,
+            "path": "verify/verify.json"
+        },
+        "qr": {
+            "exists": false,
+            "path": "qr/verify.svg"
+        },
+        "payment_proof": {
+            "exists": false,
+            "path": "proof/payment-proof.json"
+        },
+        "mint_proof": {
+            "exists": false,
+            "path": "proof/mint-proof.json"
+        }
+    },
+    "generated_at": "2026-04-04T08:00:02+00:00",
+    "generator": "cert-manifest-builder@v1.0.0-20260404",
+    "meta": {
+        "family": "genesis",
+        "rwa_type": "green",
+        "price_wems": "1000",
+        "fingerprint_hash": "c91a62d99417fc3f01391438f722a7b57fb6cbbe1c79240cbc5d398851fc54ce",
+        "router_tx_hash": "Nm1xgvIpMtUZ4iX6CcmBSdLD4IYixU3k0CZ/LdVUmbk=",
+        "nft_item_address": "",
+        "nft_minted": 0,
+        "source_meta_keys": [
+            "lifecycle",
+            "payment",
+            "mint",
+            "preview",
+            "owner_wallet_raw",
+            "auto_mint",
+            "vault",
+            "nft_health",
+            "artifacts",
+            "repair"
+        ]
+    }
+}

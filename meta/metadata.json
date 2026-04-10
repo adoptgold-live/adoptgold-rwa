@@ -1,0 +1,21 @@
+{
+    "name": "RCO2C-EMA-20260402-E9E0CE4D",
+    "description": "RWA Cert RCO2C-EMA-20260402-E9E0CE4D",
+    "symbol": "RWA",
+    "image": "https://adoptgold.app/rwa/nft/image.png",
+    "image_url": "https://adoptgold.app/rwa/nft/image.png",
+    "attributes": [
+        {
+            "trait_type": "cert_uid",
+            "value": "RCO2C-EMA-20260402-E9E0CE4D"
+        },
+        {
+            "trait_type": "rwa_code",
+            "value": "RCO2C-EMA"
+        },
+        {
+            "trait_type": "family",
+            "value": "genesis"
+        }
+    ]
+}

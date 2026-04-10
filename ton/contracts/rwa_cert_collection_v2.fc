@@ -1,0 +1,314 @@
+#include "imports/stdlib.fc";
+
+;; /var/www/html/public/rwa/ton/contracts/rwa_cert_collection_v2.fc
+;; Version: v2.0.0-20260329-rwa-cert-collection-v2
+;; RWA Cert NFT Collection v2 admin-capable baseline
+
+const int OP_GET_ROYALTY_PARAMS = 0x693d3950;
+const int OP_REPORT_ROYALTY_PARAMS = 0xa8cb00ad;
+
+const int OP_OWNER_MINT = 0x4d494e54;          ;; "MINT"
+const int OP_SET_OWNER = 0x4f574e52;           ;; "OWNR"
+const int OP_SET_TREASURY = 0x54525359;        ;; "TRSY"
+const int OP_SET_CONTENT = 0x434f4e54;         ;; "CONT"
+const int OP_WITHDRAW = 0x57445448;            ;; "WDTH"
+const int OP_SET_MINT_PAUSED = 0x50415553;     ;; "PAUS"
+
+const int ERR_NOT_OWNER = 401;
+const int ERR_BAD_OPCODE = 402;
+const int ERR_MINT_PAUSED = 403;
+const int ERR_BAD_MSG = 404;
+const int ERR_BAD_AMOUNT = 405;
+
+const int MIN_STORAGE_RESERVE = 50000000;   ;; 0.05 TON
+const int MIN_WITHDRAW_KEEP = 50000000;     ;; 0.05 TON
+
+;; ------------------------------------------------------------
+;; Storage layout
+;;
+;; root data:
+;;   owner_addr
+;;   next_item_index
+;;   collection_content
+;;   nft_item_code
+;;   royalty_factor
+;;   royalty_base
+;;   royalty_address
+;;   treasury_addr
+;;   mint_paused
+;; ------------------------------------------------------------
+
+(slice, int, cell, cell, int, int, slice, slice, int) load_data() inline {
+    var ds = get_data().begin_parse();
+    slice owner_addr = ds~load_msg_addr();
+    int next_item_index = ds~load_uint(64);
+    cell collection_content = ds~load_ref();
+    cell nft_item_code = ds~load_ref();
+    int royalty_factor = ds~load_uint(16);
+    int royalty_base = ds~load_uint(16);
+    slice royalty_address = ds~load_msg_addr();
+    slice treasury_addr = ds~load_msg_addr();
+    int mint_paused = ds~load_uint(1);
+    return (owner_addr, next_item_index, collection_content, nft_item_code, royalty_factor, royalty_base, royalty_address, treasury_addr, mint_paused);
+}
+
+() save_data(
+    slice owner_addr,
+    int next_item_index,
+    cell collection_content,
+    cell nft_item_code,
+    int royalty_factor,
+    int royalty_base,
+    slice royalty_address,
+    slice treasury_addr,
+    int mint_paused
+) impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(owner_addr)
+            .store_uint(next_item_index, 64)
+            .store_ref(collection_content)
+            .store_ref(nft_item_code)
+            .store_uint(royalty_factor, 16)
+            .store_uint(royalty_base, 16)
+            .store_slice(royalty_address)
+            .store_slice(treasury_addr)
+            .store_uint(mint_paused, 1)
+        .end_cell()
+    );
+}
+
+int addr_eq(slice a, slice b) inline {
+    return cell_hash(begin_cell().store_slice(a).end_cell()) == cell_hash(begin_cell().store_slice(b).end_cell());
+}
+
+() throw_unless_owner(slice sender, slice owner_addr) impure inline {
+    throw_unless(ERR_NOT_OWNER, addr_eq(sender, owner_addr));
+}
+
+cell build_royalty_cell(int royalty_factor, int royalty_base, slice royalty_address) inline {
+    return begin_cell()
+        .store_uint(royalty_factor, 16)
+        .store_uint(royalty_base, 16)
+        .store_slice(royalty_address)
+        .end_cell();
+}
+
+() send_royalty_params(slice to_addr, int query_id, int royalty_factor, int royalty_base, slice royalty_address) impure inline {
+    var body = begin_cell()
+        .store_uint(OP_REPORT_ROYALTY_PARAMS, 32)
+        .store_uint(query_id, 64)
+        .store_uint(royalty_factor, 16)
+        .store_uint(royalty_base, 16)
+        .store_slice(royalty_address)
+        .end_cell();
+
+    var msg = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(to_addr)
+        .store_coins(0)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(body)
+        .end_cell();
+
+    send_raw_message(msg, 64);
+}
+
+() send_tons(slice to_addr, int amount) impure inline {
+    if (amount <= 0) {
+        return ();
+    }
+
+    var msg = begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(to_addr)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .end_cell();
+
+    send_raw_message(msg, 1);
+}
+
+int available_to_withdraw() inline {
+    [int bal, cell extra] = get_balance();
+    int free = bal - MIN_WITHDRAW_KEEP;
+    extra = extra;
+    if (free < 0) {
+        return 0;
+    }
+    return free;
+}
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+
+    var cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+
+    slice sender = cs~load_msg_addr();
+
+    var (
+        owner_addr,
+        next_item_index,
+        collection_content,
+        nft_item_code,
+        royalty_factor,
+        royalty_base,
+        royalty_address,
+        treasury_addr,
+        mint_paused
+    ) = load_data();
+
+    int op = in_msg_body~load_uint(32);
+    int query_id = in_msg_body~load_uint(64);
+
+    if (op == OP_GET_ROYALTY_PARAMS) {
+        send_royalty_params(sender, query_id, royalty_factor, royalty_base, royalty_address);
+        return ();
+    }
+
+    if (op == OP_SET_OWNER) {
+        throw_unless_owner(sender, owner_addr);
+        slice new_owner = in_msg_body~load_msg_addr();
+        save_data(new_owner, next_item_index, collection_content, nft_item_code, royalty_factor, royalty_base, royalty_address, treasury_addr, mint_paused);
+        return ();
+    }
+
+    if (op == OP_SET_TREASURY) {
+        throw_unless_owner(sender, owner_addr);
+        slice new_treasury = in_msg_body~load_msg_addr();
+        save_data(owner_addr, next_item_index, collection_content, nft_item_code, royalty_factor, royalty_base, royalty_address, new_treasury, mint_paused);
+        return ();
+    }
+
+    if (op == OP_SET_CONTENT) {
+        throw_unless_owner(sender, owner_addr);
+        cell new_content = in_msg_body~load_ref();
+        save_data(owner_addr, next_item_index, new_content, nft_item_code, royalty_factor, royalty_base, royalty_address, treasury_addr, mint_paused);
+        return ();
+    }
+
+    if (op == OP_SET_MINT_PAUSED) {
+        throw_unless_owner(sender, owner_addr);
+        int paused = in_msg_body~load_uint(1);
+        save_data(owner_addr, next_item_index, collection_content, nft_item_code, royalty_factor, royalty_base, royalty_address, treasury_addr, paused);
+        return ();
+    }
+
+    if (op == OP_WITHDRAW) {
+        throw_unless_owner(sender, owner_addr);
+        slice to_addr = in_msg_body~load_msg_addr();
+        int req_amount = in_msg_body~load_coins();
+
+        int max_free = available_to_withdraw();
+        throw_unless(ERR_BAD_AMOUNT, req_amount > 0);
+        throw_unless(ERR_BAD_AMOUNT, req_amount <= max_free);
+
+        send_tons(to_addr, req_amount);
+        return ();
+    }
+
+    if (op == OP_OWNER_MINT) {
+        throw_unless_owner(sender, owner_addr);
+        throw_unless(ERR_MINT_PAUSED, mint_paused == 0);
+
+        ;; Owner mint baseline only.
+        ;; Body format:
+        ;;   op:uint32
+        ;;   query_id:uint64
+        ;;   item_index:uint64
+        ;;   item_owner:MsgAddress
+        ;;   item_content:ref
+        ;;
+        ;; This baseline intentionally stores next_item_index policy,
+        ;; while actual item deploy plumbing should be aligned to your
+        ;; final NFT item contract and deploy message.
+        int item_index = in_msg_body~load_uint(64);
+        slice item_owner = in_msg_body~load_msg_addr();
+        cell item_content = in_msg_body~load_ref();
+
+        ;; keep compiler happy for now with explicit variable usage
+        item_owner~skip_bits(0);
+        item_content.begin_parse();
+
+        if (item_index >= next_item_index) {
+            next_item_index = item_index + 1;
+            save_data(owner_addr, next_item_index, collection_content, nft_item_code, royalty_factor, royalty_base, royalty_address, treasury_addr, mint_paused);
+        }
+        return ();
+    }
+
+    throw(ERR_BAD_OPCODE);
+}
+
+(int, int, slice) royalty_params() method_id {
+    var (
+        owner_addr,
+        next_item_index,
+        collection_content,
+        nft_item_code,
+        royalty_factor,
+        royalty_base,
+        royalty_address,
+        treasury_addr,
+        mint_paused
+    ) = load_data();
+
+    owner_addr~skip_bits(0);
+    next_item_index = next_item_index;
+    collection_content.begin_parse();
+    nft_item_code.begin_parse();
+    treasury_addr~skip_bits(0);
+    mint_paused = mint_paused;
+
+    return (royalty_factor, royalty_base, royalty_address);
+}
+
+(slice, int, cell, cell, slice, slice, int) get_collection_data_ext() method_id {
+    var (
+        owner_addr,
+        next_item_index,
+        collection_content,
+        nft_item_code,
+        royalty_factor,
+        royalty_base,
+        royalty_address,
+        treasury_addr,
+        mint_paused
+    ) = load_data();
+
+    royalty_factor = royalty_factor;
+    royalty_base = royalty_base;
+    royalty_address~skip_bits(0);
+
+    return (owner_addr, next_item_index, collection_content, nft_item_code, treasury_addr, owner_addr, mint_paused);
+}
+
+(int, cell, slice) get_collection_data() method_id {
+    var (
+        owner_addr,
+        next_item_index,
+        collection_content,
+        nft_item_code,
+        royalty_factor,
+        royalty_base,
+        royalty_address,
+        treasury_addr,
+        mint_paused
+    ) = load_data();
+
+    owner_addr~skip_bits(0);
+    nft_item_code.begin_parse();
+    royalty_factor = royalty_factor;
+    royalty_base = royalty_base;
+    royalty_address~skip_bits(0);
+    treasury_addr~skip_bits(0);
+    mint_paused = mint_paused;
+
+    return (next_item_index, collection_content, owner_addr);
+}

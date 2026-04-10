@@ -1,0 +1,18 @@
+{
+    "name": "adoptgold/rwa",
+    "description": "AdoptGold Standalone RWA",
+    "minimum-stability": "stable",
+    "require": {
+        "phpmailer/phpmailer": "^7.0",
+        "vlucas/phpdotenv": "^5.6",
+        "guzzlehttp/guzzle": "^7.10",
+        "endroid/qr-code": "^4.8",
+        "ramsey/uuid": "^4.9",
+        "monolog/monolog": "^3.10",
+        "google/apiclient": "^2.18",
+        "kornrunner/keccak": "^1.1",
+        "simplito/elliptic-php": "^1.0",
+        "dompdf/dompdf": "^3.1",
+        "bacon/bacon-qr-code": "^2.0.8"
+    }
+}

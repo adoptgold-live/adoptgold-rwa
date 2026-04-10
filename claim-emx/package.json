@@ -1,0 +1,22 @@
+{
+  "name": "claim-emx",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:native": "bash ./build-native.sh",
+    "wallet": "tsx scripts/getWalletAddress.ts"
+  },
+  "dependencies": {
+    "@ton/blueprint": "^0.22.0",
+    "@ton/core": "^0.62.0",
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^15.4.0",
+    "dotenv": "^16.6.1",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  }
+}

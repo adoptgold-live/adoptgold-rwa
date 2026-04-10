@@ -1,0 +1,17 @@
+{
+    "ok": true,
+    "healthy": true,
+    "nft_healthy": true,
+    "artifact_ready": true,
+    "image_exists": true,
+    "image_png": true,
+    "image_url": "https://adoptgold.app/rwa/nft/image.png",
+    "image_path": "/var/www/html/public/rwa/nft/image.png",
+    "used_fallback_placeholder": false,
+    "repair_mode": "PRESERVED_EXISTING_ART",
+    "cert_uid": "RCO2C-EMA-20260402-F5BF83DA",
+    "verified_at": "2026-04-03T01:21:02+08:00",
+    "file_size": 12348,
+    "width": 1200,
+    "height": 1200
+}
