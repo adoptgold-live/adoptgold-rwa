@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * /var/www/html/public/rwa/cert/index.php
- * Version: v9.0.1-20260409-rwa-cert-index-ui-lock
+ * Version: v10.0.0-20260410-locked-queue-ui
  *
  * MASTER LOCK
  * - Maintain previous visible design layout
@@ -11,13 +11,19 @@ declare(strict_types=1);
  * - local QR baseline unchanged
  * - Check & Preview owner = cert-actions.js
  * - Issue & Pay owner = cert-actions.js
- * - index.php only wires V9 DOM ids / modal hooks / queue hooks
- * - no router architecture revival
- * - UI-only update:
- *   * ACTIVE CERT -> CERT UID
- *   * AMOUNT NANO -> UNIT OF RESPONSIBILITY
- *   * ITEM INDEX -> MEMO / COMMENT OF TON PAYMENT
- *   * visible NFT factory cert value placeholder = —
+ * - cert.js = translator only
+ * - cert-router.js = queue/render/routing only
+ * - index.php only wires DOM ids / modal hooks / queue hooks
+ * - preserve exact existing DOM ids
+ * - add new queue cards only
+ *
+ * QUEUE ORDER LOCK
+ * - Issuance Factory
+ * - Payment Confirmation Queue
+ * - Payment Confirmed Pending Artifact
+ * - Mint Ready Queue
+ * - NFT Minting Process
+ * - Issued / Minted
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-session.php';
@@ -58,7 +64,7 @@ $csrfMintInit       = function_exists('csrf_token') ? (string) csrf_token('rwa_c
 $csrfMintVerify     = function_exists('csrf_token') ? (string) csrf_token('rwa_cert_mint_verify') : '';
 
 $certBoot = [
-    'version' => 'v9.0.1-20260409-rwa-cert-index-ui-lock',
+    'version' => 'v10.0.0-20260410-locked-queue-ui',
     'identity' => [
         'wallet'        => $currentWallet,
         'owner_user_id' => (string) $currentOwnerId,
@@ -98,9 +104,21 @@ $certBoot = [
             'summary' => 'cert-summary-card-issuance-factory',
             'tab'     => 'cert-tab-issuance-factory',
         ],
+        'payment_confirmation' => [
+            'list'    => 'paymentConfirmationQueueList',
+            'empty'   => 'paymentConfirmationQueueEmpty',
+            'summary' => 'paymentConfirmationQueueCard',
+            'tab'     => 'paymentConfirmationQueueCard',
+        ],
+        'payment_confirmed_pending_artifact' => [
+            'list'    => 'paymentConfirmedPendingArtifactList',
+            'empty'   => 'paymentConfirmedPendingArtifactEmpty',
+            'summary' => 'paymentConfirmedPendingArtifactCard',
+            'tab'     => 'paymentConfirmedPendingArtifactCard',
+        ],
         'mint_ready_queue' => [
             'list'    => 'cert-list-mint-ready',
-            'empty'   => 'cert-empty-mint-ready',
+            'empty'   => 'mintReadyEmpty',
             'summary' => 'cert-summary-card-mint-ready',
             'tab'     => 'cert-tab-mint-ready',
         ],
@@ -156,7 +174,7 @@ $certBoot = [
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0c12">
   <meta name="color-scheme" content="dark">
-  <link rel="stylesheet" href="/rwa/cert/cert.css?v=v9.0.1-20260409-rwa-cert-index-ui-lock">
+  <link rel="stylesheet" href="/rwa/cert/cert.css?v=v10.0.0-20260410-locked-queue-ui">
 </head>
 <body class="lang-en">
 <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-topbar-nav.php')) {
@@ -269,7 +287,7 @@ $certBoot = [
       </div>
       <div class="step-card cert-stage" id="factoryStep3" data-flow-stage="mint_ready">
         <div class="step-num">3</div>
-        <div class="step-title" data-i18n="step_3">Mint Ready</div>
+        <div class="step-title">Mint Ready</div>
       </div>
       <div class="step-card cert-stage" id="factoryStep4" data-flow-stage="minting">
         <div class="step-num">4</div>
@@ -277,7 +295,7 @@ $certBoot = [
       </div>
       <div class="step-card cert-stage" id="factoryStep5" data-flow-stage="issued">
         <div class="step-num">5</div>
-        <div class="step-title" data-i18n="step_5">Issued</div>
+        <div class="step-title">Issued</div>
       </div>
     </div>
 
@@ -291,7 +309,7 @@ $certBoot = [
     <div class="factory-action-row">
       <button type="button" class="factory-action-btn" id="rwaIssuePayBtn" data-i18n="btn_issue_pay">Issue &amp; Pay</button>
       <button type="button" class="factory-action-btn secondary" id="rwaAutoIssueBtn" data-i18n="btn_auto_issue">Auto Issue Tx 5s</button>
-      <button type="button" class="factory-action-btn secondary" id="rwaJumpMintBtn" data-i18n="btn_finalize_mint">—</button>
+      <button type="button" class="factory-action-btn secondary" id="rwaJumpMintBtn" data-i18n="btn_finalize_mint">Finalize Mint</button>
     </div>
 
     <div class="active-card" id="certActivePanel">
@@ -330,6 +348,37 @@ $certBoot = [
       <div id="certNextStepBanner" class="compat-hidden" aria-hidden="true"></div>
     </div>
 
+    <!-- NEW QUEUE 1 -->
+    <section id="paymentConfirmationQueueCard" class="queue-head">
+      <div class="section-kicker" id="paymentConfirmationQueueTitle">PAYMENT CONFIRMATION QUEUE</div>
+      <div class="section-sub" id="paymentConfirmationQueueHint">
+        Business payment done but not yet verified for mint readiness.
+      </div>
+      <div class="mint-ready-list">
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 8px 0;">
+          <span id="paymentConfirmationQueueCount" class="active-status">0</span>
+        </div>
+        <div id="paymentConfirmationQueueList"></div>
+        <div class="queue-empty" id="paymentConfirmationQueueEmpty" hidden>No payment confirmation items.</div>
+      </div>
+    </section>
+
+    <!-- NEW QUEUE 2 -->
+    <section id="paymentConfirmedPendingArtifactCard" class="queue-head">
+      <div class="section-kicker" id="paymentConfirmedPendingArtifactTitle">PAYMENT CONFIRMED PENDING ARTIFACT</div>
+      <div class="section-sub" id="paymentConfirmedPendingArtifactHint">
+        Payment confirmed, but required mint artifacts are not ready yet.
+      </div>
+      <div class="mint-ready-list">
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 8px 0;">
+          <span id="paymentConfirmedPendingArtifactCount" class="active-status">0</span>
+        </div>
+        <div id="paymentConfirmedPendingArtifactList"></div>
+        <div class="queue-empty" id="paymentConfirmedPendingArtifactEmpty" hidden>No payment-confirmed pending-artifact items.</div>
+      </div>
+    </section>
+
+    <!-- EXISTING MINT READY -->
     <div class="queue-head">
       <div class="section-kicker" data-i18n="mint_queue_kicker">Mint Ready Queue</div>
       <div class="section-sub" data-i18n="mint_queue_sub">
@@ -477,7 +526,6 @@ $certBoot = [
   </section>
 
   <section class="gold-factory section-block" id="nftFactorySection">
-  <!-- NFT FACTORY CORE UI -->
     <div class="gold-inner">
       <div class="section-kicker" data-i18n="nft_kicker">NFT FACTORY</div>
       <h2 class="section-title" data-i18n="nft_title">NFT Minting Process Settlement</h2>
@@ -592,7 +640,6 @@ $certBoot = [
       </div>
 
       <div class="issue-pay-modal__left">
-
         <div class="issue-pay-card">
           <div class="gold-mini-k" data-i18n="mini_cert_uid">Cert UID</div>
           <div class="gold-mini-v mono" id="issuePayCertUid">—</div>
@@ -618,63 +665,99 @@ $certBoot = [
           <div class="gold-mini-v mono" id="issuePayRef">—</div>
         </div>
 
-        <div class="issue-pay-card payment-status--pending" id="issuePayStatus">
+        <div class="issue-pay-card" id="issuePayStatus">
           <div class="gold-mini-k" data-i18n="payment_status">Payment Status</div>
           <div class="gold-mini-v" id="issuePayStatusText" data-i18n="waiting_text">Waiting.</div>
         </div>
 
-        <div class="deeplink-box settlement-card">
+        <div class="deeplink-box">
           <div class="gold-mini-k" data-i18n="wallet_deeplink">Wallet Deeplink</div>
           <div class="gold-mini-v mono">
-            <a id="issuePayWalletLink" href="#" target="_blank" rel="noopener" class="wallet-deeplink-link">—</a>
+            <a id="issuePayWalletLink" class="wallet-deeplink-link" href="#" target="_blank" rel="noopener">—</a>
           </div>
         </div>
 
-        <div class="gold-actions" style="margin-top:0;">
+        <div class="gold-actions">
           <a class="gold-btn" id="issuePayWalletBtn" href="#" target="_blank" rel="noopener" data-i18n="open_wallet_btn">Open Wallet</a>
-          <button type="button" class="gold-btn secondary" id="issuePayCopyLinkBtn">Copy Link</button>
           <button type="button" class="gold-btn secondary" id="issuePayCopyRefBtn" data-i18n="copy_ref_btn">Copy Ref</button>
-        </div>
-
-        <div class="gold-actions" style="margin-top:0;">
           <button type="button" class="gold-btn secondary" id="issuePayVerifyBtn" data-i18n="refresh_verify_btn">Refresh Verify</button>
           <button type="button" class="gold-btn secondary" id="issuePayAutoBtn" data-i18n="auto_issue_modal_btn">Auto Issue Tx (5s)</button>
         </div>
-
-        <div class="deeplink-box settlement-card">
-          <div class="gold-mini-k">Auto Verify</div>
-          <div class="gold-mini-v" id="issuePayAutoVerifyHint">Auto verify can keep checking payment confirmation.</div>
-        </div>
-
       </div>
 
       <div class="issue-pay-modal__right">
-        <div class="settlement-card issue-pay-qr-only" id="issuePayQrWrap">
+        <div class="issue-pay-card issue-pay-qr-only">
           <div class="gold-mini-k" data-i18n="payment_qr">Payment QR</div>
-          <a id="issuePayQrLink" href="#" target="_blank" rel="noopener">
-            <img id="issuePayQrImage" alt="Payment QR" style="display:none;">
-          </a>
-          <div id="issuePayQrText" class="gold-mini-v mono" style="display:none;white-space:pre-wrap;word-break:break-word;"></div>
-          <div id="issuePayQrPlaceholder" class="gold-mini-v" data-i18n="qr_pending">QR pending.</div>
+          <div id="issuePayQrWrapInner">
+            <a id="issuePayQrLink" href="#" target="_blank" rel="noopener">
+              <img id="issuePayQrImage" alt="Payment QR">
+            </a>
+            <div id="issuePayQrText"></div>
+            <div id="issuePayQrPlaceholder" data-i18n="qr_pending">QR pending.</div>
+          </div>
         </div>
       </div>
 
     </div>
   </div>
 
+  <!-- existing hidden router / summary roots preserved -->
+  <div id="cert-global-status-root" hidden><div id="cert-global-status-bar"></div></div>
+  <div id="cert-queue-summary-root" hidden></div>
+  <div id="cert-workspace-root" hidden>
+    <div id="cert-queue-column-root">
+      <div id="cert-queue-tabs-root">
+        <button id="cert-tab-issuance-factory">Issuance</button>
+        <button id="cert-tab-mint-ready">Mint Ready</button>
+        <button id="cert-tab-minting-process">Minting</button>
+        <button id="cert-tab-issued">Issued</button>
+        <button id="cert-tab-blocked">Blocked</button>
+      </div>
+      <div id="cert-queue-panels-root">
+        <div id="cert-panel-issuance-factory">
+          <div id="cert-panel-count-issuance-factory">0</div>
+          <div id="cert-list-issuance-factory"></div>
+          <div id="cert-empty-issuance-factory"></div>
+        </div>
+        <div id="cert-panel-mint-ready">
+          <div id="cert-panel-count-mint-ready">0</div>
+        </div>
+        <div id="cert-panel-minting-process">
+          <div id="cert-panel-count-minting-process">0</div>
+          <div id="cert-list-minting-process"></div>
+          <div id="cert-empty-minting-process"></div>
+        </div>
+        <div id="cert-panel-issued">
+          <div id="cert-panel-count-issued">0</div>
+          <div id="cert-list-issued"></div>
+          <div id="cert-empty-issued"></div>
+        </div>
+        <div id="cert-panel-blocked">
+          <div id="cert-panel-count-blocked">0</div>
+          <div id="cert-list-blocked"></div>
+          <div id="cert-empty-blocked"></div>
+        </div>
+      </div>
+    </div>
+    <div id="cert-stage-column-root">
+      <div id="cert-stage-context-root"></div>
+    </div>
+  </div>
+
+  <div id="cert-selected-context-root" hidden>
+    <div id="cert-selected-cert-uid"></div>
+    <div id="cert-selected-cert-code"></div>
+    <div id="cert-selected-cert-bucket"></div>
+    <div id="cert-selected-cert-stage"></div>
+  </div>
+
+  <div id="cert-action-status-root" hidden><div id="cert-action-status-log"></div></div>
+  <div id="cert-modal-root" hidden></div>
+
   <section class="card-premium section-block">
-    <div class="section-kicker">Factory Console Log</div>
-    <h2 class="section-title">Factory Console Log</h2>
-    <div id="logBox" style="
-      min-height:40px;
-      font-size:12px;
-      opacity:.8;
-      background:rgba(255,255,255,0.03);
-      border:1px dashed rgba(255,255,255,0.08);
-      border-radius:8px;
-      padding:10px;
-    ">Ready.</div>
-    <div id="factoryConsoleLog" hidden></div>
+    <div class="section-kicker" data-i18n="console_kicker">Factory Console Log</div>
+    <h2 class="section-title" data-i18n="console_title">Factory Console Log</h2>
+    <div class="log-box" id="factoryConsoleLog"></div>
   </section>
 
 </main>
@@ -683,18 +766,9 @@ $certBoot = [
 <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-bottom-nav.php')) {
     require $_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-bottom-nav.php';
 } ?>
-<?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/core/gt-inline.php')) {
-    require $_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/core/gt-inline.php';
-} ?>
 
-<script src="/rwa/inc/core/poado-i18n.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script type="module" src="/rwa/cert/shared/balance-helper.js?v=v2.0.0-20260406-balance-helper-restore"></script>
-<script src="/rwa/cert/cert.js?v=v7.4.3-20260407-router-compat-guard"></script>
-<script src="/rwa/cert/cert-actions.js?v=500-balance-local-1"></script>
-<script src="/rwa/cert/mint-actions.js?v=500"></script>
-<script src="/rwa/cert/cert-router.js?v=20260409-mint-ready-fix-2"></script>
-
+<script src="/rwa/cert/cert-router.js?v=v10.0.0-20260410-locked-queue-router"></script>
+<script src="/rwa/cert/cert-actions.js?v=v24.1.1-20260410-full-restore-dom-lock"></script>
+<script src="/rwa/cert/cert.js?v=v7.4.4-20260407-translator-only"></script>
 </body>
 </html>

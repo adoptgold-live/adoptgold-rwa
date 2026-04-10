@@ -3,7 +3,7 @@ declare(strict_types=1);
 /**
  * /var/www/html/public/rwa/storage/index.php
  * AdoptGold / POAdo — Storage Index
- * Version: FINAL-LOCK-5
+ * Version: FINAL-LOCK-5-STV-TOP-3-RWAE-PROGRESS
  *
  * Layout rules:
  * - maintain previous locked Storage shell, DOM flow, and modal structure
@@ -12,6 +12,9 @@ declare(strict_types=1);
  * - preserve EN / 中 switch
  * - add Storage-owned claim UI for mining-linked unclaimed wEMS
  * - do not break existing storage.js / reload helper / commit helper flow
+ * - add top STV pre-approved premium hero
+ * - STV hero amounts use RWA€
+ * - Approved STV shows used / total with progress bar
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/rwa/inc/rwa-session.php';
@@ -319,6 +322,227 @@ $langDefault = 'en';
     .claim-wems-row:last-child{border-bottom:0}
     .claim-wems-row .left{color:#9ca3af; font-size:12px}
     .claim-wems-row .right{color:#fff; font-weight:700; text-align:right}
+
+    .stv-top-hero{
+      margin:0 0 18px;
+      border:1px solid rgba(124,77,255,.26);
+      border-radius:28px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(168,85,247,.24), transparent 30%),
+        linear-gradient(135deg, rgba(18,22,40,.98), rgba(20,11,32,.98) 52%, rgba(10,11,16,.98));
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.05);
+      position:relative;
+    }
+    .stv-top-hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04), transparent 22%, transparent 78%, rgba(255,255,255,.03)),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 35%);
+      pointer-events:none;
+    }
+    .stv-top-hero__inner{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+      padding:22px;
+      position:relative;
+      z-index:1;
+    }
+    @media (max-width:980px){
+      .stv-top-hero__inner{grid-template-columns:1fr}
+    }
+    .stv-top-hero__eyebrow{
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#c9b7ff;
+      margin-bottom:8px;
+    }
+    .stv-top-hero__title{
+      margin:0;
+      font-size:32px;
+      line-height:1.05;
+      color:#eef2ff;
+      font-weight:900;
+      text-shadow:0 2px 18px rgba(124,77,255,.18);
+    }
+    .stv-top-hero__sub{
+      margin:10px 0 0;
+      color:#d6dbef;
+      font-size:14px;
+      line-height:1.6;
+    }
+    .stv-top-hero__big{
+      font-size:54px;
+      line-height:1;
+      font-weight:900;
+      color:#ffffff;
+      margin:14px 0 8px;
+      letter-spacing:.02em;
+      word-break:break-word;
+      text-shadow:
+        0 0 18px rgba(124,77,255,.22),
+        0 0 30px rgba(59,130,246,.12);
+    }
+    .stv-top-hero__big small{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      color:#d6dbef;
+      margin-bottom:8px;
+      letter-spacing:.1em;
+    }
+    @media (max-width:640px){
+      .stv-top-hero__title{font-size:26px}
+      .stv-top-hero__big{font-size:40px}
+    }
+    .stv-top-hero__chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+    .stv-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:#f3f4f6;
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .stv-top-hero__actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+    .stv-top-hero__btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:14px;
+      text-decoration:none;
+      border:1px solid rgba(124,77,255,.24);
+      background:linear-gradient(135deg, rgba(124,77,255,.20), rgba(59,130,246,.18));
+      color:#f5f3ff;
+      font-weight:800;
+      box-shadow:0 10px 24px rgba(59,130,246,.10);
+    }
+    .stv-top-hero__btn.secondary{
+      background:rgba(255,255,255,.05);
+      border-color:rgba(255,255,255,.10);
+      color:#f1f5f9;
+      box-shadow:none;
+    }
+    .stv-top-hero__right{
+      display:grid;
+      gap:12px;
+      align-content:start;
+    }
+    .stv-metric-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width:640px){
+      .stv-metric-grid{grid-template-columns:1fr}
+    }
+    .stv-stat-card{
+      border:1px solid rgba(124,77,255,.18);
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      border-radius:20px;
+      padding:16px 18px;
+      min-height:170px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05),
+        0 10px 26px rgba(0,0,0,.18);
+    }
+    .stv-stat-card__k{
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#c9b7ff;
+      margin-bottom:8px;
+    }
+    .stv-stat-card__v{
+      font-size:24px;
+      font-weight:900;
+      color:#fff;
+      text-shadow:0 0 14px rgba(124,77,255,.16);
+    }
+    .stv-stat-card__n{
+      font-size:13px;
+      line-height:1.55;
+      color:#d1d5db;
+      margin-top:8px;
+    }
+    .stv-progress{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.04);
+    }
+    .stv-progress__bar{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#22c55e,#84cc16);
+      transition:width .25s ease;
+    }
+    .stv-progress__bar.warn{
+      background:linear-gradient(90deg,#f59e0b,#fbbf24);
+    }
+    .stv-progress__bar.danger{
+      background:linear-gradient(90deg,#ef4444,#fb7185);
+    }
+    .stv-status-card{
+      border:1px solid rgba(124,77,255,.18);
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      border-radius:20px;
+      padding:16px 18px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05),
+        0 10px 26px rgba(0,0,0,.18);
+    }
+    .stv-status-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+    }
+    .stv-status-badge.submitted{
+      border-color:rgba(59,130,246,.30);
+      color:#dbeafe;
+    }
+    .stv-top-hero.is-loading .stv-top-hero__big,
+    .stv-top-hero.is-loading .stv-stat-card__v{
+      opacity:.65;
+    }
   </style>
 </head>
 <body
@@ -350,6 +574,60 @@ $langDefault = 'en';
         <button type="button" class="lang-inline-btn is-active" id="langEnBtn" data-lang="en">EN</button>
         <span class="lang-sep">|</span>
         <button type="button" class="lang-inline-btn" id="langZhBtn" data-lang="zh">中</button>
+      </div>
+    </section>
+
+    <section class="stv-top-hero is-loading" id="stvTopHero">
+      <div class="stv-top-hero__inner">
+        <div class="stv-top-hero__left">
+          <div class="stv-top-hero__eyebrow" id="stvHeroEyebrow">STV DASHBOARD</div>
+          <h2 class="stv-top-hero__title" id="stvHeroTitle">Swap To Value from Minted RWA Cert NFTs</h2>
+          <div class="stv-top-hero__big" id="stvPreapprovedBig">
+            <small id="stvPreapprovedLabel">TOTAL STV VALUE</small>
+            RWA€ 0
+          </div>
+          <p class="stv-top-hero__sub" id="stvHeroSub">
+            Only Minted RWA Cert NFTs are accepted for STV. Storage shows the live STV overview and links into the full STV workflow.
+          </p>
+
+          <div class="stv-top-hero__chips">
+            <span class="stv-chip" id="stvEligibleCountChip">Eligible Minted NFTs: 0</span>
+            <span class="stv-chip" id="stvRuleChip">Minted NFT Only</span>
+          </div>
+
+          <div class="stv-top-hero__actions">
+            <a class="stv-top-hero__btn" id="stvApplyBtn" href="/rwa/swap/stv/">Open STV Dashboard</a>
+            <a class="stv-top-hero__btn secondary" id="stvViewEligibleBtn" href="/rwa/swap/stv/?view=eligible">View Eligible NFTs</a>
+          </div>
+        </div>
+
+        <div class="stv-top-hero__right">
+          <div class="stv-metric-grid">
+            <div class="stv-stat-card">
+              <div class="stv-stat-card__k" id="stvApprovedLabel">APPROVED STV 75%</div>
+              <div class="stv-stat-card__v" id="stvApprovedValue">0 / 0</div>
+              <div class="stv-progress">
+                <div class="stv-progress__bar" id="stvApprovedBar" style="width:0%"></div>
+              </div>
+              <div class="stv-stat-card__n" id="stvApprovedNote">Used / Available</div>
+            </div>
+
+            <div class="stv-stat-card">
+              <div class="stv-stat-card__k" id="stvLockedLabel">LOCKED STV 25%</div>
+              <div class="stv-stat-card__v" id="stvLockedValue">RWA€ 0</div>
+              <div class="stv-stat-card__n" id="stvLockedNote">Reserved STV by policy and not immediately usable.</div>
+            </div>
+          </div>
+
+          <div class="stv-status-card">
+            <div class="stv-stat-card__k" id="stvStatusLabel">APPLICATION STATUS</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div class="stv-stat-card__v" id="stvStatusValue">Draft</div>
+              <span class="stv-status-badge" id="stvStatusBadge">Draft</span>
+            </div>
+            <div class="stv-stat-card__n" id="stvStatusNote">Continue in the STV dashboard for document upload, review, and approval flow.</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1003,6 +1281,11 @@ $langDefault = 'en';
         unclaimedWemsUrl: "/rwa/api/storage/unclaimed-wems.php",
         claimWemsUrl: "/rwa/api/storage/claim-wems.php"
       },
+      stv: {
+        summaryUrl: "/rwa/swap/stv/api/stv-summary.php",
+        workspaceUrl: "/rwa/swap/stv/",
+        eligibleUrl: "/rwa/swap/stv/?view=eligible"
+      },
       reload: {
         endpoint: "/rwa/api/storage/reload-card-emx.php",
         verifyEndpoint: "/rwa/api/storage/reload-card-emx-verify.php",
@@ -1232,6 +1515,122 @@ $langDefault = 'en';
       });
 
       readUnclaimedWems();
+    })();
+
+    (function () {
+      var boot = window.STORAGE_PAGE_BOOT || {};
+      var hero = document.getElementById('stvTopHero');
+      var totalEl = document.getElementById('stvPreapprovedBig');
+      var eligibleCountChip = document.getElementById('stvEligibleCountChip');
+      var ruleChip = document.getElementById('stvRuleChip');
+      var approvedLabel = document.getElementById('stvApprovedLabel');
+      var approvedValue = document.getElementById('stvApprovedValue');
+      var approvedBar = document.getElementById('stvApprovedBar');
+      var approvedNote = document.getElementById('stvApprovedNote');
+      var lockedLabel = document.getElementById('stvLockedLabel');
+      var lockedValue = document.getElementById('stvLockedValue');
+      var lockedNote = document.getElementById('stvLockedNote');
+      var statusValue = document.getElementById('stvStatusValue');
+      var statusBadge = document.getElementById('stvStatusBadge');
+      var statusNote = document.getElementById('stvStatusNote');
+      var applyBtn = document.getElementById('stvApplyBtn');
+      var eligibleBtn = document.getElementById('stvViewEligibleBtn');
+
+      if (applyBtn && boot.stv && boot.stv.workspaceUrl) {
+        applyBtn.href = boot.stv.workspaceUrl;
+      }
+      if (eligibleBtn && boot.stv && boot.stv.eligibleUrl) {
+        eligibleBtn.href = boot.stv.eligibleUrl;
+      }
+
+      function formatInt(n) {
+        return Number(n || 0).toLocaleString();
+      }
+
+      function rwae(n) {
+        return 'RWA€ ' + formatInt(n);
+      }
+
+      function setHeroLoading(isLoading) {
+        if (!hero) return;
+        hero.classList.toggle('is-loading', !!isLoading);
+      }
+
+      function setApprovedBar(used, total) {
+        var pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+        approvedBar.style.width = pct + '%';
+        approvedBar.className = 'stv-progress__bar';
+        if (pct >= 80) approvedBar.classList.add('danger');
+        else if (pct >= 50) approvedBar.classList.add('warn');
+      }
+
+      function setHeroFallback(message) {
+        totalEl.innerHTML = '<small>TOTAL STV VALUE</small>RWA€ 0';
+        eligibleCountChip.textContent = 'Eligible Minted NFTs: 0';
+        ruleChip.textContent = 'Minted NFT Only';
+        approvedLabel.textContent = 'APPROVED STV 75%';
+        approvedValue.textContent = '0 / 0';
+        setApprovedBar(0, 0);
+        approvedNote.textContent = 'Used / Available';
+        lockedLabel.textContent = 'LOCKED STV 25%';
+        lockedValue.textContent = 'RWA€ 0';
+        lockedNote.textContent = 'Reserved STV by policy and not immediately usable.';
+        statusValue.textContent = 'Draft';
+        statusBadge.textContent = 'Draft';
+        statusBadge.className = 'stv-status-badge';
+        statusNote.textContent = message || 'Continue in the STV dashboard for document upload, review, and approval flow.';
+      }
+
+      async function loadStvSummary() {
+        if (!boot.stv || !boot.stv.summaryUrl) {
+          setHeroFallback('STV summary endpoint not configured.');
+          return;
+        }
+
+        setHeroLoading(true);
+
+        try {
+          var res = await fetch(boot.stv.summaryUrl, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+          });
+
+          var json = await res.json();
+          if (!res.ok || !json || json.ok !== true) {
+            throw new Error((json && (json.error || json.message)) || ('HTTP_' + res.status));
+          }
+
+          var total = Number(json.preapproved_total || 0);
+          var approved = Math.floor(total * 0.75);
+          var locked = total - approved;
+          var used = Number(json.used_stv || 0);
+
+          totalEl.innerHTML = '<small>TOTAL STV VALUE</small>' + rwae(total);
+          eligibleCountChip.textContent = 'Eligible Minted NFTs: ' + String(json.eligible_count || 0);
+          ruleChip.textContent = 'Minted NFT Only';
+
+          approvedLabel.textContent = 'APPROVED STV 75%';
+          approvedValue.textContent = formatInt(used) + ' / ' + formatInt(approved);
+          setApprovedBar(used, approved);
+          approvedNote.textContent = 'Used / Available';
+
+          lockedLabel.textContent = 'LOCKED STV 25%';
+          lockedValue.textContent = rwae(locked);
+          lockedNote.textContent = 'Reserved STV by policy and not immediately usable.';
+
+          statusValue.textContent = 'Draft';
+          statusBadge.textContent = 'Draft';
+          statusBadge.className = 'stv-status-badge';
+          statusNote.textContent = 'Continue in the STV dashboard for document upload, review, and approval flow.';
+        } catch (e) {
+          setHeroFallback(String(e.message || e || 'STV summary load failed.'));
+        } finally {
+          setHeroLoading(false);
+        }
+      }
+
+      loadStvSummary();
     })();
   </script>
 </body>
