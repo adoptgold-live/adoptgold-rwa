@@ -1145,23 +1145,6 @@
     return finalizeJson;
   }
 
-    setFlowState(FLOW.MINTING, { cert_uid: uid });
-    setText('nextStepBanner', textByLang(
-      'Wallet sign requested. Waiting for on-chain mint confirmation.',
-      '已请求钱包签名。等待链上铸造确认。'
-    ));
-
-    appendLogLine(`Finalize Mint ready: ${uid}`, 'ok');
-
-    // start polling AFTER payload confirmed
-    startMintPoll(uid);
-
-    // 🔥 safe wallet open
-    openMintWallet(finalizeJson);
-
-    return finalizeJson;
-  }
-
   function bindCardSelection() {
     document.querySelectorAll('.rwa-card').forEach((card) => {
       card.addEventListener('click', async () => {
