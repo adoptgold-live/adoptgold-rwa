@@ -209,34 +209,6 @@
   }
 
 
-  function issuePayPayloadReady() {
-    const certUid = String($('issuePayCertUid')?.textContent || '').trim();
-    const token = String($('issuePayToken')?.textContent || '').trim();
-    const amount = String($('issuePayAmount')?.textContent || '').trim();
-    const ref = String($('issuePayRef')?.textContent || '').trim();
-
-    return !!(
-      certUid && certUid !== '—' &&
-      token && token !== '—' &&
-      amount && amount !== '—' &&
-      ref && ref !== '—'
-    );
-  }
-
-  function guardIssuePayAction() {
-    if (issuePayPayloadReady()) return true;
-
-    showCenterNotice(
-      textByLang(
-        'Payment payload not loaded. Use Repair Payment for reconfirmation, or reopen Issue & Pay for a fresh payment request.',
-        '支付资料尚未载入。请使用 Repair Payment 重新确认，或重新打开 Issue & Pay 创建新的支付请求。'
-      ),
-      textByLang('Notice', '提示')
-    );
-    return false;
-  }
-
-
   function ensureRepairPaymentModal() {
     let modal = $('repairPaymentModal');
     if (modal) return modal;
@@ -301,8 +273,8 @@
     document.body.appendChild(wrap);
 
     wrap.addEventListener('click', (ev) => {
-      if (ev.target === wrap) { stopAutoPay();
-        stopAutoPay(); closeRepairPaymentModal();
+      if (ev.target === wrap) {
+        closeRepairPaymentModal();
       }
     });
 
@@ -825,7 +797,6 @@
     if (!modal) return;
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
-    markCertModalOpen(false);
     document.body.style.overflow = '';
   }
 
@@ -1165,20 +1136,29 @@
   }
 
   function stopAutoPay() {
-  if (state.autoPayTimer) {
-    clearInterval(state.autoPayTimer);
-    state.autoPayTimer = null;
-  }
-  state.autoPayUid = '';
-}
+    if (state.autoPayTimer) {
+      clearInterval(state.autoPayTimer);
+      state.autoPayTimer = null;
+    }
     state.autoPayUid = '';
     setRepairPaymentAutoVerifyState(false);
   }
 
   function startAutoPay(certUid) {
-  console.warn('Auto verify disabled globally');
-  return;
-}
+    const uid = String(certUid || '').trim();
+    if (!uid || uid === '—') return;
+
+    stopAutoPay();
+    state.autoPayUid = uid;
+    setRepairPaymentAutoVerifyState(true);
+    setRepairPaymentAutoVerifyState(true);
+
+    state.autoPayTimer = window.setInterval(async () => {
+      try {
+        if (!state.autoPayUid) {
+          stopAutoPay();
+          return;
+        }
         const res = await handleConfirmPayment(uid);
         const verified = res?.verified === true || res?.payment?.status === 'confirmed';
         if (verified) stopAutoPay();
@@ -1370,7 +1350,7 @@
         try {
           const certUid = String(state.selectedCertUid || $('activeCertUid')?.textContent || '').trim();
           if (!certUid || certUid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
-          // auto verify disabled
+          startAutoPay(certUid);
           setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
           appendLogLine(`Auto payment verify started: ${certUid}`, 'ok');
         } catch (e) {
@@ -1420,7 +1400,7 @@
         showCenterNotice(textByLang('No active payment cert.', '没有可用的支付证书。'), textByLang('Notice', '提示'));
         return;
       }
-      // auto verify disabled
+      startAutoPay(certUid);
       setRepairPaymentAutoVerifyState(true);
       appendLogLine(`Repair auto verify started: ${certUid}`, 'ok');
     });
@@ -1431,15 +1411,12 @@
       appendLogLine('Repair auto verify stopped.', 'ok');
     });
 
-    $('issuePayCloseBtn')?.addEventListener('click', () => {
-      markCertModalOpen(false);
-      stopAutoPay(); closeIssuePayModal();
-    });
+    $('issuePayCloseBtn')?.addEventListener('click', closeIssuePayModal);
 
     $('issuePayModal')?.addEventListener('click', (ev) => {
       if (ev.target === $('issuePayModal')) {
         markCertModalOpen(false);
-        stopAutoPay(); closeIssuePayModal();
+        closeIssuePayModal();
       }
     });
 
@@ -1467,7 +1444,6 @@
 
     $('issuePayVerifyBtn')?.addEventListener('click', async () => {
       try {
-        if (!guardIssuePayAction()) return;
         const certUid = String($('issuePayCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
         await handleConfirmPayment(certUid);
@@ -1480,14 +1456,12 @@
     });
 
     $('issuePayAutoBtn')?.addEventListener('click', () => {
-      if (!guardIssuePayAction()) return;
-
       const certUid = String($('issuePayCertUid')?.textContent || '').trim();
       if (!certUid || certUid === '—') {
         showCenterNotice(textByLang('No active payment cert.', '没有可用的支付证书。'), textByLang('Notice', '提示'));
         return;
       }
-      // auto verify disabled
+      startAutoPay(certUid);
       setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
       appendLogLine(`Auto payment verify started: ${certUid}`, 'ok');
     });
@@ -1570,7 +1544,7 @@
         };
         fillRepairPaymentModal(certUid, seed);
         openRepairPaymentModal();
-        // auto verify disabled
+        startAutoPay(certUid);
         await handleConfirmPayment(certUid);
       } catch (e) {
         err('cert:payment-reconfirm failed', e);

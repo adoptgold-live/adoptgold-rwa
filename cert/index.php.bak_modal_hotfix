@@ -774,6 +774,5 @@ $certBoot = [
 <script src="/rwa/cert/cert.js?v=v7.5.0-20260410-translator-only-global-lock"></script>
 <script src="/rwa/cert/cert-router.js?v=v10.2.0-20260410-pure-router-global-lock"></script>
 <script src="/rwa/cert/cert-actions.js?v=v25.0.0-20260410-global-role-lock"></script>
-<script src="/rwa/cert/cert-modal-hotfix.js?v=v1.0.0-20260410-modal-close-hotfix"></script>
 </body>
 </html>
