@@ -209,37 +209,6 @@
   }
 
 
-  function repairPopupSuppressed() {
-    try {
-      const until = Number(sessionStorage.getItem('certRepairPopupSuppressedUntil') || '0');
-      return Number.isFinite(until) && until > Date.now();
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function suppressRepairPopup(minutes = 10) {
-    try {
-      sessionStorage.setItem(
-        'certRepairPopupSuppressedUntil',
-        String(Date.now() + (minutes * 60 * 1000))
-      );
-    } catch (_) {}
-  }
-
-  function clearRepairPopupSuppression() {
-    try {
-      sessionStorage.removeItem('certRepairPopupSuppressedUntil');
-    } catch (_) {}
-  }
-
-  function shouldOpenRepairPopup(detail) {
-    const d = detail || {};
-    if (repairPopupSuppressed()) return false;
-    return d.open_modal === true;
-  }
-
-
   function issuePayPayloadReady() {
     const certUid = String($('issuePayCertUid')?.textContent || '').trim();
     const token = String($('issuePayToken')?.textContent || '').trim();
@@ -342,7 +311,6 @@
 
   function openRepairPaymentModal() {
     const modal = ensureRepairPaymentModal();
-    clearRepairPopupSuppression();
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     markCertModalOpen(true);
@@ -357,7 +325,6 @@
     markCertModalOpen(false);
     document.body.style.overflow = '';
     stopAutoPay();
-    suppressRepairPopup(10);
   }
 
   function fillRepairPaymentModal(certUid, json) {
@@ -1436,7 +1403,6 @@
 
     $('repairPaymentVerifyBtn')?.addEventListener('click', async () => {
       try {
-        clearRepairPopupSuppression();
         const certUid = String($('repairPaymentCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
         await handleConfirmPayment(certUid);
@@ -1455,8 +1421,8 @@
         return;
       }
       // auto verify disabled
-      setRepairPaymentAutoVerifyState(false);
-      showCenterNotice(textByLang('Auto verify is disabled.', '自动验证已停用。'), textByLang('Notice', '提示'));
+      setRepairPaymentAutoVerifyState(true);
+      appendLogLine(`Repair auto verify started: ${certUid}`, 'ok');
     });
 
     $('repairPaymentStopBtn')?.addEventListener('click', () => {
@@ -1574,8 +1540,7 @@
 
     document.addEventListener('cert:payment-reconfirm', async (ev) => {
       try {
-        const detail = ev?.detail || {};
-        const certUid = String(detail.cert_uid || '').trim();
+        const certUid = String(ev?.detail?.cert_uid || '').trim();
         if (!certUid) return;
 
         state.selectedCertUid = certUid;
@@ -1583,13 +1548,13 @@
         setText('activeCertUid', certUid);
         setText('issuePayCertUid', certUid);
 
-        const row = detail.row || null;
+        const row = ev?.detail?.row || null;
         if (row && typeof row === 'object') {
           setText('activeCode', row.rwa_code || '—');
           setText('activePaymentRef', row.payment_ref || '—');
           setText('activePaymentText', row.payment_text || '—');
           setText('activeNftItem', row.nft_item_address || '—');
-          setText('nextStepBanner', textByLang('Payment selected. Open Repair Payment manually if needed.', '已选择支付记录。如需要，请手动打开 Repair Payment。'));
+          setText('nextStepBanner', textByLang('Refreshing payment verification…', '正在刷新支付验证…'));
         }
 
         setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
@@ -1604,10 +1569,9 @@
           }
         };
         fillRepairPaymentModal(certUid, seed);
-
-        if (shouldOpenRepairPopup(detail)) {
-          openRepairPaymentModal();
-        }
+        openRepairPaymentModal();
+        // auto verify disabled
+        await handleConfirmPayment(certUid);
       } catch (e) {
         err('cert:payment-reconfirm failed', e);
         appendLogLine(`Reconfirm Payment failed: ${e.message}`, 'warn');
