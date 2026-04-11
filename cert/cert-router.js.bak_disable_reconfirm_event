@@ -602,7 +602,9 @@
     const row = findRowByUid(uid);
     selectRow(row, 'payment_confirmation');
 
-    document.// 🔒 disabled auto payment-reconfirm event;
+    document.dispatchEvent(new CustomEvent('cert:payment-reconfirm', {
+      detail: { cert_uid: uid, row: row, queue_bucket: 'payment_confirmation' }
+    }));
 
     pausePolling(1200);
     requestQueueRefreshSoon(1800);

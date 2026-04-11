@@ -225,11 +225,36 @@
   }
 
 
+  function repairPopupSuppressed() {
+    try {
+      const until = Number(sessionStorage.getItem('certRepairPopupSuppressedUntil') || '0');
+      return Number.isFinite(until) && until > Date.now();
+    } catch (_) {
+      return false;
     }
+  }
 
-  
-  
-  
+  function suppressRepairPopup(minutes = 10) {
+    try {
+      sessionStorage.setItem(
+        'certRepairPopupSuppressedUntil',
+        String(Date.now() + (minutes * 60 * 1000))
+      );
+    } catch (_) {}
+  }
+
+  function clearRepairPopupSuppression() {
+    try {
+      sessionStorage.removeItem('certRepairPopupSuppressedUntil');
+    } catch (_) {}
+  }
+
+  function shouldOpenRepairPopup(detail) {
+    const d = detail || {};
+    if (repairPopupSuppressed()) return false;
+    return d.open_modal === true;
+  }
+
 
   function issuePayPayloadReady() {
     const certUid = String($('issuePayCertUid')?.textContent || '').trim();
@@ -259,15 +284,117 @@
   }
 
 
-      });
+  function ensureRepairPaymentModal() {
+    let modal = $('repairPaymentModal');
+    if (modal) return modal;
+
+    const wrap = document.createElement('div');
+    wrap.id = 'repairPaymentModal';
+    wrap.className = 'cert-modal repair-payment-modal';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML = `
+      <div class="repair-payment-panel modal-panel">
+        <div class="repair-payment-head">
+          <div>
+            <div class="repair-payment-kicker">PAYMENT REPAIR</div>
+            <div class="repair-payment-title">Reconfirm Payment</div>
+          </div>
+          <button type="button" id="repairPaymentCloseBtn" class="repair-payment-close">Close</button>
+        </div>
+
+        <div class="repair-payment-grid">
+          <div class="repair-payment-left">
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">CERT UID</div>
+              <div class="repair-payment-value" id="repairPaymentCertUid">—</div>
+            </div>
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">TOKEN</div>
+              <div class="repair-payment-value" id="repairPaymentToken">—</div>
+            </div>
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">AMOUNT</div>
+              <div class="repair-payment-value" id="repairPaymentAmount">—</div>
+            </div>
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">PAYMENT REF</div>
+              <div class="repair-payment-value" id="repairPaymentRef">—</div>
+            </div>
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">PAYMENT STATUS</div>
+              <div class="repair-payment-value" id="repairPaymentStatus">Waiting.</div>
+            </div>
+            <div class="repair-payment-field">
+              <div class="repair-payment-label">AUTO VERIFY</div>
+              <div class="repair-payment-value" id="repairPaymentAutoVerifyText">Idle</div>
+            </div>
+          </div>
+
+          <div class="repair-payment-right">
+            <div class="repair-payment-note">
+              Use this popup only for payment recovery and reconfirmation.
+              QR is hidden here to avoid accidental repeated payment.
+            </div>
+
+            <div class="repair-payment-actions">
+              <button type="button" id="repairPaymentVerifyBtn" class="repair-payment-btn">Reconfirm Now</button>
+              <button type="button" id="repairPaymentAutoBtn" class="repair-payment-btn">Disabled</button>
+              <button type="button" id="repairPaymentStopBtn" class="repair-payment-btn">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    wrap.addEventListener('click', (ev) => {
+      if (ev.target === wrap) { stopAutoPay();
+        stopAutoPay(); closeRepairPaymentModal();
+      }
+    });
 
     return wrap;
   }
 
-  
-  
-  
-  
+  function openRepairPaymentModal() {
+    const modal = ensureRepairPaymentModal();
+    clearRepairPopupSuppression();
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    markCertModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRepairPaymentModal() {
+    const modal = $('repairPaymentModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    markCertModalOpen(false);
+    document.body.style.overflow = '';
+    stopAutoPay();
+    suppressRepairPopup(10);
+  }
+
+  function fillRepairPaymentModal(certUid, json) {
+    const payment = json?.payment || {};
+    setText('repairPaymentCertUid', certUid || '—');
+    setText('repairPaymentToken', payment.token_symbol || payment.token || '—');
+    setText('repairPaymentAmount', payment.amount || '—');
+    setText('repairPaymentRef', payment.payment_ref || '—');
+    setText('repairPaymentStatus', payment.status || textByLang('Waiting.', '等待中。'));
+    setText('repairPaymentAutoVerifyText', textByLang('Idle', '空闲'));
+  }
+
+  function setRepairPaymentAutoVerifyState(running) {
+    setText(
+      'repairPaymentAutoVerifyText',
+      running
+        ? textByLang('Running every 5s', '每5秒自动验证')
+        : textByLang('Idle', '空闲')
+    );
+  }
+
   const TYPE_MAP = {
     green:      { rwa_type: 'green',      family: 'genesis',   rwa_code: 'RCO2C-EMA',  token: 'WEMS', amount: '1000',  title: 'Green',           familyLabel: 'GENESIS',   unit: '10 kg tCO2e' },
     blue:       { rwa_type: 'blue',       family: 'genesis',   rwa_code: 'RH2O-EMA',   token: 'WEMS', amount: '5000',  title: 'Blue',            familyLabel: 'GENESIS',   unit: '100 liters or m³' },
@@ -1068,7 +1195,9 @@
 
     const payment = res?.payment || {};
     fillIssuePayModal(uid, { cert_uid: uid, payment, preview_row: { queue_bucket: res?.read_model?.queue_bucket || '' } });
-        
+    fillRepairPaymentModal(uid, { cert_uid: uid, payment, preview_row: { queue_bucket: res?.read_model?.queue_bucket || '' } });
+    fillRepairPaymentModal(uid, { cert_uid: uid, payment, preview_row: { queue_bucket: res?.read_model?.queue_bucket || '' } });
+
     if (res?.read_model && typeof res.read_model === 'object') {
       applyVerifyRowToActive(res.read_model);
     } else {
@@ -1095,8 +1224,11 @@
     setRepairPaymentAutoVerifyState(false);
   }
 
-  function startAutoPay(){ return; }
-        const res = // removed auto confirm
+  function startAutoPay(certUid) {
+  console.warn('Auto verify disabled globally');
+  return;
+}
+        const res = await handleConfirmPayment(uid);
         const verified = res?.verified === true || res?.payment?.status === 'confirmed';
         if (verified) stopAutoPay();
       } catch (e) {
@@ -1314,8 +1446,16 @@
 
   function bindIssuePayModal() {
 
+    ensureRepairPaymentModal();
+
+    $('repairPaymentCloseBtn')?.addEventListener('click', closeRepairPaymentModal);
+
+    $('repairPaymentVerifyBtn')?.addEventListener('click', async () => {
+      try {
+        clearRepairPopupSuppression();
+        const certUid = String($('repairPaymentCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
-        // removed auto confirm
+        await handleConfirmPayment(certUid);
       } catch (e) {
         err('repair payment verify failed', e);
         appendLogLine(`Repair verify failed: ${e.message}`, 'warn');
@@ -1324,7 +1464,9 @@
       }
     });
 
-          if (!certUid || certUid === '—') {
+    $('repairPaymentAutoBtn')?.addEventListener('click', () => {
+      const certUid = String($('repairPaymentCertUid')?.textContent || '').trim();
+      if (!certUid || certUid === '—') {
         showCenterNotice(textByLang('No active payment cert.', '没有可用的支付证书。'), textByLang('Notice', '提示'));
         return;
       }
@@ -1333,7 +1475,9 @@
       showCenterNotice(textByLang('Auto verify is disabled.', '自动验证已停用。'), textByLang('Notice', '提示'));
     });
 
-          setRepairPaymentAutoVerifyState(false);
+    $('repairPaymentStopBtn')?.addEventListener('click', () => {
+      stopAutoPay();
+      setRepairPaymentAutoVerifyState(false);
       appendLogLine('Repair auto verify stopped.', 'ok');
     });
 
@@ -1376,7 +1520,7 @@
         if (!guardIssuePayAction()) return;
         const certUid = String($('issuePayCertUid')?.textContent || '').trim();
         if (!certUid || certUid === '—') throw new Error('NO_ACTIVE_PAYMENT_CERT');
-        // removed auto confirm
+        await handleConfirmPayment(certUid);
       } catch (e) {
         err('manual confirm payment failed', e);
         appendLogLine(`Refresh verify failed: ${e.message}`, 'warn');
@@ -1444,7 +1588,50 @@
       }
     });
 
+    document.addEventListener('cert:payment-reconfirm', async (ev) => {
+      try {
+        const detail = ev?.detail || {};
+        const certUid = String(detail.cert_uid || '').trim();
+        if (!certUid) return;
+
+        state.selectedCertUid = certUid;
+        window.__CERT_SELECTED_UID = certUid;
+        setText('activeCertUid', certUid);
+        setText('issuePayCertUid', certUid);
+
+        const row = detail.row || null;
+        if (row && typeof row === 'object') {
+          setText('activeCode', row.rwa_code || '—');
+          setText('activePaymentRef', row.payment_ref || '—');
+          setText('activePaymentText', row.payment_text || '—');
+          setText('activeNftItem', row.nft_item_address || '—');
+          setText('nextStepBanner', textByLang('Payment selected. Open Repair Payment manually if needed.', '已选择支付记录。如需要，请手动打开 Repair Payment。'));
+        }
+
+        setFlowState(FLOW.PAYMENT, { cert_uid: certUid });
+
+        const seed = {
+          cert_uid: certUid,
+          payment: {
+            token_symbol: row?.payment_token || row?.token_symbol || '',
+            amount: row?.payment_amount || row?.amount || '',
+            payment_ref: row?.payment_ref || '',
+            status: row?.payment_status || 'Waiting'
+          }
+        };
+        fillRepairPaymentModal(certUid, seed);
+
+        if (shouldOpenRepairPopup(detail)) {
+          openRepairPaymentModal();
+        }
+      } catch (e) {
+        err('cert:payment-reconfirm failed', e);
+        appendLogLine(`Reconfirm Payment failed: ${e.message}`, 'warn');
+        const mapped = mapUserFacingErrorMessage(e?.message || e);
+        showCenterNotice(mapped.body, mapped.title);
       }
+    });
+  }
 
   async function handleRealtimeFinalize(certUid, runner) {
     await writeMintHandoffMarker(certUid);
@@ -1453,22 +1640,7 @@
   }
 
   function boot() {
-
-    // 🔥 force clear modal on load
-    try {
-      if (m1) m1.remove();
-
-      const m2 = document.getElementById('issuePayModal');
-      if (m2) {
-        m2.classList.remove('active');
-        m2.setAttribute('aria-hidden', 'true');
-      }
-
-      document.body.classList.remove('cert-modal-open');
-      document.body.style.overflow = '';
-    } catch(e){}
-
-    
+    ensureRepairPaymentStyle();
     renderBalanceTokenImages();
     loadStorageSummary().catch(warn);
     bindCardSelection();
